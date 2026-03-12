@@ -1,0 +1,66 @@
+.page {
+  font-family: "Inter", sans-serif;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+}
+
+.sidebarContainer {
+  width: 80px;
+  transition: width 0.3s ease-in-out;
+}
+
+.sidebarContainer:hover {
+  width: 240px;
+}
+
+.sidebarText {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: opacity 0.3s ease-in-out, width 0.3s ease-in-out;
+}
+
+.sidebarContainer:hover .sidebarText {
+  opacity: 1;
+  width: auto;
+  margin-left: 0.75rem;
+}
+
+.sidebarHeaderText {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: opacity 0.3s ease-in-out, width 0.3s ease-in-out;
+}
+
+.sidebarContainer:hover .sidebarHeaderText {
+  opacity: 1;
+  width: auto;
+}
+
+.fabContainer {
+  width: 3.5rem;
+  transition: width 0.3s ease-in-out, background-color 0.2s;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.fabContainer:hover {
+  width: 10rem;
+}
+
+.fabText {
+  opacity: 0;
+  width: 0;
+  display: inline-block;
+  transition: opacity 0.2s ease-in-out 0.1s;
+}
+
+.fabContainer:hover .fabText {
+  opacity: 1;
+  width: auto;
+  margin-left: 0.5rem;
+}

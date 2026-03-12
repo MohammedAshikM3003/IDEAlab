@@ -1,0 +1,311 @@
+:global(:root) {
+  --primary: #ff9500;
+  --primary-dark: #935e04;
+  --navy-custom: #002147;
+  --coral-custom: #ff7a59;
+  --background-light: #f8f7f5;
+  --background-dark: #231b0f;
+}
+
+.sidebarContainer {
+  background-color: var(--navy-custom);
+  width: 80px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-x: hidden;
+  position: relative;
+  z-index: 50;
+  height: 100vh;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebarContainer:hover {
+  width: 240px;
+}
+
+.sidebarTextLabel,
+.logoTextLabel,
+.newBookingTextLabel {
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+  white-space: nowrap;
+  margin-left: 0;
+}
+
+.sidebarContainer:hover .sidebarTextLabel,
+.sidebarContainer:hover .logoTextLabel,
+.sidebarContainer:hover .newBookingTextLabel {
+  opacity: 1;
+  max-width: 150px; 
+  margin-left: 16px; 
+}
+
+.sidebarItem {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  gap: 0;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  overflow: hidden;
+}
+
+.sidebarContainer:hover .sidebarItem {
+  justify-content: flex-start;
+  padding: 0 16px;
+}
+
+.sidebarIcon {
+  font-size: 24px;
+  min-width: 24px;
+}
+
+.sidebarLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.sidebarLabelActive {
+  color: #ffffff;
+}
+
+.sidebarLabelHover {
+  transition: color 0.2s ease;
+}
+
+.sidebarItemHover:hover .sidebarLabelHover {
+  color: var(--primary);
+}
+
+.expandOnly {
+  display: none;
+  align-items: center;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sidebarContainer:hover .expandOnly {
+  display: flex;
+}
+
+.navLink {
+  color: rgba(255, 255, 255, 0.8);
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+
+.navLinkActive {
+  color: #ffffff;
+}
+
+.icon {
+  color: rgba(255, 255, 255, 0.9);
+  transition: color 0.2s ease;
+}
+
+.sidebarItemHover:hover .icon {
+  color: var(--primary);
+}
+
+.sidebarItemHover:hover .sidebarLabel {
+  color: var(--primary);
+}
+
+.sidebarItemActive .icon {
+  color: #ffffff;
+}
+
+.badge {
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  transition: opacity 0.25s ease-in-out, max-width 0.25s ease-in-out;
+  white-space: nowrap;
+  margin-right: 16px;
+  margin-left: auto;
+  text-align: right;
+  background-color: var(--primary);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.sidebarContainer:hover .badge {
+  opacity: 1;
+  max-width: 60px;
+}
+
+.sidebarItemActive {
+  background-color: var(--primary);
+  color: white;
+}
+
+.sidebarItemActive :global(.material-icons) {
+  color: white;
+}
+
+.nav {
+  flex: 1;
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.logoRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoMark {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  background-color: var(--primary);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  color: #ffffff;
+}
+
+.logoText {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-size: 18px;
+  color: #ffffff;
+  padding-left: 4px;
+}
+
+.sidebarItemHover:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.logoArea {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px; 
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer {
+  padding: 0 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.footerButton {
+  width: 100%;
+  border-radius: 8px;
+  border-left: 0;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.sidebarContainer:hover .footerButton {
+  justify-content: flex-start;
+}
+
+.footerButtonPrimary {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+.footerButtonCoral {
+  background-color: var(--coral-custom);
+  color: #ffffff;
+}
+
+.logoutButton {
+  background-color: #ff7a59;
+  color: #ffffff;
+}
+
+.logoutButton:hover {
+  background-color: #ff7a59;
+  color: #ffffff;
+}
+
+.logoutButton :global(.material-icons) {
+  color: #ffffff;
+}
+
+.newBookingWrapper {
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.newBookingBtn {
+  background-color: var(--primary);
+  color: white;
+  border-radius: 9999px;
+  height: 48px;
+  width: 48px;
+  min-width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  border: 0;
+  padding: 0;
+}
+
+.sidebarContainer:hover .newBookingBtn {
+  width: 100%;
+  border-radius: 0.5rem;
+  justify-content: flex-start;
+  padding: 0 16px;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 1024px) {
+  .sidebarContainer {
+    position: fixed;
+    height: 100%;
+    width: 240px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .sidebarTextLabel,
+  .logoTextLabel,
+  .newBookingTextLabel {
+    opacity: 1;
+    max-width: none;
+    margin-left: 16px;
+  }
+
+  .newBookingBtn {
+    width: 100%;
+    border-radius: 0.5rem;
+    padding: 0 16px;
+    justify-content: flex-start;
+  }
+
+  /* These react to the hidden checkbox in your layout */
+  :global(#mobile-menu-toggle:checked) ~ div .sidebarContainer {
+    transform: translateX(0);
+  }
+}

@@ -1,0 +1,894 @@
+.page {
+  font-family: "Inter", sans-serif;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+}
+
+.noScroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.noScroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  background-color: white;
+  border-bottom: 1px solid rgb(229, 231, 235);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.toolLeft,
+.toolRight {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Date Navigator */
+.datePicker {
+  display: flex;
+  align-items: center;
+  background-color: rgb(249, 250, 251);
+  border: 1px solid rgb(229, 231, 235);
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+}
+
+.dateInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.75rem;
+}
+
+.navBtn {
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  color: rgb(100, 116, 139);
+  transition: all 0.15s ease;
+}
+
+.navBtn:hover {
+  background-color: white;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Filter Select */
+.filterWrap {
+  position: relative;
+}
+
+.filterDrop {
+  appearance: none;
+  background-color: rgb(249, 250, 251);
+  border: 1px solid rgb(229, 231, 235);
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 2rem 0.5rem 2.25rem;
+  width: 12rem;
+  font-weight: 500;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.filterDrop:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);
+}
+
+.filterIco,
+.filterArrow {
+  position: absolute;
+  pointer-events: none;
+  font-size: 1.125rem;
+  color: rgb(148, 163, 184);
+}
+
+.filterIco {
+  left: 0.625rem;
+  top: 0.625rem;
+}
+
+.filterArrow {
+  right: 0.625rem;
+  top: 0.625rem;
+}
+
+/* Toggle Switch */
+.toggleWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.toggleLbl {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(71, 85, 105);
+}
+
+.toggle {
+  position: relative;
+  display: inline-flex;
+  height: 1.5rem;
+  width: 2.75rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-color: rgb(34, 197, 94);
+  transition: all 0.2s ease;
+}
+
+.toggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px rgb(249, 115, 22);
+}
+
+.knob {
+  pointer-events: none;
+  display: inline-block;
+  height: 1.25rem;
+  width: 1.25rem;
+  transform: translateX(1.25rem);
+  border-radius: 9999px;
+  background-color: white;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+/* Live Badge */
+.livePill {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  background-color: rgb(240, 253, 244);
+  border: 1px solid rgb(220, 252, 231);
+  border-radius: 9999px;
+}
+
+.liveRing {
+  position: relative;
+  display: flex;
+  height: 0.625rem;
+  width: 0.625rem;
+}
+
+.livePulse {
+  position: absolute;
+  display: inline-flex;
+  height: 100%;
+  width: 100%;
+  border-radius: 9999px;
+  background-color: rgb(34, 197, 94);
+  opacity: 0.75;
+  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.liveDot {
+  position: relative;
+  display: inline-flex;
+  border-radius: 9999px;
+  height: 0.625rem;
+  width: 0.625rem;
+  background-color: rgb(34, 197, 94);
+}
+
+.liveLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgb(21, 128, 61);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Main Content */
+.body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  background-color: rgb(243, 244, 246);
+  padding: 1.5rem;
+  gap: 1.5rem;
+  position: relative;
+}
+
+/* Floating Actions */
+.fabGroup {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.fab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.fab:hover {
+  transform: scale(1.05);
+}
+
+.fab:active {
+  transform: scale(0.95);
+}
+
+.fabPrimary {
+  composes: fab;
+  background-color: rgb(249, 115, 22);
+  color: white;
+}
+
+.fabPrimary:hover {
+  background-color: rgb(234, 88, 12);
+}
+
+.fabSecondary {
+  composes: fab;
+  background-color: rgb(17, 24, 39);
+  color: white;
+}
+
+.fabSecondary:hover {
+  background-color: rgb(31, 41, 55);
+}
+
+/* Panels */
+.panel {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-radius: 0.625rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgb(229, 231, 235);
+  overflow: hidden;
+}
+
+.leftPanel {
+  composes: panel;
+  width: 40%;
+}
+
+.rightPanel {
+  composes: panel;
+  width: 60%;
+}
+
+/* Panel Header */
+.pHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background-color: var(--navy-custom, #0b2a55);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pHeadLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pHeadIcon {
+  color: white;
+}
+
+.pHeadTitle {
+  color: white;
+  font-weight: 700;
+  font-size: 1.125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.pHeadLive {
+  position: relative;
+  display: flex;
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+/* Tab Group */
+.tabGroup {
+  display: flex;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  padding: 0.125rem;
+}
+
+.tabActive,
+.tabInactive {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 0.375rem;
+  transition: all 0.15s ease;
+}
+
+.tabActive {
+  background-color: white;
+  color: var(--navy-custom, #0b2a55);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.tabInactive {
+  color: white;
+  font-weight: 500;
+}
+
+.tabInactive:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Panel Content */
+.pBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.pGrid {
+  composes: pBody;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Venue Cards */
+.venueCard {
+  background-color: white;
+  border-radius: 0.625rem;
+  padding: 1.25rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.venueCard:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.cardInUse {
+  composes: venueCard;
+  border-left: 4px solid rgb(239, 68, 68);
+}
+
+.cardOpen {
+  composes: venueCard;
+  border-left: 4px solid rgb(34, 197, 94);
+}
+
+.cardMaint {
+  composes: venueCard;
+  border-left: 4px solid rgb(217, 119, 6);
+  opacity: 0.9;
+}
+
+.cardMaint:hover {
+  opacity: 1;
+}
+
+/* Card Header */
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.cardHeaderAvailable {
+  composes: cardHeader;
+  margin-bottom: 1rem;
+}
+
+.venueInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.venueIcon {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.iconRed {
+  composes: venueIcon;
+  background-color: rgb(254, 242, 242);
+  color: rgb(239, 68, 68);
+}
+
+.iconGreen {
+  composes: venueIcon;
+  background-color: rgb(240, 253, 244);
+  color: rgb(34, 197, 94);
+}
+
+.iconAmber {
+  composes: venueIcon;
+  background-color: rgb(255, 251, 235);
+  color: rgb(217, 119, 6);
+}
+
+.venueDetails h3 {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: rgb(30, 41, 59);
+}
+
+.venueDetails p {
+  font-size: 0.75rem;
+  color: rgb(100, 116, 139);
+  font-weight: 500;
+}
+
+/* Status Badges */
+.badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.tagInUse {
+  composes: badge;
+  background-color: rgb(254, 226, 226);
+  color: rgb(239, 68, 68);
+}
+
+.tagOpen {
+  composes: badge;
+  background-color: rgb(220, 252, 231);
+  color: rgb(34, 197, 94);
+}
+
+.tagMaint {
+  composes: badge;
+  background-color: rgb(254, 243, 199);
+  color: rgb(217, 119, 6);
+}
+
+.tagOk {
+  composes: badge;
+  background-color: rgb(220, 252, 231);
+  color: rgb(34, 197, 94);
+}
+
+.tagPending {
+  composes: badge;
+  background-color: rgb(254, 243, 199);
+  color: rgb(217, 119, 6);
+}
+
+.tagConflict {
+  composes: badge;
+  background-color: rgb(254, 226, 226);
+  color: rgb(239, 68, 68);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Session Progress */
+.progress {
+  margin-bottom: 1rem;
+}
+
+.progressInfo {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: rgb(71, 85, 105);
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.timeLeft {
+  color: rgb(239, 68, 68);
+}
+
+.bar {
+  height: 0.5rem;
+  width: 100%;
+  background-color: rgb(243, 244, 246);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background-color: rgb(239, 68, 68);
+  width: 75%;
+  border-radius: 9999px;
+}
+
+/* Card Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: rgb(100, 116, 139);
+  border-top: 1px solid rgb(243, 244, 246);
+  padding-top: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.instructor {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.nextAvailable {
+  font-weight: 600;
+  color: rgb(34, 197, 94);
+}
+
+/* Availability Notice */
+.availNote {
+  font-size: 0.875rem;
+  color: rgb(71, 85, 105);
+  margin-bottom: 1rem;
+  background-color: rgb(249, 250, 251);
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid rgb(243, 244, 246);
+}
+
+.availNote span {
+  font-weight: 700;
+}
+
+/* Action Buttons */
+.actionBtn {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.actionBtn:hover {
+  background-color: rgb(21, 128, 61);
+}
+
+.btnGreen {
+  composes: actionBtn;
+  background-color: rgb(34, 197, 94);
+  color: white;
+}
+
+.btnGreen:hover {
+  background-color: rgb(21, 128, 61);
+}
+
+/* Alert Box */
+.alert {
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  background-color: rgb(254, 251, 231);
+  border: 1px solid rgb(254, 243, 199);
+}
+
+.alertHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.alertIco {
+  color: rgb(217, 119, 6);
+  font-size: 1.125rem;
+  margin-top: 0.125rem;
+}
+
+.alertLbl {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgb(217, 119, 6);
+  text-transform: uppercase;
+  margin-bottom: 0.125rem;
+}
+
+.alertMsg {
+  font-size: 0.75rem;
+  color: rgb(71, 85, 105);
+}
+
+/* Schedule Timeline */
+.schedule {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  background-color: rgb(249, 250, 251);
+}
+
+.scheduleRow {
+  display: flex;
+  position: relative;
+}
+
+.scheduleRow:hover {
+  background-color: white;
+}
+
+.timeCol {
+  width: 5rem;
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  border-right: 1px solid rgb(229, 231, 235);
+  background-color: white;
+  z-index: 10;
+}
+
+.timeLabel {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: rgb(30, 41, 59);
+}
+
+.timeSub {
+  font-size: 0.75rem;
+  color: rgb(148, 163, 184);
+}
+
+.schedule {
+  position: absolute;
+  width: 1px;
+  background-color: rgb(229, 231, 235);
+  top: 2.5rem;
+  bottom: 0;
+  left: 2.4375rem;
+  z-index: -10;
+}
+
+.event {
+  flex: 1;
+  padding: 1rem;
+  border-bottom: 1px solid rgb(243, 244, 246);
+}
+
+.event:hover {
+  background-color: white;
+}
+
+.eventRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dot {
+  width: 0.375rem;
+  height: 4rem;
+  border-radius: 9999px;
+  background-color: rgb(34, 197, 94);
+}
+
+.dotPending {
+  composes: dot;
+  height: 100%;
+  min-height: 4rem;
+  background-color: rgb(217, 119, 6);
+}
+
+.dotConflict {
+  composes: dot;
+  height: 100%;
+  min-height: 4rem;
+  background-color: rgb(239, 68, 68);
+}
+
+.eventPending {
+  background-color: rgba(245, 158, 11, 0.08);
+}
+
+.eventPending:hover {
+  background-color: rgba(245, 158, 11, 0.12);
+}
+
+.eventBody {
+  flex: 1;
+}
+
+.eventHead {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.eventName {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: rgb(30, 41, 59);
+}
+
+.eventMeta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: rgb(100, 116, 139);
+  margin-bottom: 0.5rem;
+}
+
+.eventMeta span {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Requester Info */
+.requester {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reqAvatar {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  border: 1px solid white;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.reqName {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgb(71, 85, 105);
+}
+
+/* Pending Actions */
+.pendingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+}
+
+.pendingInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: rgb(100, 116, 139);
+}
+
+.pendingInfo span {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.btnRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btnSecondary {
+  padding: 0.25rem 0.75rem;
+  background-color: white;
+  border: 1px solid rgb(209, 213, 219);
+  color: rgb(71, 85, 105);
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease;
+}
+
+.btnSecondary:hover {
+  background-color: rgb(249, 250, 251);
+}
+
+.btnPrimary {
+  padding: 0.25rem 0.75rem;
+  background-color: rgb(249, 115, 22);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease;
+}
+
+.btnPrimary:hover {
+  background-color: rgb(234, 88, 12);
+}
+
+/* Conflict Card */
+.conflictItem {
+  composes: event;
+  background-color: rgba(239, 68, 68, 0.06);
+  border-left: 4px solid rgb(239, 68, 68);
+}
+
+.conflictItem:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.conflictHead {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.conflictIcon {
+  color: rgb(239, 68, 68);
+}
+
+.conflictMsg {
+  font-size: 0.875rem;
+  color: rgb(71, 85, 105);
+  margin-top: 0.25rem;
+}
+
+.conflictBtn {
+  margin-top: 0.75rem;
+  color: rgb(239, 68, 68);
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.conflictBtn:hover {
+  text-decoration: underline;
+}
+
+

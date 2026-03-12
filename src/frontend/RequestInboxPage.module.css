@@ -1,0 +1,33 @@
+.page {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.p-1 hover:bg-slate-100 rounded text-slate-400{
+  background-color: #ff7a59;
+}
+
+.customScrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.customScrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.customScrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.customScrollbar:hover::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+.cardShadow {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}

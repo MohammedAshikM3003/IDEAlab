@@ -1,0 +1,253 @@
+:global(:root) {
+  --primary: #ff7857;
+  --background-light: #f8f6f5;
+  --background-dark: #23130f;
+  --ksr-navy: #002147;
+}
+
+.page {
+  font-family: "Public Sans", sans-serif;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: var(--background-light);
+}
+
+:global(.dark) .page {
+  background: var(--background-dark);
+}
+
+.mock {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mockRow {
+  display: flex;
+  height: 100%;
+}
+
+.mockSidebar {
+  width: 256px;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  padding: 24px;
+  gap: 24px;
+  display: none;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .mockSidebar {
+    display: flex;
+  }
+}
+
+.mockSidebarTitle {
+  height: 32px;
+  width: 128px;
+  background: #e5e7eb;
+  border-radius: 12px;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.mockSidebarLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.mockSidebarLink,
+.mockSidebarLinkSmall,
+.mockSidebarLinkMed {
+  height: 16px;
+  background: #f3f4f6;
+  border-radius: 8px;
+}
+
+.mockSidebarLinkSmall {
+  width: 75%;
+}
+
+.mockSidebarLinkMed {
+  width: 83.3333%;
+}
+
+.mockMain {
+  flex: 1;
+  background: var(--background-light);
+  padding: 32px;
+}
+
+.mockHeading {
+  height: 32px;
+  width: 192px;
+  background: #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 32px;
+}
+
+.mockCards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .mockCards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.mockCard {
+  height: 160px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.mockBigCard {
+  margin-top: 32px;
+  height: 384px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.backdrop {
+  display: none;
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 20px;
+  background: #ffffff;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
+}
+
+.iconWrap {
+  width: 80px;
+  height: 80px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff0ec;
+  margin-bottom: 24px;
+}
+
+.icon {
+  font-size: 36px;
+  color: #ff7a59;
+}
+
+.textBlock {
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--ksr-navy);
+}
+
+.message {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+.actions {
+  display: flex;
+  width: 100%;
+  gap: 12px;
+}
+
+.stayBtn,
+.logoutBtn {
+  flex: 1;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.stayBtn {
+  border: 1px solid #e5e7eb;
+  background: transparent;
+  color: #4b5563;
+}
+
+.stayBtn:hover {
+  background: #f9fafb;
+}
+
+.stayBtn:focus,
+.logoutBtn:focus {
+  outline: none;
+}
+
+.stayBtn:focus {
+  box-shadow: 0 0 0 2px rgba(229, 231, 235, 0.9), 0 0 0 4px rgba(255, 255, 255, 0.9);
+}
+
+.logoutBtn {
+  border: 0;
+  background: #ff7a59;
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
+.logoutBtn:hover {
+  background: #e66a4c;
+}
+
+.logoutBtn:focus {
+  box-shadow: 0 0 0 2px rgba(255, 120, 87, 0.35), 0 0 0 4px rgba(255, 255, 255, 0.9);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
