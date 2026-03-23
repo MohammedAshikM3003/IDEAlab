@@ -1,28 +1,8 @@
 import React, { useMemo, useState } from 'react'
 
+import PageHeader from './PageHeader'
 import Sidebar from './Sidebar'
 import styles from './SettingsPage.module.css'
-
-function IconBell({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M15 17H9m10-2V11a7 7 0 10-14 0v4l-2 2h18l-2-2Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-      <path
-        d="M10 19a2 2 0 0 0 4 0"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    </svg>
-  )
-}
 
 function IconShield({ className }) {
   return (
@@ -58,15 +38,6 @@ function IconDevices({ className }) {
   )
 }
 
-function IconClock({ className }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z" stroke="currentColor" strokeWidth="2" />
-      <path d="M12 6v6l4 2" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-    </svg>
-  )
-}
-
 function IconCheck({ className }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -96,88 +67,27 @@ export default function SettingsPage() {
   const tabs = useMemo(
     () => [
       { id: 'profile', label: 'Profile Details' },
-      { id: 'security', label: 'Security' },
-      { id: 'notifications', label: 'Notifications' },
-      { id: 'system', label: 'System' },
+      
     ],
     [],
   )
 
   return (
     <div className={styles.page}>
+      <input className="hidden" id="mobile-menu-toggle" type="checkbox" />
+
+      <label
+        className="hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+        htmlFor="mobile-menu-toggle"
+      />
+
       <div className={styles.shell}>
         <Sidebar activePage="settings" />
 
         <main className={styles.main}>
-          <header className={styles.topBar}>
-            <div className={styles.barTitle}>Account Settings</div>
-
-            <div className={styles.barRight}>
-              <button className={styles.iconBtn} type="button" aria-label="Notifications">
-                <IconBell className={styles.barIcon} />
-                <span className={styles.alertDot} />
-              </button>
-
-              <div className={styles.divider} />
-
-              <div className={styles.profileStrip}>
-                <div className={styles.profileInfo}>
-                  <div className={styles.userName}>Dr. Arul Kumaran</div>
-                  <div className={styles.userRole}>CHIEF ADMINISTRATOR</div>
-                </div>
-                <div className={styles.avatar} aria-hidden="true" />
-              </div>
-            </div>
-          </header>
+          <PageHeader title="Account Settings" />
 
           <div className={styles.mainContent}>
-            <section className={styles.statGrid}>
-              <div className={styles.statCard}>
-                <div className={`${styles.statIconWrap} ${styles.statIconOk}`}>
-                  <IconCheck className={styles.statIcon} />
-                </div>
-                <div>
-                  <div className={styles.statLbl}>Account Status</div>
-                  <div className={styles.statVal}>Active</div>
-                </div>
-              </div>
-
-              <div className={styles.statCard}>
-                <div className={styles.statRow}>
-                  <div>
-                    <div className={styles.statLbl}>Security Score</div>
-                    <div className={styles.statVal}>85%</div>
-                  </div>
-                  <div className={`${styles.statIconWrap} ${styles.statIconWarn}`}>
-                    <IconShield className={styles.statIconSm} />
-                  </div>
-                </div>
-                <div className={styles.track}>
-                  <div className={styles.trackFill} style={{ width: '85%' }} />
-                </div>
-              </div>
-
-              <div className={styles.statCard}>
-                <div className={`${styles.statIconWrap} ${styles.statIconInfo}`}>
-                  <IconDevices className={styles.statIcon} />
-                </div>
-                <div>
-                  <div className={styles.statLbl}>Active Sessions</div>
-                  <div className={styles.statVal}>3</div>
-                </div>
-              </div>
-
-              <div className={styles.statCard}>
-                <div className={`${styles.statIconWrap} ${styles.statIconPurple}`}>
-                  <IconClock className={styles.statIcon} />
-                </div>
-                <div>
-                  <div className={styles.statLbl}>Last Login</div>
-                  <div className={styles.statVal}>2h ago</div>
-                </div>
-              </div>
-            </section>
-
             <section className={styles.panelGrid}>
               <div className={styles.card}>
                 <div className={styles.cardHead}>Profile Management</div>
@@ -237,6 +147,7 @@ export default function SettingsPage() {
 
               <div className={styles.rightCol}>
                 <div className={`${styles.card} ${styles.profileCardWrap}`}>
+                  <div className={styles.pcLastLogin}>Last Login: 2h ago</div>
                   <div className={styles.pcAvatarWrap}>
                     <div className={styles.pcAvatar} aria-hidden="true" />
                     <span className={styles.onlineDot} />
@@ -286,6 +197,80 @@ export default function SettingsPage() {
                 </div>
               </div>
             </section>
+
+            
+
+{/* BOTTOM SECTION */}
+
+<section className={styles.activityGrid}>
+  <div className={styles.card}>
+    <div className={styles.bottomHead}>
+      <span>Recent Security Activity</span>
+      <a href="#" className={styles.link}>View Log</a>
+    </div>
+
+    <ul className={styles.activityList}>
+      <li className={styles.activityItem}>
+        <IconCheck className={`${styles.actIcon} ${styles.iconGreen}`} />
+        <div>
+          <div>Password updated successfully</div>
+          <div className={styles.activityTime}>Just now</div>
+        </div>
+      </li>
+      <li className={styles.activityItem}>
+        <IconDevices className={`${styles.actIcon} ${styles.iconBlue}`} />
+        <div>
+          <div>New login from Chrome/Windows</div>
+          <div className={styles.activityTime}>2h ago</div>
+        </div>
+      </li>
+      <li className={styles.activityItem}>
+        <IconCircle className={`${styles.actIcon} ${styles.iconGray}`} />
+        <div>
+          <div>Profile information updated</div>
+          <div className={styles.activityTime}>Yesterday</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <div className={styles.card}>
+    <div className={styles.bottomHead}>
+      <span>System Notifications</span>
+      <a href="#" className={styles.link}>Mark all read</a>
+    </div>
+
+    <ul className={styles.notificationList}>
+      <li className={`${styles.notificationItem} ${styles.notInfo}`}>
+        <div className={styles.notIconWrap}>
+          <IconShield className={styles.notIcon} />
+        </div>
+        <div>
+          <div className={styles.notTitle}>System Maintenance Scheduled</div>
+          <div className={styles.notDesc}>The portal will be down for maintenance on Oct 28th from 2 AM to 4 AM.</div>
+        </div>
+      </li>
+      <li className={`${styles.notificationItem} ${styles.notWarn}`}>
+        <div className={styles.notIconWrap}>
+          <IconShield className={styles.notIcon} />
+        </div>
+        <div>
+          <div className={styles.notTitle}>Pending Venue Approvals</div>
+          <div className={styles.notDesc}>You have 5 venue requests awaiting your approval.</div>
+        </div>
+      </li>
+      <li className={`${styles.notificationItem} ${styles.notOk}`}>
+        <div className={styles.notIconWrap}>
+          <IconShield className={styles.notIcon} />
+        </div>
+        <div>
+          <div className={styles.notTitle}>Monthly Report Generated</div>
+          <div className={styles.notDesc}>October analytics report is ready for download.</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
           </div>
         </main>
       </div>

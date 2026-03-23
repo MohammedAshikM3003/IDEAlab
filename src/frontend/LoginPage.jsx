@@ -65,7 +65,7 @@ export default function LoginPage() {
               <h2 className={styles.welcomeHead}>Welcome Back</h2>
             </div>
 
-            <form className={styles.form} action="#" onSubmit={handleSubmit}>
+            <form className={styles.formInner} action="#" onSubmit={handleSubmit}>
               <div className={styles.field}>
                 <label className={styles.label} htmlFor="email">
                   Institutional Email
@@ -111,14 +111,6 @@ export default function LoginPage() {
                     </span>
                   </button>
                 </div>
-              </div>
-
-              <div className={styles.actions}>
-                <div className={styles.remember}>
-                  <input type="checkbox" id="trust" className={styles.checkbox} />
-                  <label htmlFor="trust" className={styles.rememberLbl}>Trust this device</label>
-                </div>
-                <a href="#" className={styles.forgot}>Forgot credentials?</a>
               </div>
 
               <button className={styles.submit} type="submit">

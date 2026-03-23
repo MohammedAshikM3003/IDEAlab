@@ -1,102 +1,75 @@
 import React from 'react'
 
+import PageHeader from './PageHeader'
 import Sidebar from './Sidebar'
 import layoutStyles from './DashboardPage.module.css'
 import statusStyles from './StatusPage.module.css'
 
 export default function StatusPage() {
   return (
-    <div className={layoutStyles.root}>
+    <div className={layoutStyles.page}>
       <input className="hidden" id="mobile-menu-toggle" type="checkbox" />
 
       <label
-        className={`${layoutStyles.mobileOverlay} hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden`}
+        className={`${layoutStyles.overlay} hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden`}
         htmlFor="mobile-menu-toggle"
       />
 
-      <div className={`${layoutStyles.wrapper} flex h-screen overflow-hidden`}>
+      <div className={layoutStyles.wrap}>
         <Sidebar activePage="status" />
 
-        <div className={`${layoutStyles.mainArea} flex-1 flex flex-col min-w-0 transition-all duration-300`}>
-          <header className={`${layoutStyles.navBar} h-16 flex items-center justify-between px-4 lg:px-8 border-b border-white/10 text-white shrink-0`}>
-            <div className="flex items-center gap-4">
-              <label className="lg:hidden text-white cursor-pointer p-1 rounded hover:bg-white/10" htmlFor="mobile-menu-toggle">
-                <span className="material-icons">menu</span>
-              </label>
-              <h1 className="text-xl font-semibold tracking-tight truncate">Availability Tracker</h1>
-            </div>
- 
-            <div className="flex items-center gap-6">
-              <button className="relative p-1 text-white/80 hover:text-white transition-colors" type="button">
-                <span className="material-icons">notifications</span>
-                <span className={`absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 ${layoutStyles.navBar}`} />
-              </button>
-
-              <div className="flex items-center gap-3 border-l border-white/20 pl-6">
-                <div className="text-right hidden sm:block">
-                  <p className="text-xs font-medium text-white">Dr. Arul Kumaran</p>
-                  <p className="text-[10px] text-white/50 uppercase tracking-wider">Chief Administrator</p>
-                </div>
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-400 border-2 border-primary/20 flex-shrink-0">
-                  <img
-                    alt="Admin Profile"
-                    className="w-full h-full object-cover"
-                    src="https://ui-avatars.com/api/?name=Arul+Kumaran&background=0D47A1&color=fff"
-                  />
-                </div>
-              </div>
-            </div>
-          </header>
+        <div className={layoutStyles.main}>
+          <PageHeader title="Availability Tracker" />
 
           <div className={statusStyles.toolbar}>
-            <div className={statusStyles.toolLeft}>
-              <div className={statusStyles.datePicker}>
-                <button className={statusStyles.navBtn} type="button">
+            <div className={statusStyles.toolbarLeft}>
+              <div className={statusStyles.dateNavigator}>
+                <button className={statusStyles.navButton} type="button">
                   <span className="material-icons text-lg">chevron_left</span>
                 </button>
-                <div className={statusStyles.dateInfo}>
+                <div className={statusStyles.dateDisplay}>
                   <span className="material-icons text-slate-400 text-lg">calendar_today</span>
                   <span className="text-sm font-semibold text-slate-700">Today, Jan 26, 2026</span>
                 </div>
-                <button className={statusStyles.navBtn} type="button">
+                <button className={statusStyles.navButton} type="button">
                   <span className="material-icons text-lg">chevron_right</span>
                 </button>
               </div>
 
               <div className="h-8 w-px bg-gray-200" />
 
-              <div className={statusStyles.filterWrap}>
-                <select className={statusStyles.filterDrop}>
+              <div className={statusStyles.filterWrapper}>
+                <select className={statusStyles.filterSelect}>
                   <option>All Venues (15)</option>
                   <option>Lecture Halls</option>
                   <option>Labs</option>
                   <option>Auditoriums</option>
                 </select>
-                <span className={`material-icons ${statusStyles.filterIco}`}>filter_alt</span>
-                <span className={`material-icons ${statusStyles.filterArrow}`}>expand_more</span>
+                <span className={`material-icons ${statusStyles.filterIcon}`}>filter_alt</span>
+                <span className={`material-icons ${statusStyles.filterChevron}`}>expand_more</span>
               </div>
             </div>
 
-            <div className={statusStyles.toolRight}>
-              <div className={statusStyles.toggleWrap}>
-                <span className={statusStyles.toggleLbl}>Auto-refresh</span>
-                <button aria-checked="true" className={statusStyles.toggle} role="switch" type="button">
-                  <span className={statusStyles.knob} />
+            <div className={statusStyles.toolbarRight}>
+              <div className={statusStyles.toggleWrapper}>
+                <span className={statusStyles.toggleLabel}>Auto-refresh</span>
+                <button aria-checked="true" className={statusStyles.toggleSwitch} role="switch" type="button">
+                  <span className={statusStyles.toggleKnob} />
                 </button>
               </div>
 
-              <div className={statusStyles.livePill}>
-                <span className={statusStyles.liveRing}>
+              <div className={statusStyles.liveBadge}>
+                <span className={statusStyles.liveIndicator}>
                   <span className={statusStyles.livePulse} />
                   <span className={statusStyles.liveDot} />
                 </span>
-                <span className={statusStyles.liveLabel}>Live Updates</span>
+                <span className={statusStyles.liveText}>Live Updates</span>
               </div>
             </div>
           </div>
 
-          <main className={statusStyles.body}>
-            <div className={statusStyles.fabGroup}>
+          <main className={statusStyles.mainContent}>
+            <div className={statusStyles.floatingActions}>
               <button className={statusStyles.fabSecondary} type="button">
                 <span className="material-icons">handyman</span>
                 <span>Block Maintenance</span>
@@ -107,23 +80,23 @@ export default function StatusPage() {
               </button>
             </div>
 
-            <div className={statusStyles.leftPanel}>
-              <div className={statusStyles.pHead}>
-                <div className={statusStyles.pHeadLeft}>
-                  <span className={`material-icons ${statusStyles.pHeadIcon}`}>timer</span>
-                  <h2 className={statusStyles.pHeadTitle}>Right Now</h2>
+            <div className={statusStyles.panelLeft}>
+              <div className={statusStyles.panelHeader}>
+                <div className={statusStyles.panelHeaderLeft}>
+                  <span className={`material-icons ${statusStyles.panelHeaderIcon}`}>timer</span>
+                  <h2 className={statusStyles.panelHeaderTitle}>Right Now</h2>
                 </div>
-                <span className={statusStyles.pHeadLive}>
+                <span className={statusStyles.panelHeaderLive}>
                   <span className={statusStyles.livePulse} />
                   <span className={statusStyles.liveDot} />
                 </span>
               </div>
 
-              <div className={statusStyles.pGrid}>
-                <div className={statusStyles.cardInUse}>
+              <div className={statusStyles.panelContentGrid}>
+                <div className={statusStyles.venueCardInUse}>
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
-                      <div className={statusStyles.iconRed}>
+                      <div className={statusStyles.venueIconRed}>
                         <span className="material-icons">science</span>
                       </div>
                       <div>
@@ -131,7 +104,7 @@ export default function StatusPage() {
                         <p className="text-xs text-slate-500 font-medium">Capacity: 60 • First Floor</p>
                       </div>
                     </div>
-                    <span className={statusStyles.tagInUse}>In Use</span>
+                    <span className={statusStyles.badgeInUse}>In Use</span>
                   </div>
 
                   <div className="mb-4">
@@ -152,10 +125,10 @@ export default function StatusPage() {
                   </div>
                 </div>
 
-                <div className={statusStyles.cardOpen}>
+                <div className={statusStyles.venueCardAvailable}>
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-3">
-                      <div className={statusStyles.iconGreen}>
+                      <div className={statusStyles.venueIconGreen}>
                         <span className="material-icons">podium</span>
                       </div>
                       <div>
@@ -163,22 +136,22 @@ export default function StatusPage() {
                         <p className="text-xs text-slate-500 font-medium">Capacity: 120 • Ground Floor</p>
                       </div>
                     </div>
-                    <span className={statusStyles.tagOpen}>Available</span>
+                    <span className={statusStyles.badgeAvailable}>Available</span>
                   </div>
 
                   <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 bg-gray-50 dark:bg-slate-700/50 p-2 rounded border border-gray-100 dark:border-gray-700">
                     Currently vacant. Next booking starts at <span className="font-bold">3:00 PM</span>.
                   </p>
-                  <button className={statusStyles.btnGreen} type="button">
+                  <button className={statusStyles.buttonGreen} type="button">
                     <span className="material-icons text-lg">add_circle</span>
                     Book Now
                   </button>
                 </div>
 
-                <div className={statusStyles.cardMaint}>
+                <div className={statusStyles.venueCardMaintenance}>
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
-                      <div className={statusStyles.iconAmber}>
+                      <div className={statusStyles.venueIconAmber}>
                         <span className="material-icons">meeting_room</span>
                       </div>
                       <div>
@@ -186,15 +159,15 @@ export default function StatusPage() {
                         <p className="text-xs text-slate-500 font-medium">Capacity: 15 • Admin Block</p>
                       </div>
                     </div>
-                    <span className={statusStyles.tagMaint}>Maintenance</span>
+                    <span className={statusStyles.badgeMaintenance}>Maintenance</span>
                   </div>
 
-                  <div className={statusStyles.alert}>
-                    <div className={statusStyles.alertHead}>
-                      <span className={`material-icons ${statusStyles.alertIco}`}>warning</span>
+                  <div className={statusStyles.alertBox}>
+                    <div className={statusStyles.alertBoxHeader}>
+                      <span className={`material-icons ${statusStyles.alertIcon}`}>warning</span>
                       <div>
-                        <p className={statusStyles.alertLbl}>Projector Repair</p>
-                        <p className={statusStyles.alertMsg}>Est. completion: 4:00 PM today</p>
+                        <p className={statusStyles.alertTitle}>Projector Repair</p>
+                        <p className={statusStyles.alertText}>Est. completion: 4:00 PM today</p>
                       </div>
                     </div>
                   </div>
@@ -202,11 +175,11 @@ export default function StatusPage() {
               </div>
             </div>
 
-            <div className={statusStyles.rightPanel}>
-              <div className={statusStyles.pHead}>
-                <div className={statusStyles.pHeadLeft}>
-                  <span className={`material-icons ${statusStyles.pHeadIcon}`}>schedule</span>
-                  <h2 className={statusStyles.pHeadTitle}>Upcoming Schedule</h2>
+            <div className={statusStyles.panelRight}>
+              <div className={statusStyles.panelHeader}>
+                <div className={statusStyles.panelHeaderLeft}>
+                  <span className={`material-icons ${statusStyles.panelHeaderIcon}`}>schedule</span>
+                  <h2 className={statusStyles.panelHeaderTitle}>Upcoming Schedule</h2>
                 </div>
                 <div className={statusStyles.tabGroup}>
                   <button className={statusStyles.tabActive} type="button">
@@ -218,20 +191,20 @@ export default function StatusPage() {
                 </div>
               </div>
 
-              <div className={statusStyles.schedule}>
-                <div className={statusStyles.scheduleRow}>
-                  <div className={statusStyles.timeCol}>
+              <div className={statusStyles.timeline}>
+                <div className={statusStyles.timelineItem}>
+                  <div className={statusStyles.timeColumn}>
                     <span className={statusStyles.timeLabel}>2:00 PM</span>
-                    <span className={statusStyles.timeSub}>14:00</span>
-                    <div className={statusStyles.schedule} />
+                    <span className={statusStyles.timeSubLabel}>14:00</span>
+                    <div className={statusStyles.timeLine} />
                   </div>
-                  <div className={statusStyles.event}>
+                  <div className={statusStyles.eventContent}>
                     <div className={statusStyles.eventRow}>
-                      <div className={statusStyles.dot} />
+                      <div className={statusStyles.eventIndicator} />
                       <div className={statusStyles.eventBody}>
-                        <div className={statusStyles.eventHead}>
-                          <h4 className={statusStyles.eventName}>CS Department Exam</h4>
-                          <span className={statusStyles.tagOk}>Confirmed</span>
+                        <div className={statusStyles.eventHeader}>
+                          <h4 className={statusStyles.eventTitle}>CS Department Exam</h4>
+                          <span className={statusStyles.badgeConfirmed}>Confirmed</span>
                         </div>
                         <div className={statusStyles.eventMeta}>
                           <span>
@@ -244,29 +217,29 @@ export default function StatusPage() {
                         <div className={statusStyles.requester}>
                           <img
                             alt="RK"
-                            className={statusStyles.reqAvatar}
+                            className={statusStyles.requesterAvatar}
                             src="https://ui-avatars.com/api/?name=Rahul+Kumar&background=fff3e0&color=ff9500"
                           />
-                          <span className={statusStyles.reqName}>Req. by Rahul Kumar</span>
+                          <span className={statusStyles.requesterName}>Req. by Rahul Kumar</span>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className={statusStyles.scheduleRow}>
-                  <div className={statusStyles.timeCol}>
+                <div className={statusStyles.timelineItem}>
+                  <div className={statusStyles.timeColumn}>
                     <span className={statusStyles.timeLabel}>3:00 PM</span>
-                    <span className={statusStyles.timeSub}>15:00</span>
-                    <div className={statusStyles.schedule} />
+                    <span className={statusStyles.timeSubLabel}>15:00</span>
+                    <div className={statusStyles.timeLine} />
                   </div>
-                  <div className={statusStyles.event}>
+                  <div className={statusStyles.eventContent}>
                     <div className={statusStyles.eventRow}>
-                      <div className={statusStyles.dot} />
+                      <div className={statusStyles.eventIndicator} />
                       <div className={statusStyles.eventBody}>
-                        <div className={statusStyles.eventHead}>
-                          <h4 className={statusStyles.eventName}>Guest Lecture: Future AI</h4>
-                          <span className={statusStyles.tagOk}>Confirmed</span>
+                        <div className={statusStyles.eventHeader}>
+                          <h4 className={statusStyles.eventTitle}>Guest Lecture: Future AI</h4>
+                          <span className={statusStyles.badgeConfirmed}>Confirmed</span>
                         </div>
                         <div className={statusStyles.eventMeta}>
                           <span>
@@ -281,27 +254,27 @@ export default function StatusPage() {
                   </div>
                 </div>
 
-                <div className={statusStyles.scheduleRow}>
-                  <div className={statusStyles.timeCol}>
+                <div className={statusStyles.timelineItem}>
+                  <div className={statusStyles.timeColumn}>
                     <span className={statusStyles.timeLabel}>5:00 PM</span>
-                    <span className={statusStyles.timeSub}>17:00</span>
-                    <div className={statusStyles.schedule} />
+                    <span className={statusStyles.timeSubLabel}>17:00</span>
+                    <div className={statusStyles.timeLine} />
                   </div>
-                  <div className={`${statusStyles.event} ${statusStyles.eventPending}`}>
+                  <div className={`${statusStyles.eventContent} ${statusStyles.eventContentPending}`}>
                     <div className={statusStyles.eventRow}>
-                      <div className={statusStyles.dotPending} />
+                      <div className={statusStyles.eventIndicatorPending} />
                       <div className={statusStyles.eventBody}>
-                        <div className={statusStyles.eventHead}>
-                          <h4 className={statusStyles.eventName}>Cultural Club Practice</h4>
-                          <span className={statusStyles.tagPending}>Pending Approval</span>
+                        <div className={statusStyles.eventHeader}>
+                          <h4 className={statusStyles.eventTitle}>Cultural Club Practice</h4>
+                          <span className={statusStyles.badgePending}>Pending Approval</span>
                         </div>
-                        <div className={statusStyles.pendingRow}>
-                          <div className={statusStyles.pendingInfo}>
+                        <div className={statusStyles.pendingActions}>
+                          <div className={statusStyles.pendingMeta}>
                             <span>
                               <span className="material-icons text-sm">location_on</span> Main Auditorium
                             </span>
                           </div>
-                          <div className={statusStyles.btnRow}>
+                          <div className={statusStyles.actionButtons}>
                             <button className={statusStyles.btnSecondary} type="button">
                               Reject
                             </button>
@@ -315,26 +288,26 @@ export default function StatusPage() {
                   </div>
                 </div>
 
-                <div className={statusStyles.scheduleRow}>
-                  <div className={statusStyles.timeCol}>
+                <div className={statusStyles.timelineItem}>
+                  <div className={statusStyles.timeColumn}>
                     <span className={statusStyles.timeLabel}>6:00 PM</span>
-                    <span className={statusStyles.timeSub}>18:00</span>
+                    <span className={statusStyles.timeSubLabel}>18:00</span>
                   </div>
-                  <div className={statusStyles.conflictItem}>
+                  <div className={statusStyles.conflictCard}>
                     <div className={statusStyles.eventRow}>
-                      <div className={statusStyles.dotConflict} />
+                      <div className={statusStyles.eventIndicatorConflict} />
                       <div className={statusStyles.eventBody}>
-                        <div className={statusStyles.eventHead}>
-                          <div className={statusStyles.conflictHead}>
+                        <div className={statusStyles.eventHeader}>
+                          <div className={statusStyles.conflictHeader}>
                             <span className={`material-icons ${statusStyles.conflictIcon}`}>error</span>
-                            <h4 className={statusStyles.eventName}>Double Booking: AICTE Lab</h4>
+                            <h4 className={statusStyles.eventTitle}>Double Booking: AICTE Lab</h4>
                           </div>
-                          <span className={statusStyles.tagConflict}>Conflict Warning</span>
+                          <span className={statusStyles.badgeConflict}>Conflict Warning</span>
                         </div>
-                        <p className={statusStyles.conflictMsg}>
+                        <p className={statusStyles.conflictText}>
                           Two requests for same time slot: "Robotics Club" and "Staff Meeting".
                         </p>
-                        <button className={statusStyles.conflictBtn} type="button">
+                        <button className={statusStyles.conflictAction} type="button">
                           Resolve Conflict <span className="material-icons text-sm">arrow_forward</span>
                         </button>
                       </div>

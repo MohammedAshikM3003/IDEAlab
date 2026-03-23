@@ -1,72 +1,161 @@
 import React, { useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 
+import AdminApprovalConfirmationPopUp from './Alerts/AdminApprovalConfirmationPopUp'
+import AdminApprovalPopUp from './Alerts/AdminApprovalPopUp'
+import AdminDeletePopUp from './Alerts/AdminDeletePopUp'
+import AdminInquirySentPopUp from './Alerts/AdminInquirySentPopUp'
+import AdminRejectionPopUp from './Alerts/AdminRejectionPopUp'
+import AdminRejectionSuccessPopUp from './Alerts/AdminRejectionSuccessPopUp'
+import AdminRequestClarificationPopUp from './Alerts/AdminRequestClarificationPopUp'
+import PageHeader from './PageHeader'
 import Sidebar from './Sidebar'
-import styles from './DashboardPage.module.css'
+import styles from './RequestInboxPage.module.css'
+
+const cx = (...classes) => classes.filter(Boolean).join(' ')
+
+const REQUESTS = [
+  {
+    id: 'r1',
+    status: 'NEW REQUEST',
+    venue: 'Main Seminar Hall',
+    submittedAt: '2026-01-26T10:45:00',
+    name: 'Rahul Kumar',
+    title: 'Seminar Hall Booking for AICTE Workshop',
+    preview: 'Subject: Seminar Hall Booking for AICTE Workshop on 3D Printing',
+    time: '10:45 AM',
+    unread: true,
+    email: 'rahul.kumar@aicte-idealab.edu',
+    role: 'AICTE Idea Lab Coordinator',
+    subject: 'Seminar Hall Booking for AICTE Workshop on 3D Printing',
+    message:
+      'Respected Principal/Admin,\n\nWe would like to request the Main Seminar Hall for a 3-day workshop organized by the AICTE Idea Lab. The workshop will focus on advanced 3D printing techniques and rapid prototyping for second-year engineering students.\n\nWe require audiovisual support and high-speed internet connectivity during the sessions. Detailed schedule is attached in the form data below.',
+    tags: [
+      { label: 'New Request', tone: 'new' },
+      { label: 'AICTE IDEA LAB', tone: 'lab' },
+    ],
+    eventDate: 'Nov 12 - Nov 14, 2024',
+    timeSlot: '09:00 AM - 04:30 PM',
+  },
+  {
+    id: 'r2',
+    status: 'REJECTED',
+    venue: 'Idea Lab',
+    submittedAt: '2026-01-25T09:10:00',
+    name: 'Dr. S. Priya',
+    title: 'Placement Cell Internal Meeting',
+    preview: 'Need seminar hall for internal planning session.',
+    time: 'Yesterday',
+    unread: false,
+    email: 'priya@ksrce.ac.in',
+    role: 'Placement Cell',
+    subject: 'Placement Cell Internal Meeting',
+    message: 'Need the seminar hall for an internal planning session for the upcoming placement drive.',
+    tags: [
+      { label: 'Rejected', tone: 'rejected' },
+      { label: 'IT DEPT', tone: 'lab' },
+    ],
+    eventDate: 'Jan 27, 2026',
+    timeSlot: '10:00 AM - 12:00 PM',
+  },
+  {
+    id: 'r3',
+    status: 'PENDING',
+    venue: 'Board Room',
+    submittedAt: '2026-01-24T15:40:00',
+    name: 'Ganesh Murthy',
+    title: 'Annual Cultural Fest Stage Approval',
+    preview: 'Requesting board room approval for stage setup.',
+    time: 'Oct 24',
+    unread: false,
+    email: 'ganesh.murthy@ksrce.ac.in',
+    role: 'Cultural Committee',
+    subject: 'Annual Cultural Fest Stage Approval',
+    message: 'Requesting approval for stage setup and rehearsal slots for the annual cultural fest.',
+    tags: [{ label: 'Pending', tone: 'pending' }],
+    eventDate: 'Jan 30, 2026',
+    timeSlot: '03:00 PM - 06:00 PM',
+  },
+  {
+    id: 'r4',
+    status: 'APPROVED',
+    venue: 'Workshop A',
+    submittedAt: '2026-01-23T11:00:00',
+    name: 'Mechanical Admin',
+    title: 'Workshop A - Maintenance Window',
+    preview: 'Maintenance booking request for Workshop A.',
+    time: 'Oct 23',
+    unread: false,
+    email: 'mech.admin@ksrce.ac.in',
+    role: 'Mechanical Dept Admin',
+    subject: 'Workshop A - Maintenance Window',
+    message: 'Requesting a maintenance window booking for Workshop A.',
+    tags: [{ label: 'Approved', tone: 'ok' }],
+    eventDate: 'Jan 31, 2026',
+    timeSlot: '11:00 AM - 02:00 PM',
+  },
+  {
+    id: 'r5',
+    status: 'PENDING',
+    venue: 'Idea Lab',
+    submittedAt: '2026-01-26T11:20:00',
+    name: 'A. Nivetha',
+    title: 'Electrical Lab Evening Slot Request',
+    preview: 'Approval needed for additional practical session timing.',
+    time: '11:20 AM',
+    unread: true,
+    email: 'nivetha.eee@ksrce.ac.in',
+    role: 'EEE Department',
+    subject: 'Electrical Lab Evening Slot Request',
+    message:
+      'Requesting permission to reserve Electrical Lab 1 for an evening practical slot due to schedule overlap in the regular timetable.',
+    tags: [
+      { label: 'Pending', tone: 'pending' },
+      { label: 'EEE DEPT', tone: 'lab' },
+    ],
+    eventDate: 'Feb 02, 2026',
+    timeSlot: '05:30 PM - 07:30 PM',
+  },
+]
 
 export default function RequestInboxPage() {
-  const requests = [
-    {
-      id: 'r1',
-      name: 'Rahul Kumar',
-      title: 'Seminar Hall Booking for AICTE Workshop',
-      preview: 'Subject: Seminar Hall Booking for AICTE Workshop on 3D Printing',
-      time: '10:45 AM',
-      unread: true,
-      email: 'rahul.kumar@aicte-idealab.edu',
-      role: 'AICTE Idea Lab Coordinator',
-      subject: 'Seminar Hall Booking for AICTE Workshop on 3D Printing',
-      message:
-        'Respected Principal/Admin,\n\nWe would like to request the Main Seminar Hall for a 3-day workshop organized by the AICTE Idea Lab. The workshop will focus on advanced 3D printing techniques and rapid prototyping for second-year engineering students.\n\nWe require audiovisual support and high-speed internet connectivity during the sessions. Detailed schedule is attached in the form data below.',
-      tags: [
-        { label: 'New Request', tone: 'bg-primary text-white' },
-        { label: 'AICTE IDEA LAB', tone: 'bg-primary/10 text-primary' },
-      ],
-    },
-    {
-      id: 'r2',
-      name: 'Dr. S. Priya',
-      title: 'Placement Cell Internal Meeting',
-      preview: 'Need seminar hall for internal planning session.',
-      time: 'Yesterday',
-      unread: false,
-      email: 'priya@ksrce.ac.in',
-      role: 'Placement Cell',
-      subject: 'Placement Cell Internal Meeting',
-      message: 'Need the seminar hall for an internal planning session for the upcoming placement drive.',
-      tags: [
-        { label: 'Read', tone: 'bg-slate-200 text-slate-600' },
-        { label: 'IT DEPT', tone: 'bg-primary/10 text-primary' },
-      ],
-    },
-    {
-      id: 'r3',
-      name: 'Ganesh Murthy',
-      title: 'Annual Cultural Fest Stage Approval',
-      preview: 'Requesting board room approval for stage setup.',
-      time: 'Oct 24',
-      unread: false,
-      email: 'ganesh.murthy@ksrce.ac.in',
-      role: 'Cultural Committee',
-      subject: 'Annual Cultural Fest Stage Approval',
-      message: 'Requesting approval for stage setup and rehearsal slots for the annual cultural fest.',
-      tags: [{ label: 'Pending', tone: 'bg-orange-100 text-orange-700' }],
-    },
-    {
-      id: 'r4',
-      name: 'Mechanical Admin',
-      title: 'Workshop A - Maintenance Window',
-      preview: 'Maintenance booking request for Workshop A.',
-      time: 'Oct 23',
-      unread: false,
-      email: 'mech.admin@ksrce.ac.in',
-      role: 'Mechanical Dept Admin',
-      subject: 'Workshop A - Maintenance Window',
-      message: 'Requesting a maintenance window booking for Workshop A.',
-      tags: [{ label: 'Approved', tone: 'bg-emerald-100 text-emerald-700' }],
-    },
-  ]
+  const location = useLocation()
 
+  const [requests, setRequests] = useState(REQUESTS)
   const [selectedId, setSelectedId] = useState(null)
+  const [activeFilter, setActiveFilter] = useState(location.state?.initialTab || 'ALL')
+  const [sortOrder, setSortOrder] = useState('desc')
+  const [showFilterMenu, setShowFilterMenu] = useState(false)
+  const [venueFilter, setVenueFilter] = useState('All')
+  const [modalView, setModalView] = useState(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [deleteModalStep, setDeleteModalStep] = useState('confirm')
+  const [deletedRequestName, setDeletedRequestName] = useState('')
+  const [rejectionReason, setRejectionReason] = useState('')
+  const [rejectionComments, setRejectionComments] = useState('')
+  const [inquiryMessage, setInquiryMessage] = useState('')
+
+  const inquiryTemplates = ['Needs Equipment Details', 'Clarify Event Purpose', 'Confirm Guest Count']
+
+  const displayedRequests = useMemo(() => {
+    let next = [...requests]
+
+    if (activeFilter === 'UNREAD') {
+      next = next.filter((req) => req.status === 'NEW REQUEST' || req.status === 'PENDING')
+    }
+
+    if (venueFilter !== 'All') {
+      next = next.filter((req) => req.venue === venueFilter)
+    }
+
+    next.sort((a, b) => {
+      const timeA = new Date(a.submittedAt).getTime()
+      const timeB = new Date(b.submittedAt).getTime()
+      return sortOrder === 'asc' ? timeA - timeB : timeB - timeA
+    })
+
+    return next
+  }, [activeFilter, requests, sortOrder, venueFilter])
 
   const selectedRequest = useMemo(() => {
     if (!selectedId) return null
@@ -74,71 +163,215 @@ export default function RequestInboxPage() {
   }, [requests, selectedId])
 
   const showDetail = Boolean(selectedRequest)
+  const isApprovedRequest = selectedRequest?.status === 'APPROVED'
+  const isRejectedRequest = selectedRequest?.status === 'REJECTED'
+  const isProcessedRequest = isApprovedRequest || isRejectedRequest
+
+  const handleApproveRequest = () => {
+    if (!selectedRequest) return
+    setModalView('approveConfirm')
+  }
+
+  const handleApproveAndSend = () => {
+    setModalView('approveSuccess')
+    // Optional: trigger booking approval API call here.
+  }
+
+  const handleOpenRejectModal = () => {
+    if (!selectedRequest) return
+    setRejectionReason('')
+    setRejectionComments('')
+    setModalView('rejectForm')
+  }
+
+  const handleConfirmRejection = () => {
+    setModalView('rejectSuccess')
+    // Optional: trigger booking rejection API call here.
+  }
+
+  const handleOpenRequestInfoModal = () => {
+    if (!selectedRequest) return
+    setInquiryMessage(
+      `Dear ${selectedRequest.name},\n\nRegarding your booking request for ${selectedRequest.venue}, could you please clarify...`
+    )
+    setModalView('infoForm')
+  }
+
+  const handleTemplateInsert = (template) => {
+    setInquiryMessage((prev) => {
+      const nextLine = prev.trim().length ? `\n- ${template}` : `- ${template}`
+      return `${prev}${nextLine}`
+    })
+  }
+
+  const handleSendInquiry = () => {
+    setModalView('infoSuccess')
+    // Optional: trigger inquiry email API call here.
+  }
+
+  const handleOpenDeleteModal = () => {
+    if (!selectedRequest) return
+    setDeletedRequestName(selectedRequest.name)
+    setDeleteModalStep('confirm')
+    setIsDeleteModalOpen(true)
+  }
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false)
+    setDeleteModalStep('confirm')
+  }
+
+  const handleDelete = () => {
+    if (!selectedRequest) return
+
+    setDeletedRequestName(selectedRequest.name)
+    setRequests((prev) => prev.filter((req) => req.id !== selectedRequest.id))
+    setSelectedId(null)
+    setDeleteModalStep('success')
+  }
+
+  const handleDeleteFlowDone = () => {
+    setIsDeleteModalOpen(false)
+    setDeleteModalStep('confirm')
+    setActiveFilter('ALL')
+    setVenueFilter('All')
+  }
+
+  const closeModal = () => {
+    setModalView(null)
+  }
+
+  const handleReturnToInbox = () => {
+    setModalView(null)
+    setSelectedId(null)
+  }
+
+  const handlePrint = () => {
+    window.print()
+  }
+
+  const tagToneClass = (tone) => {
+    switch (tone) {
+      case 'new':
+        return styles.tagNew
+      case 'lab':
+        return styles.tagLab
+      case 'read':
+        return styles.tagRead
+      case 'pending':
+        return styles.tagPending
+      case 'ok':
+        return styles.tagOk
+      case 'rejected':
+        return styles.tagRejected
+      default:
+        return styles.tagRead
+    }
+  }
+
+  const indicatorToneClass = (request) => {
+    if (request.tags?.some((tag) => tag.tone === 'ok')) {
+      return styles.indicatorOk
+    }
+
+    switch (request.status) {
+      case 'NEW REQUEST':
+        return styles.indicatorNew
+      case 'PENDING':
+        return styles.indicatorPending
+      case 'APPROVED':
+        return styles.indicatorOk
+      case 'REJECTED':
+        return styles.indicatorRejected
+      case 'READ':
+        return styles.indicatorRead
+      default:
+        return styles.indicatorRead
+    }
+  }
+
+  const unreadDotClass = (request) => {
+    switch (request.status) {
+      case 'NEW REQUEST':
+        return styles.reqDotNew
+      case 'PENDING':
+        return styles.reqDotPending
+      default:
+        return styles.reqDotPending
+    }
+  }
 
   return (
-    <div className={styles.root}>
+    <div className={styles.page}>
       <input className="hidden" id="mobile-menu-toggle" type="checkbox" />
 
       <label
-        className={`${styles.mobileOverlay} hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden`}
+        className={`${styles.ovl} hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden`}
         htmlFor="mobile-menu-toggle"
       />
 
-      <div className={`${styles.wrapper} flex h-screen overflow-hidden`}>
+      <div className={styles.wrap}>
         <Sidebar activePage="inbox" />
 
-        <div className={`${styles.mainArea} flex-1 flex flex-col min-w-0 transition-all duration-300`}>
-          <header className={`${styles.navBar} h-16 flex items-center justify-between px-4 lg:px-8 border-b border-white/10 text-white shrink-0`}>
-            <div className="flex items-center gap-4">
-              <label className="lg:hidden text-white cursor-pointer p-1 rounded hover:bg-white/10" htmlFor="mobile-menu-toggle">
-                <span className="material-icons">menu</span>
-              </label>
-              <h1 className="text-xl font-semibold tracking-tight truncate">Request Inbox</h1>
-            </div>
+        <div className={styles.main}>
+          <PageHeader title="Request Inbox" />
 
-            <div className="flex items-center gap-6">
-              <button className="relative p-1 text-white/80 hover:text-white transition-colors" type="button">
-                <span className="material-icons">notifications</span>
-                <span className={`absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 ${styles.navBar}`} />
-              </button>
-
-              <div className="flex items-center gap-3 border-l border-white/20 pl-6">
-                <div className="text-right hidden sm:block">
-                  <p className="text-xs font-medium text-white">Dr. Arul Kumaran</p>
-                  <p className="text-[10px] text-white/50 uppercase tracking-wider">Chief Administrator</p>
-                </div>
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-400 border-2 border-primary/20 flex-shrink-0">
-                  <img
-                    alt="Admin Profile"
-                    className="w-full h-full object-cover"
-                    src="https://ui-avatars.com/api/?name=Arul+Kumaran&background=0D47A1&color=fff"
-                  />
-                </div>
-              </div>
-            </div>
-          </header>
-
-          <main className="flex-1 bg-[#f8f7f5] overflow-hidden">
-            <div className="h-full flex">
+          <main className={styles.body}>
+            <div className={styles.split}>
               <aside
-                className={`${showDetail ? 'w-[360px]' : 'flex-1'} bg-white ${showDetail ? 'border-r border-slate-200' : ''} flex flex-col shrink-0`}
+                className={cx(styles.listPane, showDetail ? styles.listNarrow : styles.listFull, showDetail && styles.listBorder)}
               >
-                <div className="p-4 border-b border-slate-200 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex gap-2">
-                      <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-full uppercase">All</span>
-                      <span className="px-2 py-0.5 text-slate-400 hover:bg-slate-50 text-[10px] font-bold rounded-full uppercase cursor-pointer">Unread</span>
-                    </div>
-                    <div className="flex gap-1">
+                <div className={styles.listHead}>
+                  <div className={styles.headRow}>
+                    <div className={styles.tabRow}>
                       <button
-                        className="p-1.5 bg-[#FF7A59] hover:bg-[#e96a4d] rounded text-white transition-colors"
+                        className={cx(styles.tab, styles.tabBtn, activeFilter === 'ALL' ? styles.tabAct : styles.tabIdle)}
+                        onClick={() => setActiveFilter('ALL')}
                         type="button"
-                        title="Filter"
                       >
-                        <span className="material-icons text-sm text-white">filter_list</span>
+                        All
                       </button>
                       <button
-                        className="p-1.5 bg-[#FF7A59] hover:bg-[#e96a4d] rounded text-white transition-colors"
+                        className={cx(styles.tab, styles.tabBtn, activeFilter === 'UNREAD' ? styles.tabAct : styles.tabIdle)}
+                        onClick={() => setActiveFilter('UNREAD')}
+                        type="button"
+                      >
+                        Unread
+                      </button>
+                    </div>
+                    <div className={styles.toolBtns}>
+                      <div className={styles.filterWrap}>
+                        <button
+                          className={styles.iconCoral}
+                          onClick={() => setShowFilterMenu((prev) => !prev)}
+                          type="button"
+                          title="Filter"
+                        >
+                          <span className="material-icons text-sm text-white">filter_list</span>
+                        </button>
+
+                        {showFilterMenu ? (
+                          <div className={styles.filterMenu}>
+                            {['All', 'Main Seminar Hall', 'Idea Lab'].map((venue) => (
+                              <button
+                                className={cx(styles.filterItem, venueFilter === venue && styles.filterItemActive)}
+                                key={venue}
+                                onClick={() => {
+                                  setVenueFilter(venue)
+                                  setShowFilterMenu(false)
+                                }}
+                                type="button"
+                              >
+                                {venue}
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <button
+                        className={styles.iconCoral}
+                        onClick={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
                         type="button"
                         title="Sort"
                       >
@@ -147,35 +380,41 @@ export default function RequestInboxPage() {
                     </div>
                   </div>
 
-                  <div className="relative">
-                    <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                  <div className={styles.searchWrap}>
+                    <span className={`material-icons ${styles.searchIco}`}>search</span>
                     <input
-                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-primary outline-none"
+                      className={styles.searchIn}
                       placeholder="Search requests..."
                       type="text"
                     />
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto">
-                  {requests.map((req) => (
+                <div className={`${styles.reqList} ${styles.customScrollbar}`}>
+                  {displayedRequests.map((req) => (
                     <button
                       key={req.id}
                       type="button"
-                      className={`w-full text-left p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors ${req.id === selectedId ? 'bg-slate-50' : 'bg-white'} ${req.unread ? 'border-l-4 border-l-primary' : ''}`}
+                      className={cx(
+                        styles.reqBtn,
+                        styles.reqIndicator,
+                        indicatorToneClass(req),
+                        req.id === selectedId ? styles.reqSel : styles.reqIdle,
+                        req.id === selectedId && styles.reqSelIndicator
+                      )}
                       onClick={() => setSelectedId(req.id)}
                     >
-                      <div className="flex justify-between items-start gap-4">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold text-sm text-slate-900 truncate">{req.name}</p>
-                            {req.unread ? <span className="w-2 h-2 rounded-full bg-primary" /> : null}
+                      <div className={styles.reqTop}>
+                        <div className={styles.reqMain}>
+                          <div className={styles.reqNameRow}>
+                            <p className={styles.reqName}>{req.name}</p>
+                            {req.unread ? <span className={cx(styles.reqDot, unreadDotClass(req))} /> : null}
                           </div>
-                          <p className="text-xs text-slate-600 mt-1 truncate">{req.title}</p>
+                          <p className={styles.reqTitle}>{req.title}</p>
                           {showDetail && req.tags?.length ? (
-                            <div className="mt-2 flex items-center gap-2 flex-wrap">
+                            <div className={styles.tagRow}>
                               {req.tags.map((tag) => (
-                                <span key={tag.label} className={`${tag.tone} px-2 py-0.5 rounded text-[10px] font-bold uppercase`}>
+                                <span key={tag.label} className={cx(styles.tagPill, tagToneClass(tag.tone))}>
                                   {tag.label}
                                 </span>
                               ))}
@@ -183,17 +422,17 @@ export default function RequestInboxPage() {
                           ) : null}
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className={styles.reqMeta}>
                           {!showDetail && req.tags?.length ? (
-                            <div className="flex items-center gap-2 flex-wrap justify-end">
+                            <div className={styles.tagRowRight}>
                               {req.tags.map((tag) => (
-                                <span key={tag.label} className={`${tag.tone} px-2 py-0.5 rounded text-[10px] font-bold uppercase`}>
+                                <span key={tag.label} className={cx(styles.tagPill, tagToneClass(tag.tone))}>
                                   {tag.label}
                                 </span>
                               ))}
                             </div>
                           ) : null}
-                          <span className="text-[10px] text-slate-400 whitespace-nowrap">{req.time}</span>
+                          <span className={styles.reqTime}>{req.time}</span>
                         </div>
                       </div>
                     </button>
@@ -202,12 +441,17 @@ export default function RequestInboxPage() {
               </aside>
 
               {showDetail ? (
-                <section className="flex-1 overflow-y-auto">
-                  <div className="max-w-5xl mx-auto p-6 space-y-6">
-                    <div className="bg-white rounded-2xl border border-slate-200 p-5">
-                      <div className="flex items-center gap-4">
+                <section className={`${styles.detail} ${styles.customScrollbar}`}>
+                  <div className={`${styles.detailWrap} ${styles.printableContent}`}>
+                    <div className={styles.printDocHeader}>
+                      <h1 className={styles.printDocTitle}>IDEALAB - Venue Booking Record</h1>
+                      <p className={styles.printDocSubTitle}>KSR College of Engineering</p>
+                    </div>
+
+                    <div className={styles.cardTop}>
+                      <div className={styles.senderRow}>
                         <button
-                          className="p-2 ml-2 rounded-lg bg-[#1E3A8A] text-white hover:bg-blue-900 transition-colors"
+                          className={styles.backBtn}
                           type="button"
                           onClick={() => setSelectedId(null)}
                           title="Back to inbox"
@@ -216,99 +460,101 @@ export default function RequestInboxPage() {
                         </button>
 
                         <img
-                          className="w-10 h-10 rounded-xl border border-slate-200"
+                          className={styles.senderImg}
                           alt={`Sender profile image ${selectedRequest.name}`}
                           src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedRequest.name)}&background=fff3e0&color=ff9500`}
                         />
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-bold text-slate-900 leading-none">{selectedRequest.name}</p>
-                            <span className="text-xs text-primary font-semibold">{selectedRequest.role}</span>
+                        <div className={styles.senderMeta}>
+                          <div className={styles.senderHead}>
+                            <p className={styles.senderName}>{selectedRequest.name}</p>
+                            <span className={styles.senderRole}>{selectedRequest.role}</span>
                           </div>
-                          <p className="text-xs text-slate-500 mt-1 truncate">{selectedRequest.email}</p>
+                          <p className={styles.senderMail}>{selectedRequest.email}</p>
                         </div>
-                        <div className="ml-auto flex gap-2">
+                        <div className={styles.senderActs}>
                           <button
-                            className="p-2 bg-[#FF7A59] hover:bg-[#e96a4d] rounded-lg text-white transition-colors"
+                            className={styles.iconCoralLg}
                             type="button"
                             title="Print"
+                            onClick={handlePrint}
                           >
-                            <span className="material-icons text-xl text-white">print</span>
+                            <span className={`material-icons ${styles.actionIcon}`}>print</span>
                           </button>
                           <button
-                            className="p-2 bg-[#FF7A59] hover:bg-[#e96a4d] rounded-lg text-white transition-colors"
+                            className={styles.deleteBtn}
                             type="button"
-                            title="More"
+                            title="Delete request"
+                            onClick={handleOpenDeleteModal}
                           >
-                            <span className="material-icons text-xl text-white">more_vert</span>
+                            <span className={`material-icons ${styles.actionIcon}`}>delete</span>
                           </button>
                         </div>
                       </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <h2 className="text-xl font-bold text-slate-900 leading-tight">Subject: {selectedRequest.subject}</h2>
-                      <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                        <p className="text-slate-600 leading-relaxed whitespace-pre-line">{selectedRequest.message}</p>
+                    <div className={styles.subjectBlk}>
+                      <h2 className={styles.subject}>Subject: {selectedRequest.subject}</h2>
+                      <div className={styles.msgCard}>
+                        <p className={styles.msgText}>{selectedRequest.message}</p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-12 gap-6">
-                      <div className="col-span-12 lg:col-span-7 space-y-3">
-                        <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                          <span className="material-icons text-sm">assignment</span>
+                    <div className={styles.grid12}>
+                      <div className={styles.colLeft}>
+                        <p className={styles.secLbl}>
+                          <span className={`material-icons ${styles.secIco}`}>assignment</span>
                           Form Data Panel
                         </p>
-                        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                          <table className="w-full text-left text-sm">
-                            <tbody className="divide-y divide-slate-100">
+                        <div className={styles.tblWrap}>
+                          <table className={styles.tbl}>
+                            <tbody className={styles.tblBody}>
                               <tr>
-                                <td className="px-5 py-4 bg-slate-50/60 font-medium text-slate-500 w-1/3">Department</td>
-                                <td className="px-5 py-4 text-slate-800">AICTE Idea Lab</td>
+                                <td className={styles.tdKey}>Department</td>
+                                <td className={styles.tdVal}>AICTE Idea Lab</td>
                               </tr>
                               <tr>
-                                <td className="px-5 py-4 bg-slate-50/60 font-medium text-slate-500">Venue Requested</td>
-                                <td className="px-5 py-4 text-slate-800 font-bold">Main Seminar Hall</td>
+                                <td className={styles.tdKey}>Venue Requested</td>
+                                <td className={cx(styles.tdVal, styles.tdStrong)}>{selectedRequest.venue}</td>
                               </tr>
                               <tr>
-                                <td className="px-5 py-4 bg-slate-50/60 font-medium text-slate-500">Event Date</td>
-                                <td className="px-5 py-4 text-slate-800">Nov 12 - Nov 14, 2024</td>
+                                <td className={styles.tdKey}>Event Date</td>
+                                <td className={styles.tdVal}>{selectedRequest.eventDate}</td>
                               </tr>
                               <tr>
-                                <td className="px-5 py-4 bg-slate-50/60 font-medium text-slate-500">Time Slot</td>
-                                <td className="px-5 py-4 text-slate-800">09:00 AM - 04:30 PM</td>
+                                <td className={styles.tdKey}>Time Slot</td>
+                                <td className={styles.tdVal}>{selectedRequest.timeSlot}</td>
                               </tr>
                               <tr>
-                                <td className="px-5 py-4 bg-slate-50/60 font-medium text-slate-500">Attendance</td>
-                                <td className="px-5 py-4 text-slate-800">120 Students</td>
+                                <td className={styles.tdKey}>Attendance</td>
+                                <td className={styles.tdVal}>120 Students</td>
                               </tr>
                               <tr>
-                                <td className="px-5 py-4 bg-slate-50/60 font-medium text-slate-500">Equipment</td>
-                                <td className="px-5 py-4 text-slate-800">Projector, MIC, LAN (10 nodes)</td>
+                                <td className={styles.tdKey}>Equipment</td>
+                                <td className={styles.tdVal}>Projector, MIC, LAN (10 nodes)</td>
                               </tr>
                             </tbody>
                           </table>
                         </div>
                       </div>
 
-                      <div className="col-span-12 lg:col-span-5 space-y-3">
-                        <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                          <span className="material-icons text-sm">event_available</span>
+                      <div className={styles.colRight}>
+                        <p className={styles.secLbl}>
+                          <span className={`material-icons ${styles.secIco}`}>event_available</span>
                           Availability Checker
                         </p>
 
-                        <div className="bg-white rounded-2xl border border-slate-200 p-5">
-                          <div className="flex justify-between items-center">
-                            <span className="font-bold text-slate-900">November 2024</span>
-                            <div className="flex gap-1">
+                        <div className={styles.calCard}>
+                          <div className={styles.calHead}>
+                            <span className={styles.calTitle}>November 2024</span>
+                            <div className={styles.calNav}>
                               <button
-                                className="p-1 bg-[#FF7A59] hover:bg-[#e96a4d] rounded text-white transition-colors"
+                                className={styles.iconCoralSm}
                                 type="button"
                               >
                                 <span className="material-icons text-xs text-white">chevron_left</span>
                               </button>
                               <button
-                                className="p-1 bg-[#FF7A59] hover:bg-[#e96a4d] rounded text-white transition-colors"
+                                className={styles.iconCoralSm}
                                 type="button"
                               >
                                 <span className="material-icons text-xs text-white">chevron_right</span>
@@ -316,7 +562,7 @@ export default function RequestInboxPage() {
                             </div>
                           </div>
 
-                          <div className="mt-4 grid grid-cols-7 gap-1 text-center text-[10px] text-slate-400">
+                          <div className={styles.weekRow}>
                             <div>M</div>
                             <div>T</div>
                             <div>W</div>
@@ -326,7 +572,7 @@ export default function RequestInboxPage() {
                             <div>S</div>
                           </div>
 
-                          <div className="mt-2 grid grid-cols-7 gap-1 text-center text-xs">
+                          <div className={styles.daysGrid}>
                             {Array.from({ length: 28 }).map((_, i) => {
                               const day = i + 1
                               const isMain = day === 12
@@ -334,7 +580,7 @@ export default function RequestInboxPage() {
                               return (
                                 <div
                                   key={day}
-                                  className={`py-1 rounded ${isMain ? 'bg-primary text-white font-bold ring-2 ring-primary/20 ring-offset-2' : ''} ${isRange ? 'bg-primary/15 text-primary font-bold' : ''}`}
+                                  className={cx(styles.day, isMain && styles.dayMain, isRange && styles.dayRange)}
                                 >
                                   {day}
                                 </div>
@@ -342,13 +588,13 @@ export default function RequestInboxPage() {
                             })}
                           </div>
 
-                          <div className="mt-4 pt-4 border-t border-slate-100">
-                            <p className="text-[10px] text-slate-500 mb-2 font-bold uppercase">Conflicts on Nov 12</p>
-                            <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
-                              <div className="w-1 h-6 bg-emerald-500 rounded-full" />
-                              <div className="text-[10px]">
-                                <p className="font-bold text-slate-800">All Clear</p>
-                                <p className="text-slate-500">No bookings for Seminar Hall</p>
+                          <div className={styles.confWrap}>
+                            <p className={styles.confTitle}>Conflicts on Nov 12</p>
+                            <div className={styles.confCard}>
+                              <div className={styles.confBar} />
+                              <div className={styles.confTxt}>
+                                <p className={styles.confName}>All Clear</p>
+                                <p className={styles.confSub}>No bookings for Seminar Hall</p>
                               </div>
                             </div>
                           </div>
@@ -356,22 +602,46 @@ export default function RequestInboxPage() {
                       </div>
                     </div>
 
-                    <div className="sticky bottom-4">
-                      <div className="bg-white/90 backdrop-blur-md border border-slate-200 rounded-2xl shadow-xl px-4 py-3 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-                        <div className="flex flex-col sm:flex-row gap-2">
-                          <button className="bg-primary hover:bg-[#ea7d00] text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow flex items-center justify-center gap-2" type="button">
-                            <span className="material-icons text-sm">check_circle</span>
-                            Approve Request
-                          </button>
-                          <button className="bg-secondary hover:bg-secondary/90 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow flex items-center justify-center gap-2" type="button">
-                            <span className="material-icons text-sm">cancel</span>
-                            Reject
-                          </button>
-                        </div>
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow flex items-center justify-center gap-2" type="button">
-                          <span className="material-icons text-sm">question_answer</span>
-                          Request More Info
-                        </button>
+                    <div className={styles.stickyAct}>
+                      <div className={styles.actBar}>
+                        {isProcessedRequest ? (
+                          <div
+                            className={cx(
+                              'min-h-[56px] w-full rounded-xl border px-4 py-3 flex items-center gap-2 text-sm font-bold',
+                              isApprovedRequest
+                                ? 'bg-green-50 border-[#22C55E] text-[#22C55E]'
+                                : 'bg-red-50 border-[#F87171] text-[#F87171]'
+                            )}
+                          >
+                            <span className="material-icons text-base">check_circle</span>
+                            <span>
+                              {isApprovedRequest
+                                ? 'This request has been approved and the slot is blocked.'
+                                : 'This request has been rejected.'}
+                            </span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className={styles.actLeft}>
+                              <button className={styles.btnPri} type="button" onClick={handleApproveRequest}>
+                                <span className="material-icons text-sm">check_circle</span>
+                                Approve Request
+                              </button>
+                              <button className={cx(styles.btnSec, 'bg-red-400 hover:bg-red-500')} type="button" onClick={handleOpenRejectModal}>
+                                <span className="material-icons text-sm">cancel</span>
+                                Reject
+                              </button>
+                            </div>
+                            <button
+                              className={cx(styles.btnInfo, 'bg-blue-600 hover:bg-blue-700')}
+                              type="button"
+                              onClick={handleOpenRequestInfoModal}
+                            >
+                              <span className="material-icons text-sm">question_answer</span>
+                              Request More Info
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -381,6 +651,79 @@ export default function RequestInboxPage() {
           </main>
         </div>
       </div>
+
+      {modalView === 'approveConfirm' && selectedRequest ? (
+        <AdminApprovalPopUp
+          userName={selectedRequest.name}
+          venueName={selectedRequest.venue}
+          dateText={selectedRequest.eventDate}
+          timeText={selectedRequest.timeSlot}
+          onCancel={closeModal}
+          onClose={closeModal}
+          onApprove={handleApproveAndSend}
+        />
+      ) : null}
+
+      {modalView === 'approveSuccess' && selectedRequest ? (
+        <AdminApprovalConfirmationPopUp
+          venueName={selectedRequest.venue}
+          recipientName={selectedRequest.name}
+          onReturnToInbox={handleReturnToInbox}
+        />
+      ) : null}
+
+      {modalView === 'rejectForm' && selectedRequest ? (
+        <AdminRejectionPopUp
+          reason={rejectionReason}
+          comments={rejectionComments}
+          onReasonChange={setRejectionReason}
+          onCommentsChange={setRejectionComments}
+          onClose={closeModal}
+          onCancel={closeModal}
+          onConfirm={handleConfirmRejection}
+          confirmDisabled={!rejectionReason}
+        />
+      ) : null}
+
+      {modalView === 'rejectSuccess' && selectedRequest ? (
+        <AdminRejectionSuccessPopUp
+          venueName={selectedRequest.venue}
+          userName={selectedRequest.name}
+          onReturn={handleReturnToInbox}
+        />
+      ) : null}
+
+      {modalView === 'infoForm' && selectedRequest ? (
+        <AdminRequestClarificationPopUp
+          recipientText={`To: ${selectedRequest.name} (${selectedRequest.email})`}
+          templates={inquiryTemplates}
+          message={inquiryMessage}
+          onMessageChange={setInquiryMessage}
+          onTemplateClick={handleTemplateInsert}
+          onClose={closeModal}
+          onCancel={closeModal}
+          onSend={handleSendInquiry}
+          sendDisabled={!inquiryMessage.trim()}
+        />
+      ) : null}
+
+      {modalView === 'infoSuccess' && selectedRequest ? (
+        <AdminInquirySentPopUp
+          recipientName={selectedRequest.name}
+          onReturnToInbox={handleReturnToInbox}
+        />
+      ) : null}
+
+      {isDeleteModalOpen ? (
+        <AdminDeletePopUp
+          step={deleteModalStep}
+          deletedRequestName={deletedRequestName}
+          onClose={closeDeleteModal}
+          onCancel={closeDeleteModal}
+          onConfirmDelete={handleDelete}
+          onDone={handleDeleteFlowDone}
+        />
+      ) : null}
     </div>
   )
 }

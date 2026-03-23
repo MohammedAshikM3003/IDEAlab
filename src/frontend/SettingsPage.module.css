@@ -12,6 +12,7 @@
 }
 
 .main {
+  padding-left: 80px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -114,7 +115,7 @@
 .mainContent {
   flex: 1;
   overflow: auto;
-  padding: 22px 26px 30px calc(26px + 80px);
+  padding: 22px 26px 30px 26px;
   background: #f3f4f6;
 }
 
@@ -205,6 +206,174 @@
   overflow: hidden;
 }
 
+/* Styles for the bottom panels from screenshot */
+.activityGrid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.bottomHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 12px;
+}
+
+.link {
+  font-size: 12px;
+  color: #ff7a59;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.activityItem,
+.notifyItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid #e5e7eb;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.activityList,
+.notificationList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.actIcon,
+.notIcon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.actIcon {
+  color: #ffffff;
+}
+
+.notIcon {
+  width: 28px;
+  height: 28px;
+  font-size: 16px;
+  margin-left: 0;
+}
+
+.notIconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.notInfo .notIconWrap {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.notWarn .notIconWrap {
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.notOk .notIconWrap {
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.iconGreen {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.iconBlue {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.iconGray {
+  background: #9ca3af;
+  color: #ffffff;
+}
+
+.activityTime {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.notTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.notDesc {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.notificationItem {
+  position: relative;
+  padding-left: 12px;
+  border-left: 4px solid #e5e7eb;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  border-top: none;
+}
+
+.notInfo {
+  border-left-color: #3b82f6;
+}
+
+.notInfo .notIcon {
+  color: #3b82f6;
+}
+
+.notInfo .notTitle {
+  color: #3b82f6;
+}
+
+.notWarn {
+  border-left-color: #f59e0b;
+}
+
+.notWarn .notIcon {
+  color: #f59e0b;
+}
+
+.notWarn .notTitle {
+  color: #f59e0b;
+}
+
+.notOk {
+  border-left-color: #10b981;
+}
+
+.notOk .notIcon {
+  color: #10b981;
+}
+
+.notOk .notTitle {
+  color: #10b981;
+}
 .trackFill {
   height: 100%;
   background: #ff7a59;
@@ -369,12 +538,14 @@
 }
 
 .profileCardWrap {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   padding-top: 20px;
   padding-bottom: 20px;
+  height:225px;
 }
 
 .pcAvatarWrap {
@@ -398,6 +569,15 @@
   background: #22c55e;
   border-radius: 999px;
   border: 2px solid #ffffff;
+}
+
+.pcLastLogin {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
 }
 
 .pcName {
@@ -461,6 +641,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  height:31px;
 }
 
 .verifyLeft {
@@ -555,8 +736,4 @@
   background: #002147;
 }
 
-:global(::-webkit-scrollbar-thumb) {
-  background: #2a4b7c;
-  border-radius: 4px;
-}
 

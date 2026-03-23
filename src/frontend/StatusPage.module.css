@@ -5,13 +5,23 @@
   display: flex;
 }
 
-.noScroll {
+.scrollbarHide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-.noScroll::-webkit-scrollbar {
+.scrollbarHide::-webkit-scrollbar {
   display: none;
+}
+
+.availabilityTitle {
+  display: inline-block;
+  transform: translateX(68px) !important;
+}
+
+.adminNameBlock {
+  white-space: nowrap;
+  line-height: 1.3;
 }
 
 /* Toolbar */
@@ -21,102 +31,112 @@
   justify-content: space-between;
   padding: 0.75rem 1.5rem;
   background-color: white;
-  border-bottom: 1px solid rgb(229, 231, 235);
+  border-bottom: none;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   z-index: 10;
   flex-shrink: 0;
+  margin-bottom: 16px;
+  position: relative;
 }
 
-.toolLeft,
-.toolRight {
+.toolbarLeft,
+.toolbarRight {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 10px;
+  margin-left: 0;
 }
 
 /* Date Navigator */
-.datePicker {
+.dateNavigator {
   display: flex;
   align-items: center;
-  background-color: rgb(249, 250, 251);
-  border: 1px solid rgb(229, 231, 235);
+  background-color: white;
+  border: 1px solid rgb(226, 232, 240);
   border-radius: 0.5rem;
   padding: 0.25rem;
 }
 
-.dateInfo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0 0.75rem;
-}
+.dateDisplay {
 
-.navBtn {
+  color: #0f172a;
+font-weight: 500;}
+
+.navButton {
   padding: 0.25rem;
   border-radius: 0.25rem;
   color: rgb(100, 116, 139);
   transition: all 0.15s ease;
 }
 
-.navBtn:hover {
-  background-color: white;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+.navButton:hover {
+  background-color:#f1f5f9;
+  
 }
 
-/* Filter Select */
-.filterWrap {
+.filterWrapper {
   position: relative;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 4px 36px 4px 36px; /* space for icons */
+ 
 }
 
-.filterDrop {
+.filterSelect {
   appearance: none;
-  background-color: rgb(249, 250, 251);
-  border: 1px solid rgb(229, 231, 235);
-  font-size: 0.875rem;
-  border-radius: 0.5rem;
-  padding: 0.5rem 2rem 0.5rem 2.25rem;
-  width: 12rem;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
   font-weight: 500;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  color: #374151;
+  cursor: pointer;
 }
-
-.filterDrop:focus {
+.filterSelect:focus {
   outline: none;
   box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.3);
 }
 
-.filterIco,
-.filterArrow {
+.filterIcon,
+.filterChevron {
   position: absolute;
   pointer-events: none;
   font-size: 1.125rem;
   color: rgb(148, 163, 184);
 }
 
-.filterIco {
-  left: 0.625rem;
-  top: 0.625rem;
+.filterIcon {
+  position: absolute;
+  left: 1opx;
+  top: 50%;
+  transform: translateY(-50%);
+
 }
 
-.filterArrow {
-  right: 0.625rem;
-  top: 0.625rem;
+.filterChevron {
+ position: absolute;
+ right: 10px;
+ top: 50%;
+ transform: translateY(-50%);
 }
 
 /* Toggle Switch */
-.toggleWrap {
+.toggleWrapper {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.toggleLbl {
+.toggleLabel {
   font-size: 0.875rem;
   font-weight: 500;
   color: rgb(71, 85, 105);
 }
 
-.toggle {
+.toggleSwitch {
   position: relative;
   display: inline-flex;
   height: 1.5rem;
@@ -125,29 +145,33 @@
   cursor: pointer;
   border-radius: 9999px;
   border: 2px solid transparent;
-  background-color: rgb(34, 197, 94);
+  background-color: #cbd5e1;
   transition: all 0.2s ease;
 }
 
-.toggle:focus {
+.toggleSwitch:focus {
   outline: none;
   box-shadow: 0 0 0 2px white, 0 0 0 4px rgb(249, 115, 22);
 }
 
-.knob {
-  pointer-events: none;
-  display: inline-block;
-  height: 1.25rem;
-  width: 1.25rem;
-  transform: translateX(1.25rem);
-  border-radius: 9999px;
-  background-color: white;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+.toggleKnob {
+  height: 23px;
+  width: 23px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: -1%;
+  right: -1px;
+  transform: translateY();
   transition: transform 0.2s ease;
 }
 
+.toggleSwitch[aria-checked="true"] .toggleknob {
+  transform: translate(20px, -50%);
+}
+
 /* Live Badge */
-.livePill {
+.liveBadge {
   display: flex;
   align-items: center;
   gap: 0.375rem;
@@ -157,7 +181,7 @@
   border-radius: 9999px;
 }
 
-.liveRing {
+.liveIndicator {
   position: relative;
   display: flex;
   height: 0.625rem;
@@ -184,7 +208,7 @@
   background-color: rgb(34, 197, 94);
 }
 
-.liveLabel {
+.liveText {
   font-size: 0.75rem;
   font-weight: 700;
   color: rgb(21, 128, 61);
@@ -200,18 +224,19 @@
 }
 
 /* Main Content */
-.body {
+.mainContent {
   flex: 1;
   display: flex;
   overflow: hidden;
   background-color: rgb(243, 244, 246);
   padding: 1.5rem;
   gap: 1.5rem;
-  position: relative;
+  margin-top:-17px;
+
 }
 
 /* Floating Actions */
-.fabGroup {
+.floatingActions {
   position: absolute;
   bottom: 2rem;
   right: 2rem;
@@ -230,7 +255,7 @@
   border-radius: 9999px;
   font-weight: 700;
   font-size: 0.875rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+ 
   transition: all 0.2s ease;
 }
 
@@ -259,7 +284,7 @@
 }
 
 .fabSecondary:hover {
-  background-color: rgb(31, 41, 55);
+  background-color: white
 }
 
 /* Panels */
@@ -268,42 +293,44 @@
   flex-direction: column;
   background-color: white;
   border-radius: 0.625rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  
   border: 1px solid rgb(229, 231, 235);
   overflow: hidden;
 }
 
-.leftPanel {
+.panelLeft {
   composes: panel;
   width: 40%;
+  margin-left: 0;
 }
 
-.rightPanel {
+.panelRight {
   composes: panel;
   width: 60%;
+  margin-left: 0;
 }
 
 /* Panel Header */
-.pHead {
+.panelHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.25rem;
-  background-color: var(--navy-custom, #0b2a55);
+  background-color: #0b2a55 !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.pHeadLeft {
+.panelHeaderLeft {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.pHeadIcon {
+.panelHeaderIcon {
   color: white;
 }
 
-.pHeadTitle {
+.panelHeaderTitle {
   color: white;
   font-weight: 700;
   font-size: 1.125rem;
@@ -311,7 +338,7 @@
   letter-spacing: 0.025em;
 }
 
-.pHeadLive {
+.panelHeaderLive {
   position: relative;
   display: flex;
   height: 0.75rem;
@@ -338,7 +365,6 @@
 .tabActive {
   background-color: white;
   color: var(--navy-custom, #0b2a55);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 .tabInactive {
@@ -351,14 +377,14 @@
 }
 
 /* Panel Content */
-.pBody {
+.panelContent {
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
 }
 
-.pGrid {
-  composes: pBody;
+.panelContentGrid {
+  composes: panelContent;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -368,8 +394,6 @@
 .venueCard {
   background-color: white;
   border-radius: 0.625rem;
-  padding: 1.25rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
   transition: box-shadow 0.2s ease;
@@ -379,23 +403,23 @@
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-.cardInUse {
+.venueCardInUse {
   composes: venueCard;
   border-left: 4px solid rgb(239, 68, 68);
 }
 
-.cardOpen {
+.venueCardAvailable {
   composes: venueCard;
   border-left: 4px solid rgb(34, 197, 94);
 }
 
-.cardMaint {
+.venueCardMaintenance {
   composes: venueCard;
   border-left: 4px solid rgb(217, 119, 6);
   opacity: 0.9;
 }
 
-.cardMaint:hover {
+.venueCardMaintenance:hover {
   opacity: 1;
 }
 
@@ -423,19 +447,19 @@
   border-radius: 0.5rem;
 }
 
-.iconRed {
+.venueIconRed {
   composes: venueIcon;
   background-color: rgb(254, 242, 242);
   color: rgb(239, 68, 68);
 }
 
-.iconGreen {
+.venueIconGreen {
   composes: venueIcon;
   background-color: rgb(240, 253, 244);
   color: rgb(34, 197, 94);
 }
 
-.iconAmber {
+.venueIconAmber {
   composes: venueIcon;
   background-color: rgb(255, 251, 235);
   color: rgb(217, 119, 6);
@@ -454,7 +478,7 @@
 }
 
 /* Status Badges */
-.badge {
+.statusBadge {
   font-size: 0.75rem;
   font-weight: 700;
   padding: 0.25rem 0.5rem;
@@ -463,38 +487,38 @@
   letter-spacing: 0.025em;
 }
 
-.tagInUse {
-  composes: badge;
+.badgeInUse {
+  composes: statusBadge;
   background-color: rgb(254, 226, 226);
   color: rgb(239, 68, 68);
 }
 
-.tagOpen {
-  composes: badge;
+.badgeAvailable {
+  composes: statusBadge;
   background-color: rgb(220, 252, 231);
   color: rgb(34, 197, 94);
 }
 
-.tagMaint {
-  composes: badge;
+.badgeMaintenance {
+  composes: statusBadge;
   background-color: rgb(254, 243, 199);
   color: rgb(217, 119, 6);
 }
 
-.tagOk {
-  composes: badge;
+.badgeConfirmed {
+  composes: statusBadge;
   background-color: rgb(220, 252, 231);
   color: rgb(34, 197, 94);
 }
 
-.tagPending {
-  composes: badge;
+.badgePending {
+  composes: statusBadge;
   background-color: rgb(254, 243, 199);
   color: rgb(217, 119, 6);
 }
 
-.tagConflict {
-  composes: badge;
+.badgeConflict {
+  composes: statusBadge;
   background-color: rgb(254, 226, 226);
   color: rgb(239, 68, 68);
 }
@@ -509,11 +533,11 @@
 }
 
 /* Session Progress */
-.progress {
+.sessionProgress {
   margin-bottom: 1rem;
 }
 
-.progressInfo {
+.sessionInfo {
   display: flex;
   justify-content: space-between;
   font-size: 0.75rem;
@@ -522,11 +546,11 @@
   font-weight: 500;
 }
 
-.timeLeft {
+.timeRemaining {
   color: rgb(239, 68, 68);
 }
 
-.bar {
+.progressBar {
   height: 0.5rem;
   width: 100%;
   background-color: rgb(243, 244, 246);
@@ -534,7 +558,7 @@
   overflow: hidden;
 }
 
-.fill {
+.progressFill {
   height: 100%;
   background-color: rgb(239, 68, 68);
   width: 75%;
@@ -542,14 +566,14 @@
 }
 
 /* Card Footer */
-.footer {
+.cardFooter {
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 0.75rem;
   color: rgb(100, 116, 139);
   border-top: 1px solid rgb(243, 244, 246);
-  padding-top: 0.75rem;
+  padding-top: -1.25rem;
   margin-top: 0.25rem;
 }
 
@@ -565,7 +589,7 @@
 }
 
 /* Availability Notice */
-.availNote {
+.availabilityNotice {
   font-size: 0.875rem;
   color: rgb(71, 85, 105);
   margin-bottom: 1rem;
@@ -575,12 +599,12 @@
   border: 1px solid rgb(243, 244, 246);
 }
 
-.availNote span {
+.availabilityNotice span {
   font-weight: 700;
 }
 
 /* Action Buttons */
-.actionBtn {
+.actionButton {
   width: 100%;
   padding: 0.5rem;
   border-radius: 0.5rem;
@@ -594,41 +618,41 @@
   gap: 0.5rem;
 }
 
-.actionBtn:hover {
+.actionButton:hover {
   background-color: rgb(21, 128, 61);
 }
 
-.btnGreen {
-  composes: actionBtn;
+.buttonGreen {
+  composes: actionButton;
   background-color: rgb(34, 197, 94);
   color: white;
 }
 
-.btnGreen:hover {
+.buttonGreen:hover {
   background-color: rgb(21, 128, 61);
 }
 
 /* Alert Box */
-.alert {
+.alertBox {
   padding: 0.75rem;
   border-radius: 0.375rem;
   background-color: rgb(254, 251, 231);
   border: 1px solid rgb(254, 243, 199);
 }
 
-.alertHead {
+.alertBoxHeader {
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
 }
 
-.alertIco {
+.alertIcon {
   color: rgb(217, 119, 6);
   font-size: 1.125rem;
   margin-top: 0.125rem;
 }
 
-.alertLbl {
+.alertTitle {
   font-size: 0.75rem;
   font-weight: 700;
   color: rgb(217, 119, 6);
@@ -636,29 +660,29 @@
   margin-bottom: 0.125rem;
 }
 
-.alertMsg {
+.alertText {
   font-size: 0.75rem;
   color: rgb(71, 85, 105);
 }
 
 /* Schedule Timeline */
-.schedule {
+.timeline {
   flex: 1;
   overflow-y: auto;
   padding: 0;
   background-color: rgb(249, 250, 251);
 }
 
-.scheduleRow {
+.timelineItem {
   display: flex;
   position: relative;
 }
 
-.scheduleRow:hover {
+.timelineItem:hover {
   background-color: white;
 }
 
-.timeCol {
+.timeColumn {
   width: 5rem;
   padding: 1rem 0;
   display: flex;
@@ -676,12 +700,12 @@
   color: rgb(30, 41, 59);
 }
 
-.timeSub {
+.timeSubLabel {
   font-size: 0.75rem;
   color: rgb(148, 163, 184);
 }
 
-.schedule {
+.timeLine {
   position: absolute;
   width: 1px;
   background-color: rgb(229, 231, 235);
@@ -691,13 +715,13 @@
   z-index: -10;
 }
 
-.event {
+.eventContent {
   flex: 1;
   padding: 1rem;
   border-bottom: 1px solid rgb(243, 244, 246);
 }
 
-.event:hover {
+.eventContent:hover {
   background-color: white;
 }
 
@@ -707,32 +731,32 @@
   gap: 1rem;
 }
 
-.dot {
+.eventIndicator {
   width: 0.375rem;
   height: 4rem;
   border-radius: 9999px;
   background-color: rgb(34, 197, 94);
 }
 
-.dotPending {
-  composes: dot;
+.eventIndicatorPending {
+  composes: eventIndicator;
   height: 100%;
   min-height: 4rem;
   background-color: rgb(217, 119, 6);
 }
 
-.dotConflict {
-  composes: dot;
+.eventIndicatorConflict {
+  composes: eventIndicator;
   height: 100%;
   min-height: 4rem;
   background-color: rgb(239, 68, 68);
 }
 
-.eventPending {
+.eventContentPending {
   background-color: rgba(245, 158, 11, 0.08);
 }
 
-.eventPending:hover {
+.eventContentPending:hover {
   background-color: rgba(245, 158, 11, 0.12);
 }
 
@@ -740,13 +764,13 @@
   flex: 1;
 }
 
-.eventHead {
+.eventHeader {
   display: flex;
   justify-content: space-between;
   margin-bottom: 0.25rem;
 }
 
-.eventName {
+.eventTitle {
   font-weight: 700;
   font-size: 1.125rem;
   color: rgb(30, 41, 59);
@@ -774,7 +798,7 @@
   gap: 0.5rem;
 }
 
-.reqAvatar {
+.requesterAvatar {
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 9999px;
@@ -782,21 +806,21 @@
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
-.reqName {
+.requesterName {
   font-size: 0.75rem;
   font-weight: 500;
   color: rgb(71, 85, 105);
 }
 
 /* Pending Actions */
-.pendingRow {
+.pendingActions {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-top: 0.75rem;
 }
 
-.pendingInfo {
+.pendingMeta {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -804,13 +828,13 @@
   color: rgb(100, 116, 139);
 }
 
-.pendingInfo span {
+.pendingMeta span {
   display: flex;
   align-items: center;
   gap: 0.25rem;
 }
 
-.btnRow {
+.actionButtons {
   display: flex;
   gap: 0.5rem;
 }
@@ -847,17 +871,17 @@
 }
 
 /* Conflict Card */
-.conflictItem {
-  composes: event;
+.conflictCard {
+  composes: eventContent;
   background-color: rgba(239, 68, 68, 0.06);
   border-left: 4px solid rgb(239, 68, 68);
 }
 
-.conflictItem:hover {
+.conflictCard:hover {
   background-color: rgba(239, 68, 68, 0.1);
 }
 
-.conflictHead {
+.conflictHeader {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -867,13 +891,13 @@
   color: rgb(239, 68, 68);
 }
 
-.conflictMsg {
+.conflictText {
   font-size: 0.875rem;
   color: rgb(71, 85, 105);
   margin-top: 0.25rem;
 }
 
-.conflictBtn {
+.conflictAction {
   margin-top: 0.75rem;
   color: rgb(239, 68, 68);
   font-size: 0.75rem;
@@ -887,8 +911,44 @@
   padding: 0;
 }
 
-.conflictBtn:hover {
+.conflictAction:hover {
   text-decoration: underline;
 }
 
+.dateNavigator {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
 
+.navButton {
+  padding: 6px 10px;
+  background: white;
+  border: none;
+  cursor: pointer;
+  color: #374151;
+}
+
+.navButton:hover {
+  background: #f3f4f6;
+}
+
+.dateDisplay {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: white;
+}
+
+.headerTitle {
+position: absolute;
+left: 55%;
+transform: translateX(-50%);
+font-size: 20px;
+font-weight: 700;
+
+}

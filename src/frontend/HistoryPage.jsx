@@ -1,5 +1,6 @@
 import React from "react";
 
+import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
 import layoutStyles from "./DashboardPage.module.css";
 import styles from "./HistoryPage.module.css";
@@ -84,21 +85,6 @@ function ChevronRightIcon(props) {
   );
 }
 
-function BellIcon(props) {
-  return (
-    <svg aria-hidden="true" fill="none" height="20" viewBox="0 0 24 24" width="20" {...props}>
-      <path
-        d="M15 17H9m8-6a5 5 0 0 0-10 0c0 5-2 6-2 6h14s-2-1-2-6Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-      <path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
-    </svg>
-  );
-}
-
 function EyeIcon(props) {
   return (
     <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 24 24" width="18" {...props}>
@@ -173,40 +159,15 @@ export default function HistoryPage() {
       <input className="hidden" id="mobile-menu-toggle" type="checkbox" />
 
       <label
-        className={`${layoutStyles.mobileOverlay} hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden`}
+        className={`${layoutStyles.overlay} hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden`}
         htmlFor="mobile-menu-toggle"
       />
 
-      <div className={`${layoutStyles.wrapper} flex h-screen overflow-hidden`}>
+      <div className={layoutStyles.wrap}>
         <Sidebar activePage="history" />
 
-        <div className={`${layoutStyles.mainArea} flex-1 flex flex-col min-w-0 transition-all duration-300`}>
-          <header className={`${layoutStyles.navBar} h-16 flex items-center justify-between px-6 z-20 shadow-md flex-shrink-0 border-b border-white/10 text-white`}>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <h1 className="font-bold text-xl tracking-tight text-white">Booking Archive</h1>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-6">
-              <button className="relative text-slate-300 hover:text-white cursor-pointer transition-colors" type="button">
-                <BellIcon />
-                <span className={`absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 ${layoutStyles.navBar}`} />
-              </button>
-
-              <div className="flex items-center gap-3 border-l border-white/10 pl-6">
-                <div className="text-right hidden md:block">
-                  <p className="text-sm font-medium">Dr. Arul Kumaran</p>
-                  <p className="text-xs text-slate-400">Chief Administrator</p>
-                </div>
-                <img
-                  alt="Admin Profile"
-                  className="w-9 h-9 rounded-full border-2 border-primary object-cover"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAC__Cgg6pqqNUg-YjGiC6iYQbYKal-o1L9EK-NtxMTNR839rJvGV3WhaMHoeDXozRfJSUDk1aSdixUjE8oB530g1EbPootvQ9UdjaEnK00m-UjipPbx-PV0Oe9wdhKnNmkg9arM7DKNFQRk-Lttr2DJG6G_RH6bK5ObTVW5Ol8kFbs3ZZsvoiR9lvIoMWkxKtYP1U374ssVdnle25AF6OkyC6JZwKgwTNOSQYGkjkA-X9o7PHadS4BdZjdtojeXNTpduuqIUHLV1s"
-                />
-              </div>
-            </div>
-          </header>
+        <div className={layoutStyles.main}>
+          <PageHeader title="Booking Archive" />
 
           <main className={`${styles.scroll} ${styles.main}`}>
             <section className={styles.filterBar}>
@@ -234,8 +195,8 @@ export default function HistoryPage() {
                     <input className={styles.searchInput} placeholder="Search archive (ID, Event, Name)..." type="text" />
                   </div>
 
-                  <button className={styles.exportBtn} type="button">
-                    <DownloadIcon className={styles.exportIcon} />
+                  <button className={styles.navyBlueExportBtn} type="button">
+                    <DownloadIcon className={styles.navyBlueExportIcon} />
                     Export
                   </button>
                 </div>
@@ -246,19 +207,19 @@ export default function HistoryPage() {
                 <span className={`${styles.pill} ${styles.pillBlue}`}>
                   Status: Approved
                   <button aria-label="Remove filter" className={styles.pillRemove} type="button">
-                    <CloseIcon />
+                    ×
                   </button>
                 </span>
                 <span className={`${styles.pill} ${styles.pillPurple}`}>
                   Venue: AICTE Lab
                   <button aria-label="Remove filter" className={styles.pillRemove} type="button">
-                    <CloseIcon />
+                    ×
                   </button>
                 </span>
                 <span className={`${styles.pill} ${styles.pillPink}`}>
                   Year: 2025
                   <button aria-label="Remove filter" className={styles.pillRemove} type="button">
-                    <CloseIcon />
+                    ×
                   </button>
                 </span>
                 <button className={styles.clearBtn} type="button">
