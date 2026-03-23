@@ -84,6 +84,7 @@
   background: rgba(0, 33, 71, 0.55);
   border-color: rgba(255, 255, 255, 0.35);
   transform: translateY(-1px);
+  color:#f0f0f0;
 }
 
 .backBtn :global(.material-symbols-outlined) {

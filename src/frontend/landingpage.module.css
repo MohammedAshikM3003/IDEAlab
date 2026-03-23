@@ -150,6 +150,7 @@
 .adminBtn:hover {
   background: rgba(255, 122, 89, 0.9);
   box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+  color:#f0f0f0;
 }
 @media (min-width: 640px) { .adminBtn { display: inline-flex; } }
 .menuBtn {

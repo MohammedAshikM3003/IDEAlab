@@ -1,10 +1,119 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
 import styles from "./FacilitiesManagementPage.module.css";
 
+const DONUT_RADIUS = 70;
+const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
+
+const EQUIPMENT_SEGMENTS = [
+  { id: "projectors", label: "Projectors & Screens", percentage: 40, color: "#FF9400" },
+  { id: "audio", label: "Audio Systems", percentage: 25, color: "#FF7A59" },
+  { id: "network", label: "Network Equipment", percentage: 20, color: "#3B82F6" },
+  { id: "other", label: "Others", percentage: 15, color: "#E5E7EB" },
+];
+
+const INITIAL_MAINTENANCE_TASKS = [
+  { id: "task-projector", title: "Projector Calibration", location: "Room 304, IT Block", date: "2026-10-24", time: "10:00" },
+  { id: "task-audio", title: "Audio System Check", location: "Auditorium Main Stage", date: "2026-10-26", time: "11:00" },
+  { id: "task-network", title: "Network Maintenance", location: "Campus Wide (11 PM - 2 AM)", date: "2026-10-28", time: "23:00" },
+];
+
+function formatMonthDay(dateValue) {
+  const [year, month, day] = dateValue.split("-").map(Number);
+  const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  if (!year || !month || !day) {
+    return { month: "--", day: "--" };
+  }
+
+  return {
+    month: shortMonths[month - 1] || "--",
+    day: String(day),
+  };
+}
+
 export default function FacilitiesManagementPage() {
+  const navigate = useNavigate();
+
+  const [maintenanceTasks, setMaintenanceTasks] = useState(INITIAL_MAINTENANCE_TASKS);
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+  const [selectedMaintenanceTask, setSelectedMaintenanceTask] = useState(null);
+  const [rescheduleDate, setRescheduleDate] = useState("");
+  const [rescheduleTime, setRescheduleTime] = useState("");
+  const [toastMessage, setToastMessage] = useState("");
+
+  const chartSegments = useMemo(
+    () =>
+      EQUIPMENT_SEGMENTS.reduce(
+        (acc, segment, index) => {
+          const segmentLength = (segment.percentage / 100) * DONUT_CIRCUMFERENCE;
+          const nextSegment = {
+            ...segment,
+            segmentLength,
+            segmentOffset: -acc.totalLength,
+            delay: index * 0.14,
+          };
+
+          return {
+            totalLength: acc.totalLength + segmentLength,
+            items: [...acc.items, nextSegment],
+          };
+        },
+        { totalLength: 0, items: [] },
+      ).items,
+    [],
+  );
+
+  useEffect(() => {
+    if (!toastMessage) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setToastMessage("");
+    }, 2200);
+
+    return () => window.clearTimeout(timer);
+  }, [toastMessage]);
+
+  const openRescheduleModal = (task) => {
+    setSelectedMaintenanceTask(task);
+    setRescheduleDate(task.date);
+    setRescheduleTime(task.time || "09:00");
+    setIsRescheduleModalOpen(true);
+  };
+
+  const closeRescheduleModal = () => {
+    setIsRescheduleModalOpen(false);
+    setSelectedMaintenanceTask(null);
+    setRescheduleDate("");
+    setRescheduleTime("");
+  };
+
+  const confirmReschedule = () => {
+    if (!selectedMaintenanceTask || !rescheduleDate || !rescheduleTime) {
+      return;
+    }
+
+    setMaintenanceTasks((prev) =>
+      prev.map((task) =>
+        task.id === selectedMaintenanceTask.id
+          ? {
+              ...task,
+              date: rescheduleDate,
+              time: rescheduleTime,
+            }
+          : task,
+      ),
+    );
+
+    closeRescheduleModal();
+    setToastMessage("Schedule Updated");
+  };
+
   return (
     <div className={styles.page}>
       <input className="hidden" id="mobile-menu-toggle" type="checkbox" />
@@ -100,7 +209,7 @@ export default function FacilitiesManagementPage() {
                     <button className={styles.btnViewAll} type="button">
                       View All
                     </button>
-                    <button className={styles.btnAddFacility} type="button">
+                    <button className={styles.btnAddFacility} onClick={() => navigate("/facilities/add")} type="button">
                       <span className="material-icons">add</span>
                       Add Facility
                     </button>
@@ -210,7 +319,25 @@ export default function FacilitiesManagementPage() {
                 <h3 className={styles.sectionTitle}>Equipment Distribution</h3>
                 <div className={styles.chartContainer}>
                   <div className={styles.donutChart}>
-                    <div className={styles.donutFill} />
+                    <svg className={styles.donutSvg} viewBox="0 0 180 180" aria-label="Equipment distribution chart" role="img">
+                      <circle className={styles.donutTrack} cx="90" cy="90" r={DONUT_RADIUS} />
+                      {chartSegments.map((segment) => (
+                        <circle
+                          className={styles.donutSegment}
+                          cx="90"
+                          cy="90"
+                          key={segment.id}
+                          r={DONUT_RADIUS}
+                          stroke={segment.color}
+                          style={{
+                            "--circumference": DONUT_CIRCUMFERENCE,
+                            "--segment-length": segment.segmentLength,
+                            "--segment-offset": segment.segmentOffset,
+                            "--draw-delay": `${segment.delay}s`,
+                          }}
+                        />
+                      ))}
+                    </svg>
                     <div className={styles.chartCenter}>
                       <h2 className={styles.chartTotal}>47</h2>
                       <p className={styles.chartLabel}>Total Items</p>
@@ -219,33 +346,106 @@ export default function FacilitiesManagementPage() {
                 </div>
 
                 <div className={styles.legend}>
-                  <div className={styles.legendItem}>
-                    <div className="flex items-center">
-                      <div className={`${styles.legendColor} ${styles.colorOrange}`} />
-                      <span className={styles.legendLabel}>Projectors & Screens</span>
+                  {EQUIPMENT_SEGMENTS.map((segment) => (
+                    <div className={styles.legendItem} key={segment.id}>
+                      <div className={styles.legendItemLeft}>
+                        <div className={styles.legendColor} style={{ backgroundColor: segment.color }} />
+                        <span className={styles.legendLabel}>{segment.label}</span>
+                      </div>
+                      <span className={styles.legendValue}>{segment.percentage}%</span>
                     </div>
-                    <span className={styles.legendValue}>40%</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.additionalSections}>
+              <div className={styles.upcomingMaintenance}>
+                <div className={styles.sectionHeader}>
+                  <h3 className={styles.sectionTitle}>Upcoming Maintenance</h3>
+                  <span className={styles.next7DaysBadge}>Next 7 Days</span>
+                </div>
+                <div className={styles.maintenanceList}>
+                  {maintenanceTasks.map((task) => {
+                    const formattedDate = formatMonthDay(task.date);
+
+                    return (
+                      <div className={styles.maintenanceItem} key={task.id}>
+                        <div className={styles.maintenanceItemLeft}>
+                          <div className={styles.dateCard}>
+                            <span className={styles.monthLabel}>{formattedDate.month}</span>
+                            <span className={styles.dateNumber}>{formattedDate.day}</span>
+                          </div>
+                          <div className={styles.maintenanceDetails}>
+                            <h5 className={styles.maintenanceTitle}>{task.title}</h5>
+                            <p className={styles.maintenanceLocation}>{task.location}</p>
+                          </div>
+                        </div>
+                        <button className={styles.rescheduleBtn} onClick={() => openRescheduleModal(task)} type="button">Reschedule</button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className={styles.recentUpdates}>
+                <div className={styles.sectionHeader}>
+                  <h3 className={styles.sectionTitle}>Recent Facility Updates</h3>
+                  <button className={styles.moreBtn} type="button">
+                    <span className="material-icons">more_horiz</span>
+                  </button>
+                </div>
+                <div className={styles.updatesList}>
+                  <div className={styles.updateItem}>
+                    <div className={`${styles.updateIcon} ${styles.updateIconBlue}`}>
+                      <span className="material-icons">build</span>
+                    </div>
+                    <div className={styles.updateContent}>
+                      <div className={styles.updateHeader}>
+                        <h5 className={styles.updateTitle}>AC Maintenance Completed</h5>
+                        <span className={styles.updateTime}>2h ago</span>
+                      </div>
+                      <p className={styles.updateDescription}>Seminar Hall cooling system serviced and filters replaced.</p>
+                    </div>
                   </div>
-                  <div className={styles.legendItem}>
-                    <div className="flex items-center">
-                      <div className={`${styles.legendColor} ${styles.colorCoral}`} />
-                      <span className={styles.legendLabel}>Audio Systems</span>
+
+                  <div className={styles.updateItem}>
+                    <div className={`${styles.updateIcon} ${styles.updateIconOrange}`}>
+                      <span className="material-icons">event_available</span>
                     </div>
-                    <span className={styles.legendValue}>25%</span>
+                    <div className={styles.updateContent}>
+                      <div className={styles.updateHeader}>
+                        <h5 className={styles.updateTitle}>New Booking Request</h5>
+                        <span className={styles.updateTime}>4h ago</span>
+                      </div>
+                      <p className={styles.updateDescription}>Dr. Smith requested Idea Lab for "Innovation Workshop" on Oct 25.</p>
+                    </div>
                   </div>
-                  <div className={styles.legendItem}>
-                    <div className="flex items-center">
-                      <div className={`${styles.legendColor} ${styles.colorBlue}`} />
-                      <span className={styles.legendLabel}>Network Equipment</span>
+
+                  <div className={styles.updateItem}>
+                    <div className={`${styles.updateIcon} ${styles.updateIconGreen}`}>
+                      <span className="material-icons">check_circle</span>
                     </div>
-                    <span className={styles.legendValue}>20%</span>
+                    <div className={styles.updateContent}>
+                      <div className={styles.updateHeader}>
+                        <h5 className={styles.updateTitle}>Cleaning Verified</h5>
+                        <span className={styles.updateTime}>6h ago</span>
+                      </div>
+                      <p className={styles.updateDescription}>Housekeeping staff marked "Conference Room B" as ready.</p>
+                    </div>
                   </div>
-                  <div className={styles.legendItem}>
-                    <div className="flex items-center">
-                      <div className={`${styles.legendColor} ${styles.colorGray}`} />
-                      <span className={styles.legendLabel}>Others</span>
+
+                  <div className={styles.updateItem}>
+                    <div className={`${styles.updateIcon} ${styles.updateIconOrange}`}>
+                      <span className="material-icons">event_available</span>
                     </div>
-                    <span className={styles.legendValue}>15%</span>
+                    <div className={styles.updateContent}>
+                      <div className={styles.updateHeader}>
+                        <h5 className={styles.updateTitle}>New Booking Request</h5>
+                        <span className={styles.updateTime}>7h ago</span>
+                      </div>
+                      <p className={styles.updateDescription}>Prof. Maan requested Dhenuka Hall for "Seminar on AI Ethics" on Oct 25.</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -254,120 +454,33 @@ export default function FacilitiesManagementPage() {
         </div>
       </div>
 
-      {/* Additional Sections Container */}
-      <div className={styles.additionalSections}>
-        <div className={styles.upcomingMaintenance}>
-          <div className={styles.sectionHeader}>
-            <h3 className={styles.sectionTitle}>Upcoming Maintenance</h3>
-            <span className={styles.next7DaysBadge}>Next 7 Days</span>
-          </div>
-          <div className={styles.maintenanceList}>
-            <div className={styles.maintenanceItem}>
-              <div className={styles.maintenanceItemLeft}>
-                <div className={styles.dateCard}>
-                  <span className={styles.monthLabel}>Oct</span>
-                  <span className={styles.dateNumber}>24</span>
-                </div>
-                <div className={styles.maintenanceDetails}>
-                  <h5 className={styles.maintenanceTitle}>Projector Calibration</h5>
-                  <p className={styles.maintenanceLocation}>Room 304, IT Block</p>
-                </div>
-              </div>
-              <button className={styles.rescheduleBtn}>Reschedule</button>
+      {isRescheduleModalOpen && selectedMaintenanceTask && (
+        <div className={styles.modalOverlay} onClick={closeRescheduleModal} role="presentation">
+          <div className={styles.modalCard} onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true">
+            <h4 className={styles.modalTitle}>Reschedule Maintenance</h4>
+            <p className={styles.modalTask}>{selectedMaintenanceTask.title}</p>
+
+            <div className={styles.modalGrid}>
+              <label className={styles.modalField}>
+                <span className={styles.modalLabel}>Date</span>
+                <input className={styles.modalInput} onChange={(event) => setRescheduleDate(event.target.value)} type="date" value={rescheduleDate} />
+              </label>
+
+              <label className={styles.modalField}>
+                <span className={styles.modalLabel}>Time</span>
+                <input className={styles.modalInput} onChange={(event) => setRescheduleTime(event.target.value)} type="time" value={rescheduleTime} />
+              </label>
             </div>
 
-            <div className={styles.maintenanceItem}>
-              <div className={styles.maintenanceItemLeft}>
-                <div className={styles.dateCard}>
-                  <span className={styles.monthLabel}>Oct</span>
-                  <span className={styles.dateNumber}>26</span>
-                </div>
-                <div className={styles.maintenanceDetails}>
-                  <h5 className={styles.maintenanceTitle}>Audio System Check</h5>
-                  <p className={styles.maintenanceLocation}>Auditorium Main Stage</p>
-                </div>
-              </div>
-              <button className={styles.rescheduleBtn}>Reschedule</button>
-            </div>
-
-            <div className={styles.maintenanceItem}>
-              <div className={styles.maintenanceItemLeft}>
-                <div className={styles.dateCard}>
-                  <span className={styles.monthLabel}>Oct</span>
-                  <span className={styles.dateNumber}>28</span>
-                </div>
-                <div className={styles.maintenanceDetails}>
-                  <h5 className={styles.maintenanceTitle}>Network Maintenance</h5>
-                  <p className={styles.maintenanceLocation}>Campus Wide (11 PM - 2 AM)</p>
-                </div>
-              </div>
-              <button className={styles.rescheduleBtn}>Reschedule</button>
+            <div className={styles.modalActions}>
+              <button className={styles.modalCancelBtn} onClick={closeRescheduleModal} type="button">Cancel</button>
+              <button className={styles.modalConfirmBtn} onClick={confirmReschedule} type="button">Confirm</button>
             </div>
           </div>
         </div>
+      )}
 
-        <div className={styles.recentUpdates}>
-          <div className={styles.sectionHeader}>
-            <h3 className={styles.sectionTitle}>Recent Facility Updates</h3>
-            <button className={styles.moreBtn} type="button">
-              <span className="material-icons">more_horiz</span>
-            </button>
-          </div>
-          <div className={styles.updatesList}>
-            <div className={styles.updateItem}>
-              <div className={`${styles.updateIcon} ${styles.updateIconBlue}`}>
-                <span className="material-icons">build</span>
-              </div>
-              <div className={styles.updateContent}>
-                <div className={styles.updateHeader}>
-                  <h5 className={styles.updateTitle}>AC Maintenance Completed</h5>
-                  <span className={styles.updateTime}>2h ago</span>
-                </div>
-                <p className={styles.updateDescription}>Seminar Hall cooling system serviced and filters replaced.</p>
-              </div>
-            </div>
-
-            <div className={styles.updateItem}>
-              <div className={`${styles.updateIcon} ${styles.updateIconOrange}`}>
-                <span className="material-icons">event_available</span>
-              </div>
-              <div className={styles.updateContent}>
-                <div className={styles.updateHeader}>
-                  <h5 className={styles.updateTitle}>New Booking Request</h5>
-                  <span className={styles.updateTime}>4h ago</span>
-                </div>
-                <p className={styles.updateDescription}>Dr. Smith requested Idea Lab for "Innovation Workshop" on Oct 25.</p>
-              </div>
-            </div>
-
-            <div className={styles.updateItem}>
-              <div className={`${styles.updateIcon} ${styles.updateIconGreen}`}>
-                <span className="material-icons">check_circle</span>
-              </div>
-              <div className={styles.updateContent}>
-                <div className={styles.updateHeader}>
-                  <h5 className={styles.updateTitle}>Cleaning Verified</h5>
-                  <span className={styles.updateTime}>6h ago</span>
-                </div>
-                <p className={styles.updateDescription}>Housekeeping staff marked "Conference Room B" as ready.</p>
-              </div>
-            </div>
-
-            <div className={styles.updateItem}>
-              <div className={`${styles.updateIcon} ${styles.updateIconOrange}`}>
-                <span className="material-icons">event_available</span>
-              </div>
-              <div className={styles.updateContent}>
-                <div className={styles.updateHeader}>
-                  <h5 className={styles.updateTitle}>New Booking Request</h5>
-                  <span className={styles.updateTime}>7h ago</span>
-                </div>
-                <p className={styles.updateDescription}>Prof. Maan requested Dhenuka Hall for "Seminar on AI Ethics" on Oct 25.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {toastMessage && <div className={styles.toast}>{toastMessage}</div>}
     </div>
   );
 }
