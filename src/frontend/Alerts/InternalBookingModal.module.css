@@ -1,22 +1,31 @@
+
 .overlay {
   position: fixed;
-  inset: 0;
-  z-index: 120;
+  inset: 0; /* Shorthand for top, right, bottom, left: 0 */
+  z-index: 1000;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: center;     /* Centers the modal vertically */
+  justify-content: center; /* Centers the modal horizontally */
+
+  /* Premium Frosted Glass Effect */
+  background-color: rgba(15, 23, 42, 0.25); /* Lighter, subtle dark wash */
+  backdrop-filter: blur(12px);              /* Stronger frosted glass blur */
+  -webkit-backdrop-filter: blur(12px);      /* Safari support */
   padding: 16px;
-  background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(6px);
+  /* Premium Frosted Glass Effect */
 }
 
 .modal {
-  width: 100%;
-  max-width: 768px;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  box-shadow: 0 24px 40px rgba(15, 23, 42, 0.2);
+  position: relative;
+  z-index: 1001;
+  max-height: 90vh; /* Prevents it from bleeding off the screen */
+  overflow-y: auto; /* Adds a scrollbar inside the modal if needed */
+    width: 100%;
+    max-width: 768px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    box-shadow: 0 24px 40px rgba(15, 23, 42, 0.2);
 }
 
 .header {

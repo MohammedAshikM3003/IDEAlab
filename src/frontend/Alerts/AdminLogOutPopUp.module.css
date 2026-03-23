@@ -6,15 +6,7 @@
 }
 
 .page {
-  font-family: "Public Sans", sans-serif;
-  min-height: 100vh;
-  position: relative;
-  overflow: hidden;
-  background: var(--background-light);
-}
-
-:global(.dark) .page {
-  background: var(--background-dark);
+  display: contents;
 }
 
 .mock {
@@ -120,33 +112,47 @@
 
 .overlay {
   position: fixed;
-  top: 0;
-  left: 0;
+  inset: 0; /* Shorthand for top, right, bottom, left: 0 */
+  z-index: 1000;
+  display: flex;
+  align-items: center;     /* Centers the modal vertically */
+  justify-content: center; /* Centers the modal horizontally */
+
+  /* Premium Frosted Glass Effect */
+  background-color: rgba(15, 23, 42, 0.25); /* Lighter, subtle dark wash */
+  backdrop-filter: blur(12px);              /* Stronger frosted glass blur */
+  -webkit-backdrop-filter: blur(12px);      /* Safari support */
+  padding: 16px;
+  /* Premium Frosted Glass Effect */
   width: 100vw;
   height: 100vh;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.5);
 }
 
 .backdrop {
-  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(15, 23, 42, 0.6); /* Semi-transparent navy wash */
+  backdrop-filter: blur(4px); /* Glassmorphism blur */
 }
 
 .modal {
   position: relative;
-  width: 100%;
-  max-width: 400px;
-  border-radius: 20px;
-  background: #ffffff;
-  padding: 32px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
+  z-index: 1001;
+  max-height: 90vh; /* Prevents it from bleeding off the screen */
+  overflow-y: auto; /* Adds a scrollbar inside the modal if needed */
+    width: 100%;
+    max-width: 400px;
+    border-radius: 20px;
+    background: #ffffff;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
 }
 
 .iconWrap {

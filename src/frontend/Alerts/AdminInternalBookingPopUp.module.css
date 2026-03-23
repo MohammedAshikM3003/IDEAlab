@@ -6,17 +6,11 @@
 }
 
 .page {
-  font-family: "Public Sans", sans-serif;
-  min-height: 100vh;
-  position: relative;
-  overflow: hidden;
-  background: var(--background-light);
-  color: #0f172a;
+  display: contents;
 }
 
 :global(.dark) .page {
-  background: var(--background-dark);
-  color: #f1f5f9;
+  display: contents;
 }
 
 .bg {
@@ -113,28 +107,33 @@
 }
 
 .backdrop {
-  position: absolute;
-  inset: 0;
-  z-index: 40;
-  background: rgba(0, 33, 71, 0.3);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  position: fixed;
+  inset: 0; /* Shorthand for top, right, bottom, left: 0 */
+  z-index: 1000;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: center;     /* Centers the modal vertically */
+  justify-content: center; /* Centers the modal horizontally */
+
+  /* Premium Frosted Glass Effect */
+  background-color: rgba(15, 23, 42, 0.25); /* Lighter, subtle dark wash */
+  backdrop-filter: blur(12px);              /* Stronger frosted glass blur */
+  -webkit-backdrop-filter: blur(12px);      /* Safari support */
   padding: 16px;
+  /* Premium Frosted Glass Effect */
 }
 
 .modal {
-  width: 100%;
-  max-width: 560px;
-  max-height: 90vh;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.25);
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  z-index: 1001;
+  max-height: 85vh; /* Fits visible viewport including browser UI */
   overflow: hidden;
+    width: 100%;
+    max-width: 560px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 24px 64px rgba(15, 23, 42, 0.25);
+    display: flex;
+    flex-direction: column;
 }
 
 .header {
@@ -176,6 +175,8 @@
 }
 
 .content {
+  flex: 1;
+  min-height: 0;
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -407,6 +408,7 @@
 }
 
 .footer {
+  flex-shrink: 0;
   padding: 20px 24px;
   background: #f8fafc;
   border-top: 1px solid #f1f5f9;
