@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import styles from "./DashboardPage.module.css";
+import styles from "./PageHeader.module.css";
 import { useUserProfile } from "./UserProfileContext.jsx";
 
 const NOTIFICATIONS_READ_KEY = "notificationsRead";
