@@ -1,4 +1,4 @@
-﻿import React from "react";
+﻿import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Bar,
@@ -18,24 +18,57 @@ import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
 import styles from "./DashboardPage.module.css";
 
-const bookingTrendData = [
-  { month: "JAN", bookings: 42 },
-  { month: "FEB", bookings: 58 },
-  { month: "MAR", bookings: 54 },
-  { month: "APR", bookings: 73 },
-  { month: "MAY", bookings: 66 },
-  { month: "JUN", bookings: 82 },
-];
+const BOOKING_TIMEFRAMES = {
+  last6Months: "last-6-months",
+  thisYear: "this-year",
+};
 
-const bookingsByDayData = [
-  { day: "Mon", bookings: 21 },
-  { day: "Tue", bookings: 18 },
-  { day: "Wed", bookings: 24 },
-  { day: "Thu", bookings: 20 },
-  { day: "Fri", bookings: 27 },
-  { day: "Sat", bookings: 13 },
-  { day: "Sun", bookings: 9 },
-];
+const bookingTrendsByTimeframe = {
+  [BOOKING_TIMEFRAMES.last6Months]: {
+    overTime: [
+      { month: "JAN", bookings: 42 },
+      { month: "FEB", bookings: 58 },
+      { month: "MAR", bookings: 54 },
+      { month: "APR", bookings: 73 },
+      { month: "MAY", bookings: 66 },
+      { month: "JUN", bookings: 82 },
+    ],
+    byDay: [
+      { day: "Mon", bookings: 21 },
+      { day: "Tue", bookings: 18 },
+      { day: "Wed", bookings: 24 },
+      { day: "Thu", bookings: 20 },
+      { day: "Fri", bookings: 27 },
+      { day: "Sat", bookings: 13 },
+      { day: "Sun", bookings: 9 },
+    ],
+  },
+  [BOOKING_TIMEFRAMES.thisYear]: {
+    overTime: [
+      { month: "JAN", bookings: 35 },
+      { month: "FEB", bookings: 41 },
+      { month: "MAR", bookings: 47 },
+      { month: "APR", bookings: 52 },
+      { month: "MAY", bookings: 49 },
+      { month: "JUN", bookings: 58 },
+      { month: "JUL", bookings: 61 },
+      { month: "AUG", bookings: 57 },
+      { month: "SEP", bookings: 66 },
+      { month: "OCT", bookings: 72 },
+      { month: "NOV", bookings: 69 },
+      { month: "DEC", bookings: 75 },
+    ],
+    byDay: [
+      { day: "Mon", bookings: 38 },
+      { day: "Tue", bookings: 34 },
+      { day: "Wed", bookings: 41 },
+      { day: "Thu", bookings: 36 },
+      { day: "Fri", bookings: 44 },
+      { day: "Sat", bookings: 22 },
+      { day: "Sun", bookings: 17 },
+    ],
+  },
+};
 
 const venueUsageData = [
   {
@@ -74,6 +107,8 @@ const VENUE_COLORS = [
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const [selectedTimeframe, setSelectedTimeframe] = useState(BOOKING_TIMEFRAMES.last6Months);
+  const currentBookingTrends = bookingTrendsByTimeframe[selectedTimeframe] || bookingTrendsByTimeframe[BOOKING_TIMEFRAMES.last6Months];
   const rankedVenueData = [...venueUsageData]
     .sort((a, b) => b.booked - a.booked)
     .map((venue, index) => ({
@@ -159,9 +194,13 @@ export default function DashboardPage() {
               <div className={styles.chartCard}>
                 <div className={styles.chartHead}>
                   <h3 className={styles.sectionTitle}>Booking Trends</h3>
-                  <select className={styles.chartSelect}>
-                    <option>Last 6 Months</option>
-                    <option>This Year</option>
+                  <select
+                    className={styles.chartSelect}
+                    value={selectedTimeframe}
+                    onChange={(event) => setSelectedTimeframe(event.target.value)}
+                  >
+                    <option value={BOOKING_TIMEFRAMES.last6Months}>Last 6 Months</option>
+                    <option value={BOOKING_TIMEFRAMES.thisYear}>This Year</option>
                   </select>
                 </div>
 
@@ -170,7 +209,7 @@ export default function DashboardPage() {
                     <h4 className={styles.chartSubTitle}>Bookings Over Time</h4>
                     <div className={styles.lineChartBox}>
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={bookingTrendData} margin={{ top: 8, right: 12, left: -8, bottom: 0 }}>
+                        <LineChart data={currentBookingTrends.overTime} margin={{ top: 8, right: 12, left: -8, bottom: 0 }}>
                           <CartesianGrid stroke="#f1f5f9" vertical={false} />
                           <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} />
                           <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} axisLine={false} tickLine={false} width={28} />
@@ -192,7 +231,7 @@ export default function DashboardPage() {
                     <h4 className={styles.chartSubTitle}>Bookings by Day</h4>
                     <div className={styles.dayChartBox}>
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={bookingsByDayData} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
+                        <BarChart data={currentBookingTrends.byDay} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
                           <CartesianGrid stroke="#f1f5f9" vertical={false} />
                           <XAxis dataKey="day" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
                           <YAxis hide />

@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import * as XLSX from "xlsx";
 
 import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
@@ -135,6 +136,26 @@ function InfoIcon(props) {
         strokeLinejoin="round"
         strokeWidth="2"
       />
+    </svg>
+  );
+}
+
+function FileChartIcon(props) {
+  return (
+    <svg aria-hidden="true" fill="none" height="16" viewBox="0 0 24 24" width="16" {...props}>
+      <path d="M6 3h8l4 4v14H6V3Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+      <path d="M14 3v4h4" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+      <path d="M9 17v-4m3 4v-6m3 6v-2" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function FilePdfIcon(props) {
+  return (
+    <svg aria-hidden="true" fill="none" height="16" viewBox="0 0 24 24" width="16" {...props}>
+      <path d="M6 3h8l4 4v14H6V3Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+      <path d="M14 3v4h4" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+      <path d="M8.5 15h1.5a1.5 1.5 0 0 0 0-3H8.5V15Zm4 0v-3h1.2m0 0a1.3 1.3 0 0 1 0 2.6h-1.2m3.8.4h-1.8v-3h1.8" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
     </svg>
   );
 }
@@ -295,23 +316,6 @@ function getStatusClass(status) {
   }
 }
 
-function createCsv(rows) {
-  const headers = ["Booking ID", "Date", "Time", "Venue", "Event", "Organizer", "Status"];
-  const toCell = (value) => `"${String(value).replace(/"/g, '""')}"`;
-  const body = rows.map((row) => [row.id, row.date, row.time, row.venue, row.event, row.organizer, row.status].map(toCell).join(","));
-  return [headers.join(","), ...body].join("\n");
-}
-
-function downloadCsv(fileName, csvContent) {
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = fileName;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
 function formatDateLabel(isoDate) {
   if (!isoDate) {
     return "Select date range";
@@ -357,6 +361,8 @@ export default function HistoryPage() {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+  const exportMenuRef = useRef(null);
 
   const statuses = useMemo(() => {
     return ["All", ...new Set(bookings.map((booking) => booking.status))];
@@ -467,6 +473,24 @@ export default function HistoryPage() {
   const startResult = totalResults === 0 ? 0 : (safeCurrentPage - 1) * PAGE_SIZE + 1;
   const endResult = totalResults === 0 ? 0 : Math.min(safeCurrentPage * PAGE_SIZE, totalResults);
 
+  useEffect(() => {
+    if (!isExportMenuOpen) {
+      return undefined;
+    }
+
+    const handleOutsideClick = (event) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target)) {
+        setIsExportMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [isExportMenuOpen]);
+
   const handleViewDetails = (booking) => {
     setSelectedBooking(booking);
   };
@@ -533,10 +557,86 @@ export default function HistoryPage() {
     setBookings((prev) => [duplicate, ...prev]);
   };
 
-  const handleExport = () => {
-    const csv = createCsv(filteredBookings);
+  const exportToExcel = () => {
+    const data = bookings.map((b) => ({
+      "Booking ID": b.id,
+      "Date & Time": `${b.date} ${b.time}`,
+      Venue: b.venue,
+      Event: b.event,
+      Organizer: b.organizer,
+      Department: b.details?.department || "",
+      Status: b.status,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Booking Archive");
+    XLSX.writeFile(wb, `booking-archive-${new Date().toISOString().split("T")[0]}.xlsx`);
+    setIsExportMenuOpen(false);
+  };
+
+  const handleExportPdf = () => {
     const stamp = new Date().toISOString().slice(0, 10);
-    downloadCsv(`booking-archive-${stamp}.csv`, csv);
+    const printWindow = window.open("", "_blank", "width=1100,height=800");
+
+    if (!printWindow) {
+      return;
+    }
+
+    const rowsHtml = paginatedBookings
+      .map(
+        (booking) => `
+          <tr>
+            <td>${booking.id}</td>
+            <td>${booking.date} ${booking.time}</td>
+            <td>${booking.venue}</td>
+            <td>${booking.event}</td>
+            <td>${booking.organizer}</td>
+            <td>${booking.status}</td>
+          </tr>
+        `,
+      )
+      .join("");
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>booking-archive-${stamp}.pdf</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 24px; color: #0f172a; }
+            h1 { margin: 0 0 8px; font-size: 24px; }
+            p { margin: 0 0 18px; color: #475569; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #e2e8f0; padding: 8px 10px; text-align: left; font-size: 12px; }
+            th { background: #f8fafc; text-transform: uppercase; letter-spacing: 0.03em; }
+          </style>
+        </head>
+        <body>
+          <h1>Booking Archive</h1>
+          <p>Export Date: ${stamp}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Booking ID</th>
+                <th>Date & Time</th>
+                <th>Venue</th>
+                <th>Event</th>
+                <th>Organizer</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    setIsExportMenuOpen(false);
   };
 
   const handleRemoveFilter = (key) => {
@@ -646,10 +746,32 @@ export default function HistoryPage() {
                     />
                   </div>
 
-                  <button className={styles.btnExp} onClick={handleExport} type="button">
-                    <DownloadIcon className={styles.icoExp} />
-                    Export
-                  </button>
+                  <div className={styles.expWrap} ref={exportMenuRef}>
+                    <button
+                      aria-expanded={isExportMenuOpen}
+                      aria-haspopup="menu"
+                      className={styles.btnExp}
+                      onClick={() => setIsExportMenuOpen((prev) => !prev)}
+                      type="button"
+                    >
+                      <DownloadIcon className={styles.icoExp} />
+                      Export
+                      <span className={styles.expChevron}>▾</span>
+                    </button>
+
+                    {isExportMenuOpen ? (
+                      <div className={styles.expMenu} role="menu">
+                        <button className={styles.expItem} onClick={exportToExcel} role="menuitem" type="button">
+                          <span className={styles.expItemIcon}><FileChartIcon /></span>
+                          <span>Export as Excel (.xlsx)</span>
+                        </button>
+                        <button className={styles.expItem} onClick={handleExportPdf} role="menuitem" type="button">
+                          <span className={styles.expItemIcon}><FilePdfIcon /></span>
+                          <span>Export as PDF</span>
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               </div>
 

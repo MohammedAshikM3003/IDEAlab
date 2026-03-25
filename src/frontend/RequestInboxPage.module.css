@@ -1246,3 +1246,89 @@
 		print-color-adjust: exact !important;
 	}
 }
+
+
+
+/* --- Add this to the bottom of RequestInboxPage.module.css --- */
+
+@media print {
+  /* 1. HIDE ALL UI AND NAVIGATION ELEMENTS */
+  .listPane, 
+  .senderActs, 
+  .backBtn, 
+  .stickyAct,
+  .searchWrap {
+    display: none !important;
+  } /* <--- This closing brace was missing! */
+
+  /* Hide the PageHeader (which is the first child of main) */
+  .main > :first-child {
+    display: none !important;
+  }
+
+  /* Hide the Sidebar (which is the first child of wrap) */
+  .wrap > :first-child {
+    display: none !important;
+  }
+
+  /* Optional: Hide the calendar/availability checker */
+  .colRight {
+    display: none !important;
+  }
+
+  /* 2. OVERRIDE LAYOUT TO FILL THE PAGE */
+  .page, .wrap, .main, .body, .split, .detail, .printableContent {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important; 
+    box-shadow: none !important;
+  }
+
+  /* 3. FORMAT THE MAIN CONTENT FOR PAPER */
+  .printableContent {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  /* Make the header look like a formal letterhead */
+  .printDocHeader {
+    text-align: center !important;
+    border-bottom: 2px solid #000 !important;
+    padding-bottom: 20px !important;
+    margin-bottom: 30px !important;
+  }
+
+ /* 4. MAKE THE DATA TABLE LOOK CRISP (AND FIX THE BROKEN BACKGROUNDS) */
+  .tbl {
+    display: table !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 20px !important;
+  }
+
+  .tblBody {
+    display: table-row-group !important;
+  }
+
+  /* This completely overrides the display: grid that was breaking the layout */
+  .tblBody tr {
+    display: table-row !important; 
+  }
+  
+  .tdKey, .tdVal {
+    display: table-cell !important; /* Forces them to act like normal table cells */
+    border: 1px solid #ddd !important;
+    padding: 12px !important;
+    text-align: left !important;
+    vertical-align: top !important; 
+  }
+
+  .tdKey {
+    background-color: #f9f9f9 !important; 
+    font-weight: bold !important;
+    width: 30% !important; /* Now this will actually stretch exactly to the border! */
+  }
+}
