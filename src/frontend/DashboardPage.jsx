@@ -105,7 +105,7 @@ const VENUE_COLORS = [
   "#0f172a",
 ];
 
-export default function DashboardPage() {
+export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
   const navigate = useNavigate();
   const [selectedTimeframe, setSelectedTimeframe] = useState(BOOKING_TIMEFRAMES.last6Months);
   const currentBookingTrends = bookingTrendsByTimeframe[selectedTimeframe] || bookingTrendsByTimeframe[BOOKING_TIMEFRAMES.last6Months];
@@ -119,18 +119,15 @@ export default function DashboardPage() {
 
   return (
     <div className={styles.page}>
-      <input className="hidden" id="mobile-menu-toggle" type="checkbox" />
-
-      <label
-        className={`${styles.overlay} hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden`}
-        htmlFor="mobile-menu-toggle"
-      />
-
       <div className={styles.wrap}>
-        <Sidebar activePage="dashboard" />
+        <Sidebar
+          activePage="dashboard"
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+        />
 
         <div className={styles.main}>
-          <PageHeader title="Operational Analytics" />
+          <PageHeader title="Operational Analytics" setIsSidebarOpen={setIsSidebarOpen} />
 
           <main className={styles.body}>
             {/* â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}

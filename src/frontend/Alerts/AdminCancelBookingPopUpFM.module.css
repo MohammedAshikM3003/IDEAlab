@@ -1,0 +1,183 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px 36px 36px;
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* --- Icon --- */
+
+.iconWrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.iconCircle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #FCEBEB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconCircleSuccess {
+  background: #EAF3DE;
+}
+
+/* --- Text --- */
+
+.title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 12px;
+}
+
+.body {
+  font-size: 15px;
+  color: #4B5563;
+  line-height: 1.65;
+  margin: 0 0 24px;
+}
+
+.body strong {
+  color: #111827;
+  font-weight: 500;
+}
+
+/* --- Textarea field --- */
+
+.fieldGroup {
+  text-align: left;
+  margin-bottom: 28px;
+}
+
+.label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.textarea {
+  width: 100%;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #111827;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+  background: #fff;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.textarea::placeholder {
+  color: #9CA3AF;
+}
+
+.textarea:focus {
+  border-color: #6B7280;
+}
+
+/* --- Buttons --- */
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btnKeep {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid #D1D5DB;
+  background: #ffffff;
+  color: #374151;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btnKeep:hover {
+  background: #F9FAFB;
+  border-color: #9CA3AF;
+}
+
+.btnCancel {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: #E24B4A;
+  color: #ffffff;
+  transition: background 0.15s;
+}
+
+.btnCancel:hover {
+  background: #C73B3A;
+}
+
+.btnReturn {
+  width: 100%;
+  padding: 13px 20px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: #1a2744;
+  color: #ffffff;
+  transition: background 0.15s;
+}
+
+.btnReturn:hover {
+  background: #111b33;
+}
+
+/* --- Close button (success state) --- */
+
+.closeBtn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9CA3AF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.closeBtn:hover {
+  color: #374151;
+}

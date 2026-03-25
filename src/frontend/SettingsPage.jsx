@@ -97,7 +97,7 @@ async function getCroppedImage(imageSrc, pixelCrop) {
   return canvas.toDataURL('image/png')
 }
 
-export default function SettingsPage() {
+export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
   const { userProfile, setUserProfile } = useUserProfile()
   const [activeTab, setActiveTab] = useState('profile')
   const [firstName, setFirstName] = useState(() => userProfile.firstName)
@@ -443,18 +443,11 @@ export default function SettingsPage() {
 
   return (
     <div className={styles.page}>
-      <input className="hidden" id="mobile-menu-toggle" type="checkbox" />
-
-      <label
-        className="hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
-        htmlFor="mobile-menu-toggle"
-      />
-
       <div className={styles.shell}>
-        <Sidebar activePage="settings" />
+        <Sidebar activePage="settings" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
         <main className={styles.main}>
-          <PageHeader title="Account Settings" />
+          <PageHeader title="Account Settings" setIsSidebarOpen={setIsSidebarOpen} />
 
           <div className={styles.mainContent}>
             <section className={styles.panelGrid}>

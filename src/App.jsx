@@ -1,3 +1,4 @@
+import React, { useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import LandingPage from './frontend/landingpage.jsx'
 import LoginPage from './frontend/LoginPage.jsx'
@@ -12,6 +13,8 @@ import AICTEVenuePage from './frontend/AICTEVenuePage.jsx'
 import { UserProfileProvider } from './frontend/UserProfileContext.jsx'
 
 function App() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
   return (
     <UserProfileProvider>
       <Routes>
@@ -19,13 +22,13 @@ function App() {
         <Route path="/venue/aicte-idea-lab" element={<AICTEVenuePage />} />
         <Route path="/landing" element={<Navigate to="/" replace />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/inbox" element={<RequestInboxPage />} />
-        <Route path="/status" element={<StatusPage />} />
-        <Route path="/facilities" element={<FacilitiesManagementPage />} />
-        <Route path="/facilities/add" element={<AddFacilityPage />} />
-        <Route path="/history" element={<HistoryPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/dashboard" element={<DashboardPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
+        <Route path="/inbox" element={<RequestInboxPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
+        <Route path="/status" element={<StatusPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
+        <Route path="/facilities" element={<FacilitiesManagementPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
+        <Route path="/facilities/add" element={<AddFacilityPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
+        <Route path="/history" element={<HistoryPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
+        <Route path="/settings" element={<SettingsPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </UserProfileProvider>

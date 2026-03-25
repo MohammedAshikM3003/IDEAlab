@@ -27,7 +27,7 @@ const NOTIFICATION_ITEMS = [
   },
 ];
 
-export default function PageHeader({ title }) {
+export default function PageHeader({ title, setIsSidebarOpen }) {
   const navigate = useNavigate();
   const { userProfile } = useUserProfile();
   const fullName = `${userProfile.titlePrefix} ${userProfile.firstName} ${userProfile.lastName}`;
@@ -78,9 +78,14 @@ export default function PageHeader({ title }) {
   return (
     <header className={styles.bar}>
       <div className={styles.left}>
-        <label className={styles.menu} htmlFor="mobile-menu-toggle">
+        <button
+          aria-label="Open sidebar"
+          className={styles.menu}
+          onClick={() => setIsSidebarOpen && setIsSidebarOpen(true)}
+          type="button"
+        >
           <span className="material-icons">menu</span>
-        </label>
+        </button>
         <h1 className={styles.title}>{title}</h1>
       </div>
 

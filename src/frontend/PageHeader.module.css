@@ -42,6 +42,9 @@
   cursor: pointer;
   padding: 4px;
   border-radius: 6px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
 @media (min-width: 1024px) {

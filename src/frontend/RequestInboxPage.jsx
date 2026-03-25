@@ -118,7 +118,7 @@ const REQUESTS = [
   },
 ]
 
-export default function RequestInboxPage() {
+export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
   const location = useLocation()
 
   const [requests, setRequests] = useState(REQUESTS)
@@ -303,21 +303,14 @@ export default function RequestInboxPage() {
 
   return (
     <div className={styles.page}>
-      <input className="hidden" id="mobile-menu-toggle" type="checkbox" />
-
-      <label
-        className={`${styles.ovl} hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden`}
-        htmlFor="mobile-menu-toggle"
-      />
-
       <div className={styles.wrap}>
-        <Sidebar activePage="inbox" />
+        <Sidebar activePage="inbox" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
         <div className={styles.main}>
-          <PageHeader title="Request Inbox" />
+          <PageHeader title="Request Inbox" setIsSidebarOpen={setIsSidebarOpen} />
 
           <main className={styles.body}>
-            <div className={styles.split}>
+            <div className={cx(styles.split, showDetail && styles.splitDetailOpen)}>
               <aside
                 className={cx(styles.listPane, showDetail ? styles.listNarrow : styles.listFull, showDetail && styles.listBorder)}
               >

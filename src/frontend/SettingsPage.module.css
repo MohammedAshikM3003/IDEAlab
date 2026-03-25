@@ -1015,3 +1015,16 @@
 }
 
 
+@media (max-width: 768px) {
+  .main {
+    padding-left: 0 !important;
+  }
+  .menu {
+    display: block !important;
+  }
+}
+@media (min-width: 769px) {
+  .menu {
+    display: none !important;
+  }
+}

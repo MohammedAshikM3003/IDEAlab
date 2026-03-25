@@ -35,7 +35,7 @@ function formatMonthDay(dateValue) {
   };
 }
 
-export default function FacilitiesManagementPage() {
+export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOpen }) {
   const navigate = useNavigate();
 
   const [maintenanceTasks, setMaintenanceTasks] = useState(INITIAL_MAINTENANCE_TASKS);
@@ -116,18 +116,11 @@ export default function FacilitiesManagementPage() {
 
   return (
     <div className={styles.page}>
-      <input className="hidden" id="mobile-menu-toggle" type="checkbox" />
-
-      <label
-        className="hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
-        htmlFor="mobile-menu-toggle"
-      />
-
       <div className={styles.mainContainer}>
-        <Sidebar activePage="facilities" />
+        <Sidebar activePage="facilities" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
         <div className={styles.mainContent}>
-          <PageHeader title="Facilities Management" />
+          <PageHeader title="Facilities Management" setIsSidebarOpen={setIsSidebarOpen} />
 
           <main className={styles.content}>
             <div className={styles.summaryCards}>

@@ -7,7 +7,23 @@ function LandingPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [activeNav, setActiveNav] = useState('home')
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const scrollLockRef = useRef(null)
+
+  const navigateToSection = (sectionId) => {
+    setActiveNav(sectionId)
+    clearTimeout(scrollLockRef.current)
+    scrollLockRef.current = setTimeout(() => {
+      scrollLockRef.current = null
+    }, 1000)
+
+    if (sectionId === 'home') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   // Scroll to section when navigating from another page + sync active nav
   useEffect(() => {
@@ -55,6 +71,17 @@ function LandingPage() {
     return () => { observer.disconnect(); heroObserver.disconnect() }
   }, [])
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsMobileMenuOpen(false)
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
    return (
      <div lang="en">
        {/* Announcement Bar */}
@@ -88,10 +115,7 @@ function LandingPage() {
                  href="#"
                  onClick={(e) => {
                    e.preventDefault()
-                   setActiveNav('home')
-                   clearTimeout(scrollLockRef.current)
-                   scrollLockRef.current = setTimeout(() => { scrollLockRef.current = null }, 1000)
-                   window.scrollTo({ top: 0, behavior: 'smooth' })
+                   navigateToSection('home')
                  }}
                >
                  Home
@@ -101,10 +125,7 @@ function LandingPage() {
                  href="#how-it-works"
                  onClick={(e) => {
                    e.preventDefault()
-                   setActiveNav('how-it-works')
-                   clearTimeout(scrollLockRef.current)
-                   scrollLockRef.current = setTimeout(() => { scrollLockRef.current = null }, 1000)
-                   document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                   navigateToSection('how-it-works')
                  }}
                >
                  How to Book
@@ -114,10 +135,7 @@ function LandingPage() {
                  href="#venues"
                  onClick={(e) => {
                    e.preventDefault()
-                   setActiveNav('venues')
-                   clearTimeout(scrollLockRef.current)
-                   scrollLockRef.current = setTimeout(() => { scrollLockRef.current = null }, 1000)
-                   document.getElementById('venues')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                   navigateToSection('venues')
                  }}
                >
                  Venues
@@ -127,10 +145,7 @@ function LandingPage() {
                  href="#contact"
                  onClick={(e) => {
                    e.preventDefault()
-                   setActiveNav('contact')
-                   clearTimeout(scrollLockRef.current)
-                   scrollLockRef.current = setTimeout(() => { scrollLockRef.current = null }, 1000)
-                   document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                   navigateToSection('contact')
                  }}
                >
                  Contact
@@ -142,11 +157,70 @@ function LandingPage() {
                  <span className="material-icons">lock</span>
                  Admin Login
                </Link>
-               <button className={styles.menuBtn} type="button">
-                 <span className="material-icons">menu</span>
+               <button
+                 aria-expanded={isMobileMenuOpen}
+                 aria-label="Toggle navigation menu"
+                 className={styles.menuBtn}
+                 onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                 type="button"
+               >
+                 <span className="material-icons">{isMobileMenuOpen ? 'close' : 'menu'}</span>
                </button>
              </div>
            </div>
+
+           {isMobileMenuOpen && (
+             <nav className={styles.mobileNav}>
+               <a
+                 className={activeNav === 'home' ? styles.mobileNavLinkActive : styles.mobileNavLink}
+                 href="#"
+                 onClick={(e) => {
+                   e.preventDefault()
+                   navigateToSection('home')
+                   setIsMobileMenuOpen(false)
+                 }}
+               >
+                 Home
+               </a>
+               <a
+                 className={activeNav === 'how-it-works' ? styles.mobileNavLinkActive : styles.mobileNavLink}
+                 href="#how-it-works"
+                 onClick={(e) => {
+                   e.preventDefault()
+                   navigateToSection('how-it-works')
+                   setIsMobileMenuOpen(false)
+                 }}
+               >
+                 How to Book
+               </a>
+               <a
+                 className={activeNav === 'venues' ? styles.mobileNavLinkActive : styles.mobileNavLink}
+                 href="#venues"
+                 onClick={(e) => {
+                   e.preventDefault()
+                   navigateToSection('venues')
+                   setIsMobileMenuOpen(false)
+                 }}
+               >
+                 Venues
+               </a>
+               <a
+                 className={activeNav === 'contact' ? styles.mobileNavLinkActive : styles.mobileNavLink}
+                 href="#contact"
+                 onClick={(e) => {
+                   e.preventDefault()
+                   navigateToSection('contact')
+                   setIsMobileMenuOpen(false)
+                 }}
+               >
+                 Contact
+               </a>
+               <Link className={styles.mobileAdminBtn} onClick={() => setIsMobileMenuOpen(false)} to="/login">
+                 <span className="material-icons">lock</span>
+                 Admin Login
+               </Link>
+             </nav>
+           )}
          </div>
        </header>
 

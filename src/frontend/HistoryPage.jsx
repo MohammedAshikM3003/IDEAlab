@@ -111,20 +111,6 @@ function PrintIcon(props) {
   );
 }
 
-function CopyIcon(props) {
-  return (
-    <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 24 24" width="18" {...props}>
-      <path d="M9 9h10v10H9V9Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
-      <path
-        d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"
-        stroke="currentColor"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    </svg>
-  );
-}
-
 function InfoIcon(props) {
   return (
     <svg aria-hidden="true" fill="none" height="18" viewBox="0 0 24 24" width="18" {...props}>
@@ -350,8 +336,8 @@ function buildPaginationItems(currentPage, totalPages) {
   return [1, "ellipsis-left", currentPage - 1, currentPage, currentPage + 1, "ellipsis-right", totalPages];
 }
 
-export default function HistoryPage() {
-  const [bookings, setBookings] = useState(INITIAL_BOOKINGS);
+export default function HistoryPage({ isSidebarOpen, setIsSidebarOpen }) {
+  const [bookings] = useState(INITIAL_BOOKINGS);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedVenue, setSelectedVenue] = useState("All");
@@ -534,29 +520,6 @@ export default function HistoryPage() {
     printWindow.print();
   };
 
-  const handleDuplicateBooking = (booking) => {
-    const nextIndex =
-      bookings.reduce((max, item) => {
-        const match = item.id.match(/(\d+)$/);
-        if (!match) {
-          return max;
-        }
-        return Math.max(max, Number(match[1]));
-      }, 0) + 1;
-
-    const nextId = `#BK-2026-${String(nextIndex).padStart(4, "0")}`;
-    const duplicate = {
-      ...booking,
-      id: nextId,
-      status: "Completed",
-      isFaded: false,
-      strike: false,
-      actions: ["view", "print", "duplicate"],
-    };
-
-    setBookings((prev) => [duplicate, ...prev]);
-  };
-
   const exportToExcel = () => {
     const data = bookings.map((b) => ({
       "Booking ID": b.id,
@@ -669,15 +632,11 @@ export default function HistoryPage() {
 
   return (
     <div className={styles.page}>
-      <input className={styles.hide} id="mobile-menu-toggle" type="checkbox" />
-
-      <label className={styles.overlay} htmlFor="mobile-menu-toggle" />
-
       <div className={layoutStyles.wrap}>
-        <Sidebar activePage="history" />
+        <Sidebar activePage="history" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
         <div className={layoutStyles.main}>
-          <PageHeader title="Booking Archive" />
+          <PageHeader title="Booking Archive" setIsSidebarOpen={setIsSidebarOpen} />
 
           <main className={`${styles.scroll} ${styles.main}`}>
             <section className={styles.box}>
@@ -909,9 +868,6 @@ export default function HistoryPage() {
                               {booking.actions.includes("print") ? (
                                 <button className={styles.actBtn} onClick={() => handlePrint(booking)} title="Print Record" type="button"><PrintIcon /></button>
                               ) : null}
-                              {booking.actions.includes("duplicate") ? (
-                                <button className={styles.actBtn} onClick={() => handleDuplicateBooking(booking)} title="Duplicate Booking" type="button"><CopyIcon /></button>
-                              ) : null}
                               {booking.actions.includes("reason") ? (
                                 <button className={styles.actBtn} onClick={() => handleViewDetails(booking)} title="View Reason" type="button"><InfoIcon /></button>
                               ) : null}
@@ -922,6 +878,74 @@ export default function HistoryPage() {
                     })}
                   </tbody>
                 </table>
+              </div>
+
+              <div className={styles.mobileCards}>
+                {paginatedBookings.map((booking) => {
+                  const statusVariant =
+                    booking.status === "Completed"
+                      ? "completed"
+                      : booking.status === "Cancelled"
+                        ? "cancelled"
+                        : "rejected";
+
+                  return (
+                    <article className={`${styles.mobileCard} ${styles[`mobileCard${statusVariant[0].toUpperCase()}${statusVariant.slice(1)}`]}`} key={`mobile-${booking.id}`}>
+                      <span className={styles.mobileAccent} aria-hidden="true" />
+
+                      <div className={styles.mobileCardBody}>
+                        <div className={styles.mobileTopRow}>
+                          <h3 className={styles.mobileEvent}>{booking.event}</h3>
+                          <span
+                            className={`${styles.mobileStatusPill} ${styles[`mobileStatus${statusVariant[0].toUpperCase()}${statusVariant.slice(1)}`]}`}
+                          >
+                            {booking.status}
+                          </span>
+                        </div>
+
+                        <p className={styles.mobileSubText}>
+                          {booking.details?.department || "Department"} · {booking.details?.organizerFullName || booking.organizer}
+                        </p>
+
+                        <div className={styles.mobileMetaRow}>
+                          <span className={styles.mobileMetaChip}>{booking.venue}</span>
+                          <span className={styles.mobileMetaChip}>{booking.date}</span>
+                          <span className={styles.mobileMetaChip}>{booking.time}</span>
+                        </div>
+
+                        <div className={styles.mobileFooterRow}>
+                          <span className={styles.mobileBookingId}>{booking.id}</span>
+
+                          <div className={styles.mobileActions}>
+                            <button
+                              aria-label="View details"
+                              className={styles.mobileActionBtn}
+                              onClick={() => handleViewDetails(booking)}
+                              title="View Details"
+                              type="button"
+                            >
+                              <EyeIcon />
+                            </button>
+
+                            {booking.status === "Completed" ? (
+                              <>
+                                <button
+                                  aria-label="Print record"
+                                  className={styles.mobileActionBtn}
+                                  onClick={() => handlePrint(booking)}
+                                  title="Print Record"
+                                  type="button"
+                                >
+                                  <PrintIcon />
+                                </button>
+                              </>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
 
               <div className={styles.foot}>

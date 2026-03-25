@@ -1332,3 +1332,118 @@
     width: 30% !important; /* Now this will actually stretch exactly to the border! */
   }
 }
+
+@media (max-width: 768px) {
+  .main {
+    padding-left: 0 !important;
+  }
+  .menu {
+    display: block !important;
+  }
+
+	.body {
+		overflow-y: auto;
+	}
+
+	.split {
+		display: block;
+		height: auto;
+		min-height: 100%;
+	}
+
+	.listPane,
+	.listFull,
+	.listNarrow {
+		width: 100% !important;
+		max-width: none;
+		flex: 1 1 auto;
+	}
+
+	.splitDetailOpen .listPane {
+		display: none;
+	}
+
+	.detail {
+		width: 100%;
+		height: auto;
+		overflow-y: visible;
+	}
+
+	.detailWrap {
+		padding: 12px;
+		gap: 16px;
+	}
+
+	.listHead {
+		position: sticky;
+		top: 0;
+		z-index: 5;
+		background: #ffffff;
+	}
+
+	.headRow {
+		align-items: flex-start;
+		gap: 8px;
+	}
+
+	.tab {
+		font-size: 11px;
+	}
+
+	.filterMenu {
+		width: min(14rem, calc(100vw - 32px));
+		min-width: 0;
+	}
+
+	.reqBtn {
+		padding: 14px 12px;
+	}
+
+	.reqTop {
+		gap: 10px;
+	}
+
+	.reqMeta {
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 4px;
+	}
+
+	.senderRow {
+		flex-wrap: wrap;
+		gap: 10px;
+	}
+
+	.senderActs {
+		margin-left: 0;
+		width: 100%;
+		justify-content: flex-end;
+	}
+
+	.subject {
+		font-size: 24px;
+	}
+
+	.msgCard {
+		padding: 16px;
+	}
+
+	.grid12 {
+		gap: 16px;
+	}
+
+	.stickyAct {
+		bottom: 8px;
+	}
+
+	.btnPri,
+	.btnSec,
+	.btnInfo {
+		width: 100%;
+	}
+}
+@media (min-width: 769px) {
+  .menu {
+    display: none !important;
+  }
+}

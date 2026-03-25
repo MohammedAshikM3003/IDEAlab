@@ -1,5 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
+import AdminBookingDetailsPopUpFM from './Alerts/AdminBookingDetailsPopUpFM'
+import detailsPopupStyles from './Alerts/AdminBookingDetailsPopUpFM.module.css'
+import AdminCancelBookingPopUpFM from './Alerts/AdminCancelBookingPopUpFM'
+import cancelPopupStyles from './Alerts/AdminCancelBookingPopUpFM.module.css'
+import AdminEditBookingPopUpFM from './Alerts/AdminEditBookingPopUpFM'
+import editPopupStyles from './Alerts/AdminEditBookingPopUpFM.module.css'
+import AdminEditBookingSuccessPopUpFM from './Alerts/AdminEditBookingSuccessPopUpFM'
+import editSuccessPopupStyles from './Alerts/AdminEditBookingSuccessPopUpFM.module.css'
 import PageHeader from './PageHeader'
 import Sidebar from './Sidebar'
 import layoutStyles from './DashboardPage.module.css'
@@ -138,13 +146,19 @@ function formatTimeClock(date) {
   })
 }
 
-export default function StatusPage() {
+export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
   const dateInputRef = useRef(null)
   const [selectedDate, setSelectedDate] = useState(() => new Date())
   const [selectedVenue, setSelectedVenue] = useState('ALL')
   const [autoRefreshOn, setAutoRefreshOn] = useState(true)
   const [lastRefreshedAt, setLastRefreshedAt] = useState(() => new Date())
   const [upcomingView, setUpcomingView] = useState('timeline')
+  const [upcomingItems, setUpcomingItems] = useState(UPCOMING_DATA)
+  const [selectedBooking, setSelectedBooking] = useState(null)
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [isEditSuccessOpen, setIsEditSuccessOpen] = useState(false)
+  const [isCancelOpen, setIsCancelOpen] = useState(false)
 
   useEffect(() => {
     if (!autoRefreshOn) {
@@ -167,10 +181,75 @@ export default function StatusPage() {
 
   const filteredUpcomingItems = useMemo(() => {
     if (selectedVenue === 'ALL') {
-      return UPCOMING_DATA
+      return upcomingItems
     }
-    return UPCOMING_DATA.filter((item) => item.venue === selectedVenue)
-  }, [selectedVenue])
+    return upcomingItems.filter((item) => item.venue === selectedVenue)
+  }, [selectedVenue, upcomingItems])
+
+  const closeBookingFlow = () => {
+    setIsDetailsOpen(false)
+    setIsEditOpen(false)
+    setIsEditSuccessOpen(false)
+    setIsCancelOpen(false)
+    setSelectedBooking(null)
+  }
+
+  const openDetailsForConfirmed = (item) => {
+    if (item.type !== 'confirmed') {
+      return
+    }
+    setSelectedBooking(item)
+    setIsDetailsOpen(true)
+  }
+
+  const handleCancelBooking = ({ bookingId, reason }) => {
+    setUpcomingItems((prev) => prev.filter((item) => item.id !== bookingId))
+    void reason
+  }
+
+  useEffect(() => {
+    const modalOpen = isDetailsOpen || isEditOpen || isEditSuccessOpen || isCancelOpen
+    if (!modalOpen) {
+      return undefined
+    }
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        closeBookingFlow()
+      }
+    }
+
+    const handlePointerDown = (event) => {
+      const target = event.target
+      if (!(target instanceof Element)) {
+        return
+      }
+
+      const clickedInsideModal = target.closest(
+        `.${detailsPopupStyles.modal}, .${editPopupStyles.modal}, .${editSuccessPopupStyles.modal}, .${cancelPopupStyles.modal}`,
+      )
+
+      if (clickedInsideModal) {
+        return
+      }
+
+      const clickedOverlay = target.closest(
+        `.${detailsPopupStyles.backdrop}, .${editPopupStyles.backdrop}, .${editSuccessPopupStyles.backdrop}, .${cancelPopupStyles.overlay}`,
+      )
+
+      if (clickedOverlay) {
+        closeBookingFlow()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('mousedown', handlePointerDown, true)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('mousedown', handlePointerDown, true)
+    }
+  }, [isDetailsOpen, isEditOpen, isEditSuccessOpen, isCancelOpen])
 
   const rightNowProgress = useMemo(() => {
     const now = lastRefreshedAt
@@ -203,18 +282,11 @@ export default function StatusPage() {
 
   return (
     <div className={layoutStyles.page}>
-      <input className="hidden" id="mobile-menu-toggle" type="checkbox" />
-
-      <label
-        className={`${layoutStyles.overlay} hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden`}
-        htmlFor="mobile-menu-toggle"
-      />
-
       <div className={layoutStyles.wrap}>
-        <Sidebar activePage="status" />
+        <Sidebar activePage="status" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
         <div className={layoutStyles.main}>
-          <PageHeader title="Availability Tracker" />
+          <PageHeader title="Availability Tracker" setIsSidebarOpen={setIsSidebarOpen} />
 
           <section className={statusStyles.controlsBar}>
             <div className={statusStyles.dateNavigator}>
@@ -305,7 +377,7 @@ export default function StatusPage() {
           </section>
 
           <main className={statusStyles.mainContent}>
-            <section className={statusStyles.panel}>
+            <section className={`${statusStyles.panel} ${statusStyles.panelUpcoming}`}>
               <header className={statusStyles.panelHeader}>
                 <div className={statusStyles.panelHeaderTitleWrap}>
                   <span className={`material-icons ${statusStyles.panelHeaderIcon}`}>schedule</span>
@@ -447,6 +519,19 @@ export default function StatusPage() {
                                 ? statusStyles.eventCardPending
                                 : statusStyles.eventCardConflict
                           }
+                          onClick={item.type === 'confirmed' ? () => openDetailsForConfirmed(item) : undefined}
+                          onKeyDown={
+                            item.type === 'confirmed'
+                              ? (event) => {
+                                  if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault()
+                                    openDetailsForConfirmed(item)
+                                  }
+                                }
+                              : undefined
+                          }
+                          role={item.type === 'confirmed' ? 'button' : undefined}
+                          tabIndex={item.type === 'confirmed' ? 0 : undefined}
                         >
                           <div className={statusStyles.eventHead}>
                             <h4 className={statusStyles.eventTitleRow}>
@@ -513,10 +598,6 @@ export default function StatusPage() {
                                   Resolve Conflict
                                   <span className="material-icons">arrow_forward</span>
                                 </button>
-                                <button className={statusStyles.blockMaintenanceBtn} type="button">
-                                  <span className="material-icons">handyman</span>
-                                  Block Maintenance
-                                </button>
                               </div>
                             </>
                           ) : null}
@@ -553,7 +634,11 @@ export default function StatusPage() {
                       </span>
                       <span className={statusStyles.listActions}>
                         {item.type === 'confirmed' ? (
-                          <button className={statusStyles.btnSecondary} type="button">
+                          <button
+                            className={statusStyles.btnSecondary}
+                            onClick={() => openDetailsForConfirmed(item)}
+                            type="button"
+                          >
                             View
                           </button>
                         ) : null}
@@ -577,10 +662,83 @@ export default function StatusPage() {
                   ))}
                 </div>
               )}
+
+              <button className={statusStyles.blockMaintenanceFloatingBtn} type="button">
+                <span className="material-icons">handyman</span>
+                Block Maintenance
+              </button>
             </section>
           </main>
         </div>
       </div>
+
+      {isDetailsOpen && selectedBooking ? (
+        <AdminBookingDetailsPopUpFM
+          bookingId={`#BK-${selectedBooking.id.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}`}
+          contactHref="tel:9876543210"
+          contactText="9876543210"
+          onCancelClick={() => {
+            setIsDetailsOpen(false)
+            setIsCancelOpen(true)
+          }}
+          onClose={closeBookingFlow}
+          onEditClick={() => {
+            setIsDetailsOpen(false)
+            setIsEditOpen(true)
+          }}
+          organizerText={selectedBooking.requesterName || 'Organizer not available'}
+          statusText={selectedBooking.statusText}
+          statusVariant={selectedBooking.type === 'confirmed' ? 'success' : 'danger'}
+          timeText={`${selectedBooking.time12} (${selectedBooking.time24})`}
+          title={selectedBooking.title}
+          venueText={selectedBooking.venue}
+        />
+      ) : null}
+
+      {isEditOpen && selectedBooking ? (
+        <AdminEditBookingPopUpFM
+          bookingId={`#BK-${selectedBooking.id.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}`}
+          initialDate={toInputDateValue(selectedDate)}
+          initialEndTime={selectedBooking.time24}
+          initialEventTitle={selectedBooking.title}
+          initialOrganizer={selectedBooking.requesterName || ''}
+          initialStartTime={selectedBooking.time24}
+          onClose={closeBookingFlow}
+          onConfirm={() => {
+            setIsEditOpen(false)
+            setIsEditSuccessOpen(true)
+          }}
+          organizerHint={selectedBooking.requesterName || ''}
+          prefilledVenue=""
+          subtitle={selectedBooking.venue}
+        />
+      ) : null}
+
+      {isEditSuccessOpen && selectedBooking ? (
+        <AdminEditBookingSuccessPopUpFM
+          bookingId={`#BK-${selectedBooking.id.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}`}
+          eventName={selectedBooking.title}
+          onClose={closeBookingFlow}
+          organizerName={selectedBooking.requesterName || 'the organizer'}
+        />
+      ) : null}
+
+      {isCancelOpen && selectedBooking ? (
+        <AdminCancelBookingPopUpFM
+          booking={{
+            id: selectedBooking.id,
+            eventTitle: selectedBooking.title,
+            organizer: selectedBooking.requesterName || 'the organizer',
+          }}
+          onClose={closeBookingFlow}
+          onConfirmCancel={(bookingPayload, reason) =>
+            handleCancelBooking({
+              bookingId: bookingPayload?.id,
+              reason,
+            })
+          }
+        />
+      ) : null}
     </div>
   )
 }

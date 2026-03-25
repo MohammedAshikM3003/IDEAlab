@@ -667,6 +667,20 @@
 }
 
 @media (max-width: 768px) {
+  .page {
+    overflow-x: hidden;
+  }
+
+  .mainContainer {
+    overflow-x: hidden;
+  }
+
+  .mainContent {
+    margin-left: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
   .summaryCards {
     grid-template-columns: 1fr;
   }
@@ -1040,4 +1054,18 @@
   font-size: 0.75rem;
   color: var(--gray-500);
   margin: 0;
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding-left: 0 !important;
+  }
+  .menu {
+    display: block !important;
+  }
+}
+@media (min-width: 769px) {
+  .menu {
+    display: none !important;
+  }
 }

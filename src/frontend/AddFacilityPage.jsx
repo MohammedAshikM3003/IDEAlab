@@ -24,7 +24,7 @@ function createEquipmentRow(id) {
   return { id, name: "", quantity: "", condition: "Good", description: "", image: null };
 }
 
-export default function AddFacilityPage() {
+export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
   const navigate = useNavigate();
 
   const [facilityName, setFacilityName] = useState("");
@@ -127,15 +127,11 @@ export default function AddFacilityPage() {
 
   return (
     <div className={styles.page}>
-      <input className={styles.hide} id="mobile-menu-toggle" type="checkbox" />
-
-      <label className={styles.overlay} htmlFor="mobile-menu-toggle" />
-
       <div className={styles.mainContainer}>
-        <Sidebar activePage="facilities" />
+        <Sidebar activePage="facilities" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
 
         <div className={styles.mainContent}>
-          <PageHeader title="Facilities Management" />
+          <PageHeader title="Facilities Management" setIsSidebarOpen={setIsSidebarOpen} />
 
           <main className={styles.content}>
             <header className={styles.topBar}>

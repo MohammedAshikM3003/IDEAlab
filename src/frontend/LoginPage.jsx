@@ -1,19 +1,42 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import styles from './LoginPage.module.css'
+import LoadingScreen from './LoadingScreen'
 import ksrceLogo from '../assets/collegelogo.jpg'
 import ksrceImage from "../assets/KSR college image.jpg"
 import nbaLogo from '../assets/NBA_logo.svg'
 import naacLogo from '../assets/NAAC_LOGO.svg'
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const authTimerRef = useRef(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    return () => {
+      if (authTimerRef.current) {
+        window.clearTimeout(authTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    navigate('/dashboard');
+
+    if (isAuthenticating) {
+      return;
+    }
+
+    setIsAuthenticating(true);
+    authTimerRef.current = window.setTimeout(() => {
+      navigate('/dashboard');
+    }, 2000);
   };
+
+  if (isAuthenticating) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className={styles.page}>
