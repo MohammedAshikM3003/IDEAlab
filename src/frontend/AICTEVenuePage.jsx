@@ -1,11 +1,27 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Calendar from "./Calendar";
 import s from "./AICTEVenuePage.module.css";
 import lp from "./landingpage.module.css";
 import ksrceLogo from '../assets/collegelogo.jpg';
 
 export default function AICTELabVenuePage() {
   const navigate = useNavigate()
+  const [selectedPreviewDate, setSelectedPreviewDate] = useState(() => new Date(2023, 9, 7))
+
+  const previewAvailability = useMemo(
+    () => ({
+      "2023-10-02": "open",
+      "2023-10-03": "booked",
+      "2023-10-04": "booked",
+      "2023-10-09": "open",
+      "2023-10-10": "closed",
+      "2023-10-11": "closed",
+      "2023-10-15": "open",
+    }),
+    [],
+  )
+
   return (
     <div className={s.page}>
       <div className={s.banner}>
@@ -349,63 +365,12 @@ export default function AICTELabVenuePage() {
                 Availability Preview
               </h3>
 
-              <div className={s.cal}>
-                <div className={s.calNav}>
-                  <h4 className={s.calTitle}>October 2023</h4>
-                  <div className="flex gap-2">
-                    <button className={s.calBtn} type="button">
-                      <span className="material-icons">chevron_left</span>
-                    </button>
-                    <button className={s.calBtn} type="button">
-                      <span className="material-icons">chevron_right</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className={`${s.calGrid} mb-2`}>
-                  <div className={s.calHead}>Mo</div>
-                  <div className={s.calHead}>Tu</div>
-                  <div className={s.calHead}>We</div>
-                  <div className={s.calHead}>Th</div>
-                  <div className={s.calHead}>Fr</div>
-                  <div className={s.calHead}>Sa</div>
-                  <div className={s.calHead}>Su</div>
-                </div>
-
-                <div className={s.calGrid}>
-                  <div className={s.calOff}>28</div>
-                  <div className={s.calOff}>29</div>
-                  <div className={s.calOff}>30</div>
-                  <div className={s.calDay}>1</div>
-                  <div className={`${s.calDay} relative`}>
-                    2
-                    <span className={s.calDot} />
-                  </div>
-                  <div className={s.calFull}>3</div>
-                  <div className={s.calFull}>4</div>
-                  <div className={s.calDay}>5</div>
-                  <div className={s.calDay}>6</div>
-                  <div className={s.calPicked}>7</div>
-                  <div className={s.calDay}>8</div>
-                  <div className={`${s.calDay} relative`}>
-                    9
-                    <span className={s.calDot} />
-                  </div>
-                  <div className={s.calDim}>10</div>
-                  <div className={s.calDim}>11</div>
-                </div>
-
-                <div className={s.legend}>
-                  <div className={s.legItem}>
-                    <span className={s.dotFree} /> Open
-                  </div>
-                  <div className={s.legItem}>
-                    <span className={s.dotFull} /> Booked
-                  </div>
-                  <div className={s.legItem}>
-                    <span className={s.dotOff} /> Closed
-                  </div>
-                </div>
+              <div className={s.previewCalendar}>
+                <Calendar
+                  availabilityData={previewAvailability}
+                  onDateSelect={setSelectedPreviewDate}
+                  selectedDate={selectedPreviewDate}
+                />
               </div>
             </div>
 

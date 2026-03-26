@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import PageHeader from "./PageHeader";
@@ -41,11 +41,23 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
 
   const inventoryId = useRef(3);
   const equipmentId = useRef(3);
+  const publishTimeoutRef = useRef(null);
 
   const hiddenBannerInput = useRef(null);
   const hiddenGalleryInput = useRef(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState("idle");
+
   const selectedAmenityCount = useMemo(() => amenities.filter((item) => item.selected).length, [amenities]);
+
+  useEffect(() => {
+    return () => {
+      if (publishTimeoutRef.current) {
+        window.clearTimeout(publishTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const updateInventoryRow = (rowId, key, value) => {
     setInventoryRows((prev) => prev.map((row) => (row.id === rowId ? { ...row, [key]: value } : row)));
@@ -125,6 +137,62 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
     ]);
   };
 
+  const resetForm = () => {
+    setFacilityName("");
+    setFacilityType("");
+    setCapacity("");
+    setLocation("");
+    setRules("");
+    setBannerImage(null);
+    setGalleryImages([]);
+    setAmenities(AMENITY_PRESET.map((item) => ({ ...item })));
+    setInventoryRows([createInventoryRow("inv-1"), createInventoryRow("inv-2")]);
+    setEquipmentRows([createEquipmentRow("eq-1"), createEquipmentRow("eq-2")]);
+    inventoryId.current = 3;
+    equipmentId.current = 3;
+  };
+
+  const openPublishModal = () => {
+    setSubmitStatus("idle");
+    setIsModalOpen(true);
+  };
+
+  const closePublishModal = () => {
+    if (submitStatus === "submitting") {
+      return;
+    }
+    if (publishTimeoutRef.current) {
+      window.clearTimeout(publishTimeoutRef.current);
+      publishTimeoutRef.current = null;
+    }
+    setIsModalOpen(false);
+    setSubmitStatus("idle");
+  };
+
+  const confirmPublish = () => {
+    if (submitStatus === "submitting") {
+      return;
+    }
+
+    setSubmitStatus("submitting");
+    publishTimeoutRef.current = window.setTimeout(() => {
+      setSubmitStatus("success");
+      publishTimeoutRef.current = null;
+    }, 1500);
+  };
+
+  const handleAddAnotherFacility = () => {
+    resetForm();
+    setIsModalOpen(false);
+    setSubmitStatus("idle");
+  };
+
+  const handleViewFacilities = () => {
+    setIsModalOpen(false);
+    setSubmitStatus("idle");
+    navigate("/facilities");
+  };
+
   return (
     <div className={styles.page}>
       <div className={styles.mainContainer}>
@@ -147,7 +215,7 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
 
               <div className={styles.topActions}>
                 <button className={styles.btnSecondary} onClick={() => navigate("/facilities")} type="button">Cancel</button>
-                <button className={styles.btnPrimary} type="button">
+                <button className={styles.btnPrimary} onClick={openPublishModal} type="button">
                   <span className="material-icons">check</span>
                   Publish Facility
                 </button>
@@ -376,6 +444,50 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
           </main>
         </div>
       </div>
+
+      {isModalOpen ? (
+        <div className={styles.publishModalBackdrop} role="presentation">
+          <div aria-modal="true" className={styles.publishModalCard} role="dialog">
+            {submitStatus === "success" ? (
+              <>
+                <div className={styles.publishSuccessIconWrap}>
+                  <span className={`material-icons ${styles.publishSuccessIcon}`}>check</span>
+                </div>
+                <h3 className={styles.publishModalTitle}>Facility Published!</h3>
+                <p className={styles.publishModalMessage}>Your new facility is now available for booking.</p>
+                <div className={styles.publishModalActions}>
+                  <button className={styles.publishBtnSecondary} onClick={handleViewFacilities} type="button">
+                    View Facilities List
+                  </button>
+                  <button className={styles.publishBtnPrimary} onClick={handleAddAnotherFacility} type="button">
+                    Add Another Facility
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className={styles.publishModalTitle}>Confirm Publication</h3>
+                <p className={styles.publishModalMessage}>
+                  Are you sure you want to publish this new facility and make it available for booking?
+                </p>
+                <div className={styles.publishModalActions}>
+                  <button className={styles.publishBtnSecondary} onClick={closePublishModal} type="button">
+                    Cancel
+                  </button>
+                  <button
+                    className={styles.publishBtnPrimary}
+                    disabled={submitStatus === "submitting"}
+                    onClick={confirmPublish}
+                    type="button"
+                  >
+                    {submitStatus === "submitting" ? "Publishing..." : "Confirm & Publish"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

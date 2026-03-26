@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import Calendar from "./Calendar";
 import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
 import styles from "./FacilitiesManagementPage.module.css";
@@ -33,6 +34,29 @@ function formatMonthDay(dateValue) {
     month: shortMonths[month - 1] || "--",
     day: String(day),
   };
+}
+
+function parseISODate(isoDate) {
+  if (!isoDate) {
+    return undefined;
+  }
+
+  const [year, month, day] = isoDate.split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return undefined;
+  }
+
+  const parsed = new Date(year, month - 1, day);
+  parsed.setHours(0, 0, 0, 0);
+  return parsed;
+}
+
+function toISODate(dateValue) {
+  const year = dateValue.getFullYear();
+  const month = String(dateValue.getMonth() + 1).padStart(2, "0");
+  const day = String(dateValue.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOpen }) {
@@ -456,7 +480,13 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
             <div className={styles.modalGrid}>
               <label className={styles.modalField}>
                 <span className={styles.modalLabel}>Date</span>
-                <input className={styles.modalInput} onChange={(event) => setRescheduleDate(event.target.value)} type="date" value={rescheduleDate} />
+                <div className={styles.modalCalendar}>
+                  <Calendar
+                    availabilityData={{}}
+                    onDateSelect={(dateValue) => setRescheduleDate(toISODate(dateValue))}
+                    selectedDate={parseISODate(rescheduleDate)}
+                  />
+                </div>
               </label>
 
               <label className={styles.modalField}>

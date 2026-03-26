@@ -8,6 +8,9 @@ import AdminEditBookingPopUpFM from './Alerts/AdminEditBookingPopUpFM'
 import editPopupStyles from './Alerts/AdminEditBookingPopUpFM.module.css'
 import AdminEditBookingSuccessPopUpFM from './Alerts/AdminEditBookingSuccessPopUpFM'
 import editSuccessPopupStyles from './Alerts/AdminEditBookingSuccessPopUpFM.module.css'
+import AdminMaintenanceBlockingPopUpFM from './Alerts/AdminMaintenanceBlockingPopUpFM'
+import AdminMaintenanceSuccessPopUpFM from './Alerts/AdminMaintenanceSuccessPopUpFM'
+import Calendar from './Calendar'
 import PageHeader from './PageHeader'
 import Sidebar from './Sidebar'
 import layoutStyles from './DashboardPage.module.css'
@@ -81,6 +84,8 @@ const UPCOMING_DATA = [
     title: 'Cultural Club Practice',
     venue: 'Main Auditorium',
     statusText: 'PENDING APPROVAL',
+    requesterName: 'Meena Priya',
+    requesterInitials: 'MP',
   },
   {
     id: 'double-booking-aicte-lab',
@@ -91,8 +96,33 @@ const UPCOMING_DATA = [
     venue: 'AICTE Lab',
     statusText: 'CONFLICT WARNING',
     conflictText: 'Two requests for same time slot: "Robotics Club" and "Staff Meeting".',
+    conflictRequests: [
+      {
+        id: 'robotics-club',
+        partyName: 'Robotics Club',
+        requesterName: 'Arun Kumar',
+        requesterInitials: 'AK',
+        eventName: 'Robotics Club Build Session',
+        time12: '6:00 PM',
+        time24: '18:00',
+        durationText: '2h duration',
+      },
+      {
+        id: 'staff-meeting',
+        partyName: 'Staff Meeting',
+        requesterName: 'Dr. Lakshmi',
+        requesterInitials: 'DL',
+        eventName: 'Staff Meeting',
+        time12: '6:00 PM',
+        time24: '18:00',
+        durationText: '1h duration',
+      },
+    ],
   },
 ]
+
+const DEFAULT_REJECTION_MESSAGE =
+  'We regret to inform you that your booking request for AICTE Lab at 6:00 PM has been declined due to a scheduling conflict. Please contact the admin to reschedule.'
 
 const VENUE_OPTIONS = [
   'AICTE Idea Lab',
@@ -129,14 +159,6 @@ function toInputDateValue(date) {
   return `${year}-${month}-${day}`
 }
 
-function parseInputDate(value) {
-  const [year, month, day] = value.split('-').map(Number)
-  const result = new Date()
-  result.setFullYear(year, month - 1, day)
-  result.setHours(0, 0, 0, 0)
-  return result
-}
-
 function formatTimeClock(date) {
   return date.toLocaleTimeString('en-US', {
     hour12: false,
@@ -147,8 +169,9 @@ function formatTimeClock(date) {
 }
 
 export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
-  const dateInputRef = useRef(null)
+  const datePickerRef = useRef(null)
   const [selectedDate, setSelectedDate] = useState(() => new Date())
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
   const [selectedVenue, setSelectedVenue] = useState('ALL')
   const [autoRefreshOn, setAutoRefreshOn] = useState(true)
   const [lastRefreshedAt, setLastRefreshedAt] = useState(() => new Date())
@@ -159,6 +182,21 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isEditSuccessOpen, setIsEditSuccessOpen] = useState(false)
   const [isCancelOpen, setIsCancelOpen] = useState(false)
+  const [bookingActionModal, setBookingActionModal] = useState({
+    isOpen: false,
+    action: 'approve',
+    booking: null,
+  })
+  const [rejectionReason, setRejectionReason] = useState('')
+  const [conflictResolutionModal, setConflictResolutionModal] = useState({
+    isOpen: false,
+    booking: null,
+  })
+  const [selectedWinnerId, setSelectedWinnerId] = useState('')
+  const [resolutionMessage, setResolutionMessage] = useState(DEFAULT_REJECTION_MESSAGE)
+  const [toast, setToast] = useState(null)
+  const [showMaintenanceForm, setShowMaintenanceForm] = useState(false)
+  const [showMaintenanceSuccess, setShowMaintenanceSuccess] = useState(false)
 
   useEffect(() => {
     if (!autoRefreshOn) {
@@ -171,6 +209,18 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
 
     return () => clearInterval(intervalId)
   }, [autoRefreshOn])
+
+  useEffect(() => {
+    if (!toast) {
+      return undefined
+    }
+
+    const timer = window.setTimeout(() => {
+      setToast(null)
+    }, 3000)
+
+    return () => window.clearTimeout(timer)
+  }, [toast])
 
   const filteredRightNowItems = useMemo(() => {
     if (selectedVenue === 'ALL') {
@@ -202,10 +252,136 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
     setIsDetailsOpen(true)
   }
 
+  const openBookingActionModal = (action, booking) => {
+    setBookingActionModal({ isOpen: true, action, booking })
+    setRejectionReason('')
+  }
+
+  const closeBookingActionModal = () => {
+    setBookingActionModal({ isOpen: false, action: 'approve', booking: null })
+    setRejectionReason('')
+  }
+
+  const confirmBookingAction = () => {
+    const { booking, action } = bookingActionModal
+    if (!booking) {
+      return
+    }
+
+    setUpcomingItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== booking.id) {
+          return item
+        }
+
+        if (action === 'approve') {
+          return {
+            ...item,
+            type: 'confirmed',
+            statusText: 'CONFIRMED',
+          }
+        }
+
+        return {
+          ...item,
+          type: 'rejected',
+          statusText: 'REJECTED',
+          rejectionReason,
+        }
+      }),
+    )
+
+    setToast({
+      kind: action === 'approve' ? 'success' : 'error',
+      message:
+        action === 'approve'
+          ? `${booking.title} has been approved \u2713`
+          : `${booking.title} has been rejected`,
+    })
+
+    closeBookingActionModal()
+  }
+
+  const openConflictResolutionModal = (booking) => {
+    setConflictResolutionModal({ isOpen: true, booking })
+    setSelectedWinnerId('')
+    setResolutionMessage(DEFAULT_REJECTION_MESSAGE)
+  }
+
+  const closeConflictResolutionModal = () => {
+    setConflictResolutionModal({ isOpen: false, booking: null })
+    setSelectedWinnerId('')
+    setResolutionMessage(DEFAULT_REJECTION_MESSAGE)
+  }
+
+  const confirmConflictResolution = () => {
+    const conflictBooking = conflictResolutionModal.booking
+    if (!conflictBooking || !selectedWinnerId) {
+      return
+    }
+
+    const winner = conflictBooking.conflictRequests?.find((request) => request.id === selectedWinnerId)
+    if (!winner) {
+      return
+    }
+
+    const winningEvent = {
+      id: `${conflictBooking.id}-${winner.id}`,
+      type: 'confirmed',
+      time12: winner.time12,
+      time24: winner.time24,
+      title: winner.eventName,
+      venue: conflictBooking.venue,
+      statusText: 'CONFIRMED',
+      metaTwoIcon: 'schedule',
+      metaTwoText: winner.durationText,
+      requesterName: winner.requesterName,
+      requesterInitials: winner.requesterInitials,
+      resolutionMessage,
+    }
+
+    setUpcomingItems((prev) => {
+      const nextItems = []
+      prev.forEach((item) => {
+        if (item.id === conflictBooking.id) {
+          nextItems.push(winningEvent)
+        } else {
+          nextItems.push(item)
+        }
+      })
+      return nextItems
+    })
+
+    setToast({
+      kind: 'success',
+      message: `Conflict resolved. ${winner.partyName} booking confirmed.`,
+    })
+
+    closeConflictResolutionModal()
+  }
+
   const handleCancelBooking = ({ bookingId, reason }) => {
     setUpcomingItems((prev) => prev.filter((item) => item.id !== bookingId))
     void reason
   }
+
+  useEffect(() => {
+    if (!isCalendarOpen) {
+      return undefined
+    }
+
+    const handlePointerDown = (event) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
+        setIsCalendarOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+    }
+  }, [isCalendarOpen])
 
   useEffect(() => {
     const modalOpen = isDetailsOpen || isEditOpen || isEditSuccessOpen || isCancelOpen
@@ -293,36 +469,28 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
               <button className={statusStyles.navButton} onClick={goToPreviousDate} type="button">
                 <span className="material-icons">chevron_left</span>
               </button>
-              <div
-                className={statusStyles.dateDisplay}
-                onClick={() => dateInputRef.current?.showPicker()}
-                style={{ position: 'relative', zIndex: 1 }}
-              >
-                <input
-                  aria-label="Select date"
-                  onChange={(event) => {
-                    if (!event.target.value) {
-                      return
-                    }
-                    setSelectedDate(parseInputDate(event.target.value))
-                  }}
-                  ref={dateInputRef}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    opacity: 0,
-                    cursor: 'pointer',
-                    zIndex: 10,
-                    pointerEvents: 'auto',
-                  }}
-                  type="date"
-                  value={toInputDateValue(selectedDate)}
-                />
-                <span className="material-icons">calendar_today</span>
-                <span className={statusStyles.dateText}>{formatDisplayDate(selectedDate)}</span>
+              <div className={statusStyles.datePickerWrap} ref={datePickerRef}>
+                <button
+                  className={statusStyles.dateDisplay}
+                  onClick={() => setIsCalendarOpen((previous) => !previous)}
+                  type="button"
+                >
+                  <span className="material-icons">calendar_today</span>
+                  <span className={statusStyles.dateText}>{formatDisplayDate(selectedDate)}</span>
+                </button>
+
+                {isCalendarOpen ? (
+                  <div className={statusStyles.datePickerPopover}>
+                    <Calendar
+                      availabilityData={{}}
+                      onDateSelect={(date) => {
+                        setSelectedDate(date)
+                        setIsCalendarOpen(false)
+                      }}
+                      selectedDate={selectedDate}
+                    />
+                  </div>
+                ) : null}
               </div>
               <button className={statusStyles.navButton} onClick={goToNextDate} type="button">
                 <span className="material-icons">chevron_right</span>
@@ -581,10 +749,18 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
 
                           {item.type === 'pending' ? (
                             <div className={statusStyles.pendingActions}>
-                              <button className={statusStyles.btnSecondary} type="button">
+                                  <button
+                                    className={statusStyles.btnSecondary}
+                                    onClick={() => openBookingActionModal('reject', item)}
+                                    type="button"
+                                  >
                                 Reject
                               </button>
-                              <button className={statusStyles.btnPrimary} type="button">
+                                  <button
+                                    className={statusStyles.btnPrimary}
+                                    onClick={() => openBookingActionModal('approve', item)}
+                                    type="button"
+                                  >
                                 Approve
                               </button>
                             </div>
@@ -594,7 +770,11 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
                             <>
                               <p className={statusStyles.conflictBodyText}>{item.conflictText}</p>
                               <div className={statusStyles.conflictActions}>
-                                <button className={statusStyles.resolveLink} type="button">
+                                <button
+                                  className={statusStyles.resolveLink}
+                                  onClick={() => openConflictResolutionModal(item)}
+                                  type="button"
+                                >
                                   Resolve Conflict
                                   <span className="material-icons">arrow_forward</span>
                                 </button>
@@ -644,16 +824,28 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
                         ) : null}
                         {item.type === 'pending' ? (
                           <>
-                            <button className={statusStyles.btnSecondary} type="button">
+                            <button
+                              className={statusStyles.btnSecondary}
+                              onClick={() => openBookingActionModal('reject', item)}
+                              type="button"
+                            >
                               Reject
                             </button>
-                            <button className={statusStyles.btnPrimary} type="button">
+                            <button
+                              className={statusStyles.btnPrimary}
+                              onClick={() => openBookingActionModal('approve', item)}
+                              type="button"
+                            >
                               Approve
                             </button>
                           </>
                         ) : null}
                         {item.type === 'conflict' ? (
-                          <button className={statusStyles.resolveBtn} type="button">
+                          <button
+                            className={statusStyles.resolveBtn}
+                            onClick={() => openConflictResolutionModal(item)}
+                            type="button"
+                          >
                             Resolve
                           </button>
                         ) : null}
@@ -663,7 +855,11 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
                 </div>
               )}
 
-              <button className={statusStyles.blockMaintenanceFloatingBtn} type="button">
+              <button
+                className={statusStyles.blockMaintenanceFloatingBtn}
+                onClick={() => setShowMaintenanceForm(true)}
+                type="button"
+              >
                 <span className="material-icons">handyman</span>
                 Block Maintenance
               </button>
@@ -737,6 +933,127 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
               reason,
             })
           }
+        />
+      ) : null}
+
+      {bookingActionModal.isOpen && bookingActionModal.booking ? (
+        <div className={statusStyles.actionModalBackdrop} role="presentation">
+          <div aria-modal="true" className={statusStyles.actionModalCard} role="dialog">
+            <h3 className={statusStyles.actionModalTitle}>Confirm {bookingActionModal.action === 'approve' ? 'Approval' : 'Rejection'}</h3>
+            <div className={statusStyles.actionModalMeta}>
+              <p><strong>Event:</strong> {bookingActionModal.booking.title}</p>
+              <p><strong>Venue:</strong> {bookingActionModal.booking.venue}</p>
+              <p><strong>Time:</strong> {bookingActionModal.booking.time12} ({bookingActionModal.booking.time24})</p>
+              <p><strong>Requester:</strong> {bookingActionModal.booking.requesterName || 'N/A'}</p>
+            </div>
+            <p className={statusStyles.actionModalMessage}>
+              Are you sure you want to {bookingActionModal.action === 'approve' ? 'approve' : 'reject'} this booking?
+            </p>
+
+            {bookingActionModal.action === 'reject' ? (
+              <label className={statusStyles.actionModalField}>
+                <span>Rejection Reason (optional)</span>
+                <textarea
+                  className={statusStyles.actionModalTextarea}
+                  onChange={(event) => setRejectionReason(event.target.value)}
+                  placeholder="Add an optional reason..."
+                  rows={3}
+                  value={rejectionReason}
+                />
+              </label>
+            ) : null}
+
+            <div className={statusStyles.actionModalActions}>
+              <button className={statusStyles.actionModalCancelBtn} onClick={closeBookingActionModal} type="button">
+                Cancel
+              </button>
+              <button className={statusStyles.actionModalConfirmBtn} onClick={confirmBookingAction} type="button">
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {conflictResolutionModal.isOpen && conflictResolutionModal.booking ? (
+        <div className={statusStyles.actionModalBackdrop} role="presentation">
+          <div aria-modal="true" className={statusStyles.conflictModalCard} role="dialog">
+            <h3 className={statusStyles.actionModalTitle}>Resolve Double Booking Conflict</h3>
+            <p className={statusStyles.conflictSubtitle}>AICTE Lab - 6:00 PM slot</p>
+
+            <div className={statusStyles.conflictOptionGrid}>
+              {(conflictResolutionModal.booking.conflictRequests || []).map((request) => {
+                const isSelected = selectedWinnerId === request.id
+                return (
+                  <article
+                    className={`${statusStyles.conflictOptionCard} ${isSelected ? statusStyles.conflictOptionCardActive : ''}`}
+                    key={request.id}
+                  >
+                    <h4 className={statusStyles.conflictOptionTitle}>{request.partyName}</h4>
+                    <p><strong>Requester:</strong> {request.requesterName}</p>
+                    <p><strong>Event:</strong> {request.eventName}</p>
+                    <p><strong>Time:</strong> {request.time12} ({request.time24})</p>
+                    <button
+                      className={statusStyles.conflictKeepBtn}
+                      onClick={() => setSelectedWinnerId(request.id)}
+                      type="button"
+                    >
+                      Keep This Booking
+                    </button>
+                  </article>
+                )
+              })}
+            </div>
+
+            <label className={statusStyles.actionModalField}>
+              <span>Notification to Rejected Party</span>
+              <textarea
+                className={statusStyles.actionModalTextarea}
+                onChange={(event) => setResolutionMessage(event.target.value)}
+                rows={4}
+                value={resolutionMessage}
+              />
+            </label>
+
+            <div className={statusStyles.actionModalActions}>
+              <button className={statusStyles.actionModalCancelBtn} onClick={closeConflictResolutionModal} type="button">
+                Cancel
+              </button>
+              <button
+                className={statusStyles.actionModalConfirmBtn}
+                disabled={!selectedWinnerId}
+                onClick={confirmConflictResolution}
+                type="button"
+              >
+                Confirm Resolution
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {toast ? (
+        <div className={`${statusStyles.actionToast} ${toast.kind === 'error' ? statusStyles.actionToastError : statusStyles.actionToastSuccess}`}>
+          {toast.message}
+        </div>
+      ) : null}
+
+      {showMaintenanceForm ? (
+        <AdminMaintenanceBlockingPopUpFM
+          onCancel={() => setShowMaintenanceForm(false)}
+          onClose={() => setShowMaintenanceForm(false)}
+          onConfirm={() => {
+            setShowMaintenanceForm(false)
+            setShowMaintenanceSuccess(true)
+          }}
+        />
+      ) : null}
+
+      {showMaintenanceSuccess ? (
+        <AdminMaintenanceSuccessPopUpFM
+          onReturn={() => {
+            setShowMaintenanceSuccess(false)
+          }}
         />
       ) : null}
     </div>

@@ -97,7 +97,7 @@
   letter-spacing: -0.01em;
 }
 .brandBadge {
-  color: var(--primary);
+  color: #FF7A59;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -121,9 +121,9 @@
   text-decoration: none;
   transition: color 150ms ease;
 }
-.navLink:hover { color: var(--primary); }
+.navLink:hover { color: #d1d5db; }
 .navLinkActive {
-  color: #fff;
+  color: #d1d5db;
   font-weight: 500;
   font-size: 0.875rem;
   text-decoration: none;
@@ -150,7 +150,7 @@
 .adminBtn:hover {
   background: rgba(255, 122, 89, 0.9);
   box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-  color:#f0f0f0;
+  color: #ffffff !important;
 }
 @media (min-width: 640px) { .adminBtn { display: inline-flex; } }
 .menuBtn {
@@ -186,11 +186,11 @@
   transition: color 150ms ease, background 150ms ease;
 }
 .mobileNavLink:hover {
-  color: #fff;
+  color: #d1d5db;
   background: rgba(255,255,255,0.08);
 }
 .mobileNavLinkActive {
-  color: var(--primary);
+  color: #d1d5db;
   background: rgba(255,149,0,0.08);
 }
 
@@ -212,6 +212,7 @@
   transition: filter 150ms ease;
 }
 .mobileAdminBtn:hover {
+  color: #ffffff !important;
   filter: brightness(1.05);
 }
 
@@ -264,7 +265,7 @@
 }
 @media (min-width: 768px) { .heroTitle { font-size: 3rem; } }
 @media (min-width: 1024px) { .heroTitle { font-size: 3.75rem; } }
-.heroAccent { color: var(--primary); }
+.heroAccent { color: #ff9500e0; }
 .heroFeatures {
   display: flex;
   flex-wrap: wrap;
@@ -479,40 +480,65 @@
   position: absolute;
   bottom: 80px;
   left: -16px;
-  background: var(--navy-light);
-  border: 1px solid rgba(255,255,255,0.1);
-  padding: 12px;
-  border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  width: min(200px, 82vw);
   z-index: 20;
   animation: float 7s ease-in-out 1s infinite;
 }
 @media (min-width: 1024px) { .calendarWidget { left: 0; } }
-.calendarHeader {
-  font-size: 0.75rem;
-  color: rgba(255,255,255,0.6);
-  margin-bottom: 8px;
-  font-weight: 500;
+
+.heroBookingWidget {
+  width: 200px;
+  background: rgba(0, 24, 53, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+  padding: 10px;
+}
+
+.heroBookingLabel {
+  margin: 0 0 8px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.calendarGrid { display: grid; grid-template-columns: repeat(4,24px); gap: 6px; }
-.calDay {
-  width: 24px; height: 24px;
-  border-radius: 4px;
-  background: rgba(255,255,255,0.05);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.625rem;
-  color: #9ca3af;
+
+.heroBookingDates {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
 }
-.calDayActive {
-  width: 24px; height: 24px;
-  border-radius: 4px;
-  background: var(--primary);
-  color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.625rem;
-  font-weight: 700;
-  box-shadow: 0 10px 15px -3px rgba(255,149,0,0.4);
+
+.heroBookingDate {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  color: #cbd5e1;
+  font-size: 0.72rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.heroBookingDateActive {
+  background: #f97316;
+  color: #ffffff;
+}
+
+.heroBookingDateAvailable::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
 }
 
 /* Preview thumbnail */
@@ -554,9 +580,9 @@
 @media (min-width: 768px) { .statsGrid { grid-template-columns: repeat(4,1fr); } }
 .statItem { padding: 8px; border-left: 1px solid rgba(255,255,255,0.1); }
 .statItem:first-child { border-left: none; }
-.statValue { font-size: 1.875rem; font-weight: 700; color: #fff; margin: 0 0 4px; }
+.statValue { font-size: 1.875rem; font-weight: 700; color: #fbf3f3; margin: 0 0 4px; }
 @media (min-width: 768px) { .statValue { font-size: 2.25rem; } }
-.statOrange { color: var(--primary); }
+.statOrange { color: #ff7a59; }
 .statLabel { font-size: 0.875rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
 
 /* ============ SHARED SECTION STYLES ============ */
@@ -717,6 +743,7 @@
 .ctaTextureBg {
   position: absolute; inset: 0;
   background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
+  background-color: transparent;
   opacity: 0.1;
 }
 .ctaInner {

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import styles from "./PageHeader.module.css";
 import { useUserProfile } from "./UserProfileContext.jsx";
@@ -147,19 +147,21 @@ export default function PageHeader({ title, setIsSidebarOpen }) {
           ) : null}
         </div>
 
-        <div className={styles.profile}>
-          <div className={styles.meta}>
-            <p className={styles.uname}>{fullName}</p>
-            <p className={styles.role}>{userProfile.role}</p>
+        <Link aria-label="Open profile settings" className={styles.profileLink} to="/settings">
+          <div className={styles.profile}>
+            <div className={styles.meta}>
+              <p className={styles.uname}>{fullName}</p>
+              <p className={styles.role}>{userProfile.role}</p>
+            </div>
+            <div className={styles.avatar}>
+              <img
+                alt="Admin Profile"
+                className={styles.img}
+                src={userProfile.avatarUrl}
+              />
+            </div>
           </div>
-          <div className={styles.avatar}>
-            <img
-              alt="Admin Profile"
-              className={styles.img}
-              src={userProfile.avatarUrl}
-            />
-          </div>
-        </div>
+        </Link>
       </div>
     </header>
   );

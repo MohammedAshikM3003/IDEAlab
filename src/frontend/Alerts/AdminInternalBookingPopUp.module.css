@@ -197,8 +197,7 @@
 }
 
 .input,
-.select,
-.inputDate {
+.select {
   height: 48px;
   padding: 0 16px;
   border-radius: 12px;
@@ -214,8 +213,7 @@
 }
 
 .input:focus,
-.select:focus,
-.inputDate:focus {
+.select:focus {
   border-color: var(--navy);
   box-shadow: 0 0 0 3px rgba(0, 33, 71, 0.12);
 }
@@ -256,23 +254,8 @@
   }
 }
 
-.dateWrap {
-  position: relative;
-}
-
-.inputDate {
-  padding-right: 40px;
-}
-
-.dateIcon {
-  position: absolute;
-  inset: 0 0 0 auto;
-  width: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  color: rgba(0, 33, 71, 0.6);
+.calendarWrap {
+  width: 100%;
 }
 
 .slotIndicator {

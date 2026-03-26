@@ -78,6 +78,10 @@ export default function LoginPage() {
         </div>
 
         <div className={styles.rightCol}>
+          <Link className={`${styles.backBtn} ${styles.mobileBackBtn}`} to="/">
+            ← Back to Home
+          </Link>
+
           <div className={styles.form}>
             <div className={styles.brand}>
               <div className={styles.brandRow}>

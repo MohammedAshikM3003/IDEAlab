@@ -887,6 +887,10 @@
   color: var(--gray-700);
 }
 
+.modalCalendar {
+  width: 100%;
+}
+
 .modalInput {
   border: 1px solid var(--gray-300);
   border-radius: 0.75rem;
@@ -937,8 +941,8 @@
 .toast {
   position: fixed;
   right: 1.25rem;
-  bottom: 1.25rem;
-  z-index: 130;
+  top: 80px;
+  z-index: 9999;
   background: #0b2a55;
   color: var(--white);
   padding: 0.7rem 0.95rem;
@@ -951,7 +955,7 @@
 
 @keyframes toastIn {
   from {
-    transform: translateY(8px);
+    transform: translateY(-20px);
     opacity: 0;
   }
 

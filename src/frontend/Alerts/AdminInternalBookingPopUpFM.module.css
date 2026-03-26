@@ -172,6 +172,10 @@
   gap: 12px;
 }
 
+.calendarWrap {
+  width: 100%;
+}
+
 .timeField {
   display: flex;
   flex-direction: column;

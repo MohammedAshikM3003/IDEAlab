@@ -91,6 +91,10 @@
   font-size: 18px;
 }
 
+.mobileBackBtn {
+  display: none;
+}
+
 .leftBg {
   position: absolute;
   inset: 0;
@@ -148,7 +152,7 @@
 }
 
 .heroAccent {
-  color: var(--primary);
+  color: #ff9500;
 }
 
 .heroSub {
@@ -170,7 +174,7 @@
 .quoteBar {
   height: 40px;
   width: 4px;
-  background: var(--primary);
+  background: #ff9500;
   border-radius: 9999px;
 }
 
@@ -184,7 +188,7 @@
   margin: 4px 0 0;
   font-size: 14px;
   font-weight: 600;
-  color: var(--primary);
+  color: #ff9500;
 }
 
 .rightCol {
@@ -497,7 +501,7 @@
   padding: 14px 16px;
   border: 1px solid transparent;
   border-radius: 12px;
-  background: var(--primary);
+  background: #ff9500;
   color: #ffffff;
   font-size: 14px;
   font-weight: 700;
@@ -655,5 +659,45 @@
   background: rgba(255, 149, 0, 0.05);
   border-bottom-left-radius: 9999px;
   pointer-events: none;
+}
+
+@media (max-width: 767.98px) {
+  .mobileBackBtn {
+    display: inline-flex;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 20;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    backdrop-filter: none;
+    color: #1e3a5f;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: normal;
+    text-transform: none;
+    line-height: 1.2;
+    gap: 0;
+    box-shadow: none;
+    transform: none;
+    transition: color 150ms ease, text-decoration-color 150ms ease;
+  }
+
+  .mobileBackBtn:hover,
+  .mobileBackBtn:focus-visible,
+  .mobileBackBtn:active {
+    color: #152d49;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    border-color: transparent;
+    background: transparent;
+    transform: none;
+  }
+
+  .form {
+    padding-top: 76px;
+  }
 }
 

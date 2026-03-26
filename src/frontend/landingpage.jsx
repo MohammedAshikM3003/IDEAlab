@@ -55,7 +55,7 @@ function LandingPage() {
           if (entry.isIntersecting && !scrollLockRef.current) setActiveNav(entry.target.id)
         })
       },
-      { rootMargin: '-40% 0px -55% 0px' }
+      { rootMargin: '-35% 0px -45% 0px', threshold: 0.05 }
     )
     // Observe the top of the page to reset to 'home'
     const heroObserver = new IntersectionObserver(
@@ -316,12 +316,15 @@ function LandingPage() {
                  </div>
 
                  <div className={styles.calendarWidget}>
-                   <div className={styles.calendarHeader}>October</div>
-                   <div className={styles.calendarGrid}>
-                     <div className={styles.calDay}>12</div>
-                     <div className={styles.calDayActive}>13</div>
-                     <div className={styles.calDay}>14</div>
-                     <div className={styles.calDay}>15</div>
+                   <div className={styles.heroBookingWidget}>
+                     <p className={styles.heroBookingLabel}>OCTOBER</p>
+                     <div className={styles.heroBookingDates}>
+                       <span className={styles.heroBookingDate}>12</span>
+                       <span className={`${styles.heroBookingDate} ${styles.heroBookingDateActive}`}>13</span>
+                       <span className={`${styles.heroBookingDate} ${styles.heroBookingDateAvailable}`}>14</span>
+                       <span className={styles.heroBookingDate}>15</span>
+                       <span className={styles.heroBookingDate}>16</span>
+                     </div>
                    </div>
                  </div>
 

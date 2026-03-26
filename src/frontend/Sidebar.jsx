@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 
 import settingsIcon from '../assets/settingsIcon.svg'
 import logoutIcon from '../assets/logoutIcon.svg'
+import collegeLogo from '../assets/collegelogo.jpg'
 import AdminLogOutPopUp from './Alerts/AdminLogOutPopUp'
 import InternalBookingModal from './Alerts/InternalBookingModal'
 import styles from './Sidebar.module.css'
@@ -17,7 +18,9 @@ export default function Sidebar({ activePage, isSidebarOpen, setIsSidebarOpen })
       <aside className={`${styles.nav} ${isSidebarOpen ? styles.sidebarOpen : ''}`}>
         <div className={styles.logo}>
           <div className={styles.logoRow}>
-            <div className={styles.logoMark}>K</div>
+            <div className={styles.logoMark}>
+              <img alt="KSR College logo" className={styles.logoImage} src={collegeLogo} />
+            </div>
             <span className={styles.logoTxt}>KSR Admin</span>
           </div>
         </div>

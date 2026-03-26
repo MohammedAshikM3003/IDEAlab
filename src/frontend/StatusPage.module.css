@@ -14,8 +14,13 @@
   border: 1px solid #dbe3ed;
   border-radius: 0.6rem;
   background: #ffffff;
-  overflow: hidden;
+  overflow: visible;
   margin-left: 35px;
+  position: relative;
+}
+
+.datePickerWrap {
+  position: relative;
 }
 
 .navButton {
@@ -42,6 +47,19 @@
   border-left: 1px solid #eef2f7;
   border-right: 1px solid #eef2f7;
   padding: 0.45rem 0.85rem;
+  background: #ffffff;
+  border-top: 0;
+  border-bottom: 0;
+  cursor: pointer;
+}
+
+.datePickerPopover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 320px;
+  width: min(360px, 92vw);
+  z-index: 25;
 }
 
 .dateDisplay :global(.material-icons) {
@@ -852,6 +870,225 @@
   flex-wrap: wrap;
 }
 
+.actionModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.actionModalCard,
+.conflictModalCard {
+  width: 100%;
+  max-width: 540px;
+  background: #ffffff;
+  border-radius: 0.9rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.26);
+  padding: 1rem;
+}
+
+.conflictModalCard {
+  max-width: 760px;
+}
+
+.actionModalTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f2044;
+}
+
+.actionModalMeta {
+  margin-top: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 0.7rem;
+  padding: 0.7rem;
+  display: grid;
+  gap: 0.28rem;
+}
+
+.actionModalMeta p,
+.conflictOptionCard p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.86rem;
+}
+
+.actionModalMessage {
+  margin: 0.8rem 0;
+  color: #334155;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.actionModalField {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.3rem;
+}
+
+.actionModalField span {
+  font-size: 0.82rem;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.actionModalTextarea {
+  width: 100%;
+  border-radius: 0.7rem;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #1e293b;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.88rem;
+  resize: vertical;
+}
+
+.actionModalTextarea:focus {
+  outline: none;
+  border-color: #ff9500;
+  box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.18);
+}
+
+.actionModalActions {
+  margin-top: 0.9rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.actionModalCancelBtn,
+.actionModalConfirmBtn {
+  min-height: 2.4rem;
+  border-radius: 0.6rem;
+  padding: 0 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.actionModalCancelBtn {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+}
+
+.actionModalCancelBtn:hover {
+  background: #f8fafc;
+}
+
+.actionModalConfirmBtn {
+  border: 1px solid #ff9500;
+  background: #ff9500;
+  color: #ffffff;
+}
+
+.actionModalConfirmBtn:hover {
+  background: #ea7d00;
+  border-color: #ea7d00;
+}
+
+.actionModalConfirmBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.conflictSubtitle {
+  margin: 0.35rem 0 0.8rem;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.conflictOptionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.conflictOptionCard {
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.35rem;
+  opacity: 0.72;
+  transition: border-color 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+}
+
+.conflictOptionCardActive {
+  border-color: #ff9500;
+  background: #fff7ed;
+  opacity: 1;
+}
+
+.conflictOptionTitle {
+  margin: 0;
+  color: #1e293b;
+  font-size: 0.96rem;
+  font-weight: 800;
+}
+
+.conflictKeepBtn {
+  margin-top: 0.4rem;
+  min-height: 2.2rem;
+  border-radius: 0.55rem;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.conflictKeepBtn:hover {
+  border-color: #ff9500;
+  color: #ff9500;
+}
+
+.actionToast {
+  position: fixed;
+  right: 24px;
+  top: 90px;
+  z-index: 10000;
+  border-radius: 0.7rem;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
+  animation: actionToastIn 220ms ease-out;
+}
+
+.actionToastSuccess {
+  background: #16a34a;
+}
+
+.actionToastError {
+  background: #dc2626;
+}
+
+@keyframes actionToastIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 @media (max-width: 1200px) {
   .controlsBar {
     flex-direction: column;
@@ -889,6 +1126,10 @@
 
   .panelHeaderTitle {
     font-size: 0.95rem;
+  }
+
+  .conflictOptionGrid {
+    grid-template-columns: 1fr;
   }
 }
 

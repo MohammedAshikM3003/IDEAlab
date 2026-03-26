@@ -111,22 +111,30 @@
   margin-left: auto;
 }
 
+.dateRangeWrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
 .dateWrap {
   position: relative;
+  min-width: 11.25rem;
 }
 
 .datePop {
   position: absolute;
   top: calc(100% + 0.5rem);
-  right: 0;
-  width: min(19rem, 92vw);
+  left: 0;
+  width: max-content;
+  min-width: 17rem;
+  max-width: min(22rem, 95vw);
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
   box-shadow: 0 16px 26px rgba(15, 23, 42, 0.16);
   padding: 0.75rem;
-  display: grid;
-  gap: 0.625rem;
   z-index: 20;
 }
 
@@ -138,27 +146,13 @@
   color: #475569;
 }
 
-.dateInput {
-  height: 2.375rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.625rem;
-  padding: 0 0.625rem;
-  font-size: 0.875rem;
-  color: #0f172a;
-}
-
-.dateInput:focus {
-  outline: none;
-  border-color: rgba(255, 148, 0, 0.8);
-  box-shadow: 0 0 0 3px rgba(255, 148, 0, 0.15);
-}
-
 .btnDate {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
   height: 2.5rem;
   padding: 0 0.875rem;
+  min-width: 11.25rem;
   border: 1px solid #e5e7eb;
   border-radius: 0.5rem;
   background: #ffffff;
@@ -168,8 +162,34 @@
   cursor: pointer;
 }
 
+.btnDateMain {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dateChevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+  transition: transform 0.2s ease;
+  transform: rotate(0deg);
+}
+
+.dateChevronOpen {
+  transform: rotate(180deg);
+}
+
 .btnDate:hover {
   border-color: rgba(255, 148, 0, 0.55);
+}
+
+.dateError {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #dc2626;
 }
 
 .search {
@@ -297,33 +317,43 @@
   margin-top: 0.875rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
 .selWrap {
-  display: grid;
-  gap: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
 }
 
 .selLbl {
-  font-size: 0.6875rem;
-  letter-spacing: 0.07em;
+  margin-bottom: 0.125rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  font-weight: 700;
-  color: #94a3b8;
+  font-weight: 800;
+  color: #475569;
 }
 
 .sel {
-  height: 2rem;
-  min-width: 8.75rem;
-  border: 1px solid #e2e8f0;
+  height: 2.5rem;
+  min-width: 10.5rem;
+  border: 1px solid #e0e0e0;
   border-radius: 0.5rem;
   background: #ffffff;
   color: #334155;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  padding: 0 0.5rem;
+  padding: 0 2.25rem 0 0.75rem;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5 10 12.5 15 7.5' stroke='%23647569' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.875rem 0.875rem;
+  cursor: pointer;
 }
 
 .sel:focus {
@@ -333,12 +363,12 @@
 }
 
 .tag {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #94a3b8;
-  margin-right: 0.25rem;
+  color: #475569;
+  margin-right: 0;
 }
 
 .pill {
@@ -392,8 +422,8 @@
 }
 
 .btnClr {
-  margin-left: 0.5rem;
-  background: none;
+  margin-left: 0;
+  background: transparent;
   border: none;
   padding: 0;
   cursor: pointer;
@@ -938,10 +968,33 @@
     width: 100%;
   }
 
+  .dateRangeWrap {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: 0.625rem;
+  }
+
+  .dateWrap {
+    min-width: 0;
+  }
+
   .btnDate,
   .btnExp,
   .search {
     width: 100%;
+  }
+
+  .btnDate {
+    min-width: 0;
+  }
+
+  .datePop {
+    left: 0;
+    right: 0;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
   }
 
   .btnExp {
@@ -1238,10 +1291,6 @@
     grid-template-columns: 1fr;
   }
 
-  .datePop {
-    right: auto;
-    left: 0;
-  }
 }
 
 @media (max-width: 768px) {

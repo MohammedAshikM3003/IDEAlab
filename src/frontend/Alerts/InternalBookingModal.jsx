@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 
+import Calendar from '../Calendar'
 import styles from './InternalBookingModal.module.css'
 
 const VENUES = [
@@ -14,6 +15,22 @@ const formatDate = (isoDate) => {
   if (!isoDate) return ''
   const date = new Date(`${isoDate}T00:00:00`)
   return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(date)
+}
+
+const parseISODate = (isoDate) => {
+  if (!isoDate) return undefined
+  const [year, month, day] = isoDate.split('-').map(Number)
+  if (!year || !month || !day) return undefined
+  const parsed = new Date(year, month - 1, day)
+  parsed.setHours(0, 0, 0, 0)
+  return parsed
+}
+
+const toISODate = (date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 export default function InternalBookingModal({ isOpen, onClose }) {
@@ -85,15 +102,12 @@ export default function InternalBookingModal({ isOpen, onClose }) {
 
             <label className={styles.field}>
               <span className={styles.label}>Date</span>
-              <div className={styles.inputWrap}>
-                <input
-                  className={`${styles.input} native-datetime`}
-                  type="date"
-                  required
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
+              <div className={styles.calendarWrap}>
+                <Calendar
+                  availabilityData={{}}
+                  onDateSelect={(selected) => setDate(toISODate(selected))}
+                  selectedDate={parseISODate(date)}
                 />
-                <span className={styles.inputIcon}><span className="material-icons">calendar_month</span></span>
               </div>
             </label>
 

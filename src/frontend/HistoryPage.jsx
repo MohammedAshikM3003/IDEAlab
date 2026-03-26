@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 
+import Calendar from "./Calendar";
 import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
 import layoutStyles from "./DashboardPage.module.css";
@@ -78,6 +79,14 @@ function ChevronRightIcon(props) {
   return (
     <svg aria-hidden="true" fill="none" height="14" viewBox="0 0 24 24" width="14" {...props}>
       <path d="m9 18 6-6-6-6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function ChevronDownIcon(props) {
+  return (
+    <svg aria-hidden="true" fill="none" height="14" viewBox="0 0 20 20" width="14" {...props}>
+      <path d="M5 7.5 10 12.5 15 7.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
     </svg>
   );
 }
@@ -314,6 +323,29 @@ function formatDateLabel(isoDate) {
   }).format(new Date(`${isoDate}T00:00:00`));
 }
 
+function parseISODate(isoDate) {
+  if (!isoDate) {
+    return null;
+  }
+
+  const [year, month, day] = isoDate.split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  const parsed = new Date(year, month - 1, day);
+  parsed.setHours(0, 0, 0, 0);
+  return parsed;
+}
+
+function toISODate(dateValue) {
+  const year = dateValue.getFullYear();
+  const month = String(dateValue.getMonth() + 1).padStart(2, "0");
+  const day = String(dateValue.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 const PAGE_SIZE = 5;
 
 function buildPaginationItems(currentPage, totalPages) {
@@ -344,11 +376,13 @@ export default function HistoryPage({ isSidebarOpen, setIsSidebarOpen }) {
   const [selectedYear, setSelectedYear] = useState("All");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [openDatePicker, setOpenDatePicker] = useState(null);
+  const [dateError, setDateError] = useState("");
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const exportMenuRef = useRef(null);
+  const datePickerRef = useRef(null);
 
   const statuses = useMemo(() => {
     return ["All", ...new Set(bookings.map((booking) => booking.status))];
@@ -364,8 +398,6 @@ export default function HistoryPage({ isSidebarOpen, setIsSidebarOpen }) {
       ...new Set(bookings.map((booking) => new Date(`${booking.dateISO}T00:00:00`).getFullYear().toString())),
     ];
   }, [bookings]);
-
-  const dateRangeLabel = startDate && endDate ? `${formatDateLabel(startDate)} - ${formatDateLabel(endDate)}` : "Select date range";
 
   const filteredBookings = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -476,6 +508,53 @@ export default function HistoryPage({ isSidebarOpen, setIsSidebarOpen }) {
       document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [isExportMenuOpen]);
+
+  useEffect(() => {
+    if (!openDatePicker) {
+      return undefined;
+    }
+
+    const handleOutsideClick = (event) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
+        setOpenDatePicker(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [openDatePicker]);
+
+  const handleStartDateSelect = (dateValue) => {
+    const nextStartDate = toISODate(dateValue);
+    setStartDate(nextStartDate);
+    setCurrentPage(1);
+
+    if (endDate && nextStartDate > endDate) {
+      setEndDate("");
+    }
+
+    setDateError("");
+    setOpenDatePicker(null);
+  };
+
+  const handleEndDateSelect = (dateValue) => {
+    const nextEndDate = toISODate(dateValue);
+
+    if (startDate && nextEndDate < startDate) {
+      setEndDate("");
+      setDateError("End date cannot be before start date");
+      setOpenDatePicker(null);
+      return;
+    }
+
+    setEndDate(nextEndDate);
+    setDateError("");
+    setCurrentPage(1);
+    setOpenDatePicker(null);
+  };
 
   const handleViewDetails = (booking) => {
     setSelectedBooking(booking);
@@ -628,6 +707,8 @@ export default function HistoryPage({ isSidebarOpen, setIsSidebarOpen }) {
     setSelectedYear("All");
     setStartDate("");
     setEndDate("");
+    setDateError("");
+    setOpenDatePicker(null);
   };
 
   return (
@@ -650,43 +731,70 @@ export default function HistoryPage({ isSidebarOpen, setIsSidebarOpen }) {
                 </div>
 
                 <div className={styles.ctrls}>
-                  <div className={styles.dateWrap}>
-                    <button className={styles.btnDate} onClick={() => setIsDatePickerOpen((prev) => !prev)} type="button">
-                      <span className={styles.icon}>
-                        <CalendarIcon />
-                      </span>
-                      <span className={styles.lbl}>{dateRangeLabel}</span>
-                    </button>
+                  <div className={styles.dateRangeWrap} ref={datePickerRef}>
+                    <div className={styles.dateWrap}>
+                      <button
+                        className={styles.btnDate}
+                        onClick={() => {
+                          setOpenDatePicker((prev) => (prev === "start" ? null : "start"));
+                          setDateError("");
+                        }}
+                        type="button"
+                      >
+                        <span className={styles.btnDateMain}>
+                          <span className={styles.icon}>
+                            <CalendarIcon />
+                          </span>
+                          <span className={styles.lbl}>{startDate ? formatDateLabel(startDate) : "Start Date"}</span>
+                        </span>
+                        <span className={`${styles.dateChevron} ${openDatePicker === "start" ? styles.dateChevronOpen : ""}`}>
+                          <ChevronDownIcon />
+                        </span>
+                      </button>
 
-                    {isDatePickerOpen ? (
-                      <div className={styles.datePop}>
-                        <label className={styles.dateFld}>
-                          <span>Start Date</span>
-                          <input
-                            className={styles.dateInput}
-                            onChange={(event) => {
-                              setStartDate(event.target.value);
-                              setCurrentPage(1);
-                            }}
-                            type="date"
-                            value={startDate}
+                      {openDatePicker === "start" ? (
+                        <div className={styles.datePop}>
+                          <Calendar
+                            availabilityData={{}}
+                            onDateSelect={handleStartDateSelect}
+                            selectedDate={parseISODate(startDate) || undefined}
                           />
-                        </label>
-                        <label className={styles.dateFld}>
-                          <span>End Date</span>
-                          <input
-                            className={styles.dateInput}
-                            min={startDate || undefined}
-                            onChange={(event) => {
-                              setEndDate(event.target.value);
-                              setCurrentPage(1);
-                            }}
-                            type="date"
-                            value={endDate}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className={styles.dateWrap}>
+                      <button
+                        className={styles.btnDate}
+                        onClick={() => {
+                          setOpenDatePicker((prev) => (prev === "end" ? null : "end"));
+                        }}
+                        type="button"
+                      >
+                        <span className={styles.btnDateMain}>
+                          <span className={styles.icon}>
+                            <CalendarIcon />
+                          </span>
+                          <span className={styles.lbl}>{endDate ? formatDateLabel(endDate) : "End Date"}</span>
+                        </span>
+                        <span className={`${styles.dateChevron} ${openDatePicker === "end" ? styles.dateChevronOpen : ""}`}>
+                          <ChevronDownIcon />
+                        </span>
+                      </button>
+
+                      {openDatePicker === "end" ? (
+                        <div className={styles.datePop}>
+                          <Calendar
+                            availabilityData={{}}
+                            minDate={parseISODate(startDate) || undefined}
+                            onDateSelect={handleEndDateSelect}
+                            selectedDate={parseISODate(endDate) || undefined}
                           />
-                        </label>
-                      </div>
-                    ) : null}
+                        </div>
+                      ) : null}
+
+                      {dateError ? <p className={styles.dateError}>{dateError}</p> : null}
+                    </div>
                   </div>
 
                   <div className={styles.search}>
@@ -735,7 +843,7 @@ export default function HistoryPage({ isSidebarOpen, setIsSidebarOpen }) {
               </div>
 
               <div className={styles.filters}>
-                <span className={styles.tag}>Filters:</span>
+                <span className={styles.tag}>FILTERS:</span>
 
                 <label className={styles.selWrap}>
                   <span className={styles.selLbl}>Status</span>

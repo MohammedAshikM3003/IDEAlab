@@ -1,5 +1,6 @@
 import React from "react";
 
+import Calendar from "../Calendar";
 import styles from "./AdminInternalBookingPopUp.module.css";
 
 const DEFAULT_VENUES = [
@@ -8,6 +9,29 @@ const DEFAULT_VENUES = [
   { value: "conference", label: "Conference Room" },
   { value: "mini", label: "Mini Hall" },
 ];
+
+function parseISODate(isoDate) {
+  if (!isoDate) {
+    return undefined;
+  }
+
+  const [year, month, day] = isoDate.split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return undefined;
+  }
+
+  const parsed = new Date(year, month - 1, day);
+  parsed.setHours(0, 0, 0, 0);
+  return parsed;
+}
+
+function toISODate(dateValue) {
+  const year = dateValue.getFullYear();
+  const month = String(dateValue.getMonth() + 1).padStart(2, "0");
+  const day = String(dateValue.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
 export default function AdminInternalBookingPopUp({
   venues = DEFAULT_VENUES,
@@ -121,11 +145,12 @@ export default function AdminInternalBookingPopUp({
                 <label className={styles.label} htmlFor="date">
                   Date
                 </label>
-                <div className={styles.dateWrap}>
-                  <input id="date" className={styles.inputDate} type="date" value={date} onChange={(e) => onDateChange?.(e.target.value)} />
-                  <div className={styles.dateIcon} aria-hidden="true">
-                    <span className="material-symbols-outlined">calendar_today</span>
-                  </div>
+                <div className={styles.calendarWrap} id="date">
+                  <Calendar
+                    availabilityData={{}}
+                    onDateSelect={(dateValue) => onDateChange?.(toISODate(dateValue))}
+                    selectedDate={parseISODate(date)}
+                  />
                 </div>
               </div>
 

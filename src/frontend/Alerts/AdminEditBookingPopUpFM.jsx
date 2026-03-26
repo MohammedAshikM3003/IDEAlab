@@ -1,6 +1,30 @@
 import React, { useMemo, useState } from "react";
 
+import Calendar from "../Calendar";
 import styles from "./AdminEditBookingPopUpFM.module.css";
+
+function parseISODate(isoDate) {
+  if (!isoDate) {
+    return undefined;
+  }
+
+  const [year, month, day] = isoDate.split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return undefined;
+  }
+
+  const parsed = new Date(year, month - 1, day);
+  parsed.setHours(0, 0, 0, 0);
+  return parsed;
+}
+
+function toISODate(dateValue) {
+  const year = dateValue.getFullYear();
+  const month = String(dateValue.getMonth() + 1).padStart(2, "0");
+  const day = String(dateValue.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
 export default function AdminEditBookingPopUpFM({
   onClose,
@@ -104,17 +128,12 @@ export default function AdminEditBookingPopUpFM({
                 <label className={styles.label} htmlFor="edit-date">
                   Date
                 </label>
-                <div className={styles.inputWithIcon}>
-                  <input
-                    className={styles.input}
-                    id="edit-date"
-                    type="date"
-                    value={date}
-                    onChange={(event) => setDate(event.target.value)}
+                <div className={styles.calendarWrap} id="edit-date">
+                  <Calendar
+                    availabilityData={{}}
+                    onDateSelect={(dateValue) => setDate(toISODate(dateValue))}
+                    selectedDate={parseISODate(date)}
                   />
-                  <span className={`${styles.iconRight} material-symbols-outlined`} aria-hidden="true">
-                    calendar_month
-                  </span>
                 </div>
               </div>
 

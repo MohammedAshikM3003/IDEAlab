@@ -1,6 +1,40 @@
-import React from "react";
+import React, { useState } from "react";
 
+import Calendar from "../Calendar";
 import styles from "./AdminMaintenanceBlockingPopUpFM.module.css";
+
+function parseDateFromDateTime(value) {
+  if (!value) {
+    return undefined;
+  }
+
+  const [datePart] = value.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return undefined;
+  }
+
+  const parsed = new Date(year, month - 1, day);
+  parsed.setHours(0, 0, 0, 0);
+  return parsed;
+}
+
+function dateToISO(value) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function readTimePart(value, fallback = "09:00") {
+  if (!value || !value.includes("T")) {
+    return fallback;
+  }
+
+  const [, timePart] = value.split("T");
+  return timePart || fallback;
+}
 
 export default function AdminMaintenanceBlockingPopUp({
   title = "Schedule Maintenance Mode",
@@ -23,8 +57,20 @@ export default function AdminMaintenanceBlockingPopUp({
   pendingRequestCount = 2,
   onClose,
   onCancel,
+  onConfirm,
   onBlockVenue,
 }) {
+  const [fromDate, setFromDate] = useState(() => {
+    const parsed = parseDateFromDateTime(fromValue);
+    return parsed ? dateToISO(parsed) : dateToISO(new Date());
+  });
+  const [toDate, setToDate] = useState(() => {
+    const parsed = parseDateFromDateTime(toValue);
+    return parsed ? dateToISO(parsed) : dateToISO(new Date());
+  });
+  const [fromTime, setFromTime] = useState(() => readTimePart(fromValue, "09:00"));
+  const [toTime, setToTime] = useState(() => readTimePart(toValue, "17:00"));
+
   return (
     <div className={styles.page}>
       <div className={styles.backgroundMock} aria-hidden="true">
@@ -102,12 +148,27 @@ export default function AdminMaintenanceBlockingPopUp({
               <div className={styles.durationGrid}>
                 <div className={styles.durationField}>
                   <span className={styles.helperText}>From</span>
-                  <input className={styles.datetimeInput} type="datetime-local" defaultValue={fromValue} />
+                  <div className={styles.durationCalendar}>
+                    <Calendar
+                      availabilityData={{}}
+                      onDateSelect={(value) => setFromDate(dateToISO(value))}
+                      selectedDate={parseDateFromDateTime(`${fromDate}T00:00`) || undefined}
+                    />
+                  </div>
+                  <input className={styles.datetimeInput} type="time" value={fromTime} onChange={(event) => setFromTime(event.target.value)} />
                 </div>
 
                 <div className={styles.durationField}>
                   <span className={styles.helperText}>To</span>
-                  <input className={styles.datetimeInput} type="datetime-local" defaultValue={toValue} />
+                  <div className={styles.durationCalendar}>
+                    <Calendar
+                      availabilityData={{}}
+                      minDate={parseDateFromDateTime(`${fromDate}T00:00`) || undefined}
+                      onDateSelect={(value) => setToDate(dateToISO(value))}
+                      selectedDate={parseDateFromDateTime(`${toDate}T00:00`) || undefined}
+                    />
+                  </div>
+                  <input className={styles.datetimeInput} type="time" value={toTime} onChange={(event) => setToTime(event.target.value)} />
                 </div>
               </div>
             </div>
@@ -165,7 +226,7 @@ export default function AdminMaintenanceBlockingPopUp({
               Cancel
             </button>
 
-            <button className={styles.blockBtn} type="button" onClick={onBlockVenue}>
+            <button className={styles.blockBtn} type="button" onClick={onConfirm || onBlockVenue}>
               <span className="material-symbols-outlined">build</span>
               <span className={styles.blockBtnText}>Block Venue</span>
             </button>
