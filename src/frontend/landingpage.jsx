@@ -1,7 +1,8 @@
- import styles from './landingpage.module.css'
+import styles from './landingpage.module.css'
 import ksrceLogo from '../assets/collegelogo.jpg'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useEffect, useState, useRef } from 'react'
+import venuesData from '../data/venuesData.js'
 
 function LandingPage() {
   const navigate = useNavigate()
@@ -273,8 +274,8 @@ function LandingPage() {
                <div className={styles.popularRow}>
                  <span className={styles.popularLabel}>Popular:</span>
                  <a className={styles.popularTag} href="#" onClick={(e) => { e.preventDefault(); navigate('/venue/aicte-idea-lab') }}>AICTE Idea Lab</a>
-                 <a className={styles.popularTag} href="#" onClick={(e) => { e.preventDefault(); document.getElementById('venues')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}>Platinum Hall</a>
-                 <a className={styles.popularTag} href="#" onClick={(e) => { e.preventDefault(); document.getElementById('venues')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}>Dhenuka Hall</a>
+                 <a className={styles.popularTag} href="#" onClick={(e) => { e.preventDefault(); navigate('/venue/platinum-hall') }}>Platinum Hall</a>
+                 <a className={styles.popularTag} href="#" onClick={(e) => { e.preventDefault(); navigate('/venue/seminar-hall-a') }}>Seminar Hall A</a>
                </div>
              </div>
 
@@ -441,80 +442,33 @@ function LandingPage() {
            </div>
 
            <div className={styles.venuesGrid}>
-             <div className={styles.venueCard}>
-               <div className={styles.venueImgWrap}>
-                 <img
-                   alt="Modern engineering lab with equipment"
-                   className={styles.venueImg}
-                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6znKygn-eU8C2IavWkuzo3Vg2nEZ0HC1I44ImQ0YtcxbYSPVDr3LyKQtwS7SSMOOFYFGKq6jwp1KOaR6pWWMJRlGIHYzq2uwOywmPostzl0Z0c0BLjQXHHLJIPISRgZEE3vpzfoG57u6Wikeso5LZPnobwB0Rn4YK1bYWdMToa2OQIIhi7LOxwfJ3667HO8pGQ9qaUC8nD3pnGYjoWr-NrskWoTUfTEbMV_rvsIpe64idx6Hs1-W_wLhKTwgzMn54HxJIU0Jo4Qw"
-                 />
-                 <div className={styles.venueBadgeAvailable}>Available</div>
-               </div>
-               <div className={styles.venueBody}>
-                 <div className={styles.venueTopRow}>
-                   <h4 className={styles.venueTitle}>AICTE Idea Lab</h4>
-                   <span className={styles.venueLocation}>Lab Block A</span>
+             {venuesData.slice(0, 3).map((venue, index) => (
+               <div className={styles.venueCard} key={venue.id}>
+                 <div className={styles.venueImgWrap}>
+                   <img
+                     alt={venue.name}
+                     className={styles.venueImg}
+                     src={venue.images.hero}
+                   />
+                   <div className={styles.venueBadgeAvailable}>Available</div>
                  </div>
-                 <p className={styles.venueDesc}>State-of-the-art laboratory equipped with 3D printers, laser cutters, and electronics workstations.</p>
-                 <div className={styles.venueAmenities}>
-                   <div className={styles.venueAmenity}><span className="material-icons">people</span><span>60 Seats</span></div>
-                   <div className={styles.venueAmenity}><span className="material-icons">wifi</span><span>WiFi</span></div>
+                 <div className={styles.venueBody}>
+                   <div className={styles.venueTopRow}>
+                     <h4 className={styles.venueTitle}>{venue.name}</h4>
+                     <span className={styles.venueLocation}>{venue.location}</span>
+                   </div>
+                   <p className={styles.venueDesc}>{venue.description.substring(0,100)}...</p>
+                   <div className={styles.venueAmenities}>
+                     <div className={styles.venueAmenity}><span className="material-icons">people</span><span>{venue.capacity} Seats</span></div>
+                     {venue.amenities.includes('High-speed Wi-Fi') && <div className={styles.venueAmenity}><span className="material-icons">wifi</span><span>WiFi</span></div>}
+                     {venue.amenities.includes('Professional Sound System') && <div className={styles.venueAmenity}><span className="material-icons">mic</span><span>Audio Sys</span></div>}
+                   </div>
+                   <button type="button" onClick={() => navigate(`/venue/${venue.id}`)} className={styles.venueBookBtn}>
+                     Check Availability <span className="material-icons">arrow_forward</span>
+                   </button>
                  </div>
-                 <button type="button" onClick={() => navigate('/venue/aicte-idea-lab')} className={styles.venueBookBtn}>
-                   Check Availability <span className="material-icons">arrow_forward</span>
-                 </button>
                </div>
-             </div>
-
-             <div className={styles.venueCard}>
-               <div className={styles.venueImgWrap}>
-                 <img
-                   alt="Large seminar hall with rows of seats"
-                   className={styles.venueImg}
-                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvAHJJEwa7KoT2DEx2GgxWNy2DFj7UOe0qW7lOjfLi6BhumzALFJVdoqbBG0Rm4bGCxJPbTsz8vxDxf0LBlOTnEZWmF1F-wIyvk2vKhTk79hVomkcbbVoPEcUR2q3y0TCYIKKGVtg9uxrHR-gNCv9QjF-l8HFuB9g_oE3MBF2diCzvqOqUrP9w9k1NyWMlu1K5H6Mxf3h-vavtV3gTo8NGFjbcDzFsJZ5yLntU0Ausp9BFthl5B-VNoeKkTzGYIcGpqPWLaat4W8U"
-                 />
-                 <div className={styles.venueBadgeLimited}>Limited</div>
-               </div>
-               <div className={styles.venueBody}>
-                 <div className={styles.venueTopRow}>
-                   <h4 className={styles.venueTitle}>Platinum Hall</h4>
-                   <span className={styles.venueLocation}>Main Block</span>
-                 </div>
-                 <p className={styles.venueDesc}>Spacious auditorium perfect for guest lectures, symposiums, and large-scale college events.</p>
-                 <div className={styles.venueAmenities}>
-                   <div className={styles.venueAmenity}><span className="material-icons">people</span><span>400 Seats</span></div>
-                   <div className={styles.venueAmenity}><span className="material-icons">mic</span><span>Audio Sys</span></div>
-                 </div>
-                 <a className={styles.venueBookBtn} href="#">
-                   Check Availability <span className="material-icons">arrow_forward</span>
-                 </a>
-               </div>
-             </div>
-
-             <div className={styles.venueCard}>
-               <div className={styles.venueImgWrap}>
-                 <img
-                   alt="Professional conference room table"
-                   className={styles.venueImg}
-                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuCj7of9lAUwRqxTcs-nFdR9Fh9beTo23b0h6nXbxTHCe5H1W54toSNdd4PvH5-INsnkZS5qgn0XCvbQBgJeSPa9Ns4T9G7TjbFFzpRqPVnF1UfxTIz45nDX_x1x_zzTuw-YNmfr2CpkD0bQl10UQvUKu6lZvFq3_KmoI-A7CKkCnZ1udRX1tvB4wGaUJGK1rgu4bM6RUjJVwcd0aNBhnJQvfs1Ep99jvtKiB4reDXwgxO4zRKhLIHQ8JQjetao5dOKY9Rz5XrFZdEs"
-                 />
-                 <div className={styles.venueBadgeAvailable}>Available</div>
-               </div>
-               <div className={styles.venueBody}>
-                 <div className={styles.venueTopRow}>
-                   <h4 className={styles.venueTitle}>Dhenuka Hall</h4>
-                   <span className={styles.venueLocation}>Admin Block</span>
-                 </div>
-                 <p className={styles.venueDesc}>Premium meeting space for department meetings, thesis defenses, and VIP discussions.</p>
-                 <div className={styles.venueAmenities}>
-                   <div className={styles.venueAmenity}><span className="material-icons">people</span><span>25 Seats</span></div>
-                   <div className={styles.venueAmenity}><span className="material-icons">videocam</span><span>Projector</span></div>
-                 </div>
-                 <a className={styles.venueBookBtn} href="#">
-                   Check Availability <span className="material-icons">arrow_forward</span>
-                 </a>
-               </div>
-             </div>
+             ))}
            </div>
          </div>
        </section>

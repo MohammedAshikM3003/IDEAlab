@@ -17,6 +17,7 @@ import {
 import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
 import styles from "./DashboardPage.module.css";
+import venuesData from "../data/venuesData";
 
 const BOOKING_TIMEFRAMES = {
   last6Months: "last-6-months",
@@ -70,27 +71,65 @@ const bookingTrendsByTimeframe = {
   },
 };
 
-const venueUsageData = [
+const venueUsageData = venuesData.slice(0, 3).map(venue => ({
+  id: venue.id,
+  name: venue.name,
+  abbreviation: venue.name.split(' ').map(n => n[0]).join(''),
+  percentage: Math.floor(Math.random() * 50) + 20, // Placeholder
+  booked: Math.floor(Math.random() * 100) + 20, // Placeholder
+  totalCapacity: 120, // Placeholder
+}));
+
+const recentBookingRequests = [
   {
-    name: "Main Auditorium",
-    abbreviation: "MA",
-    percentage: 78,
-    booked: 94,
-    totalCapacity: 120,
+    id: "BK-2026-0001",
+    requesterInitials: "RJ",
+    requesterName: "Dr. Rajesh Jain",
+    venue: "Main Auditorium",
+    date: "Oct 24, 2023",
+    statusLabel: "Approved",
+    statusClassName: "badgeOk",
+    initialsClassName: "initBlue",
   },
   {
-    name: "Idea Lab",
-    abbreviation: "IL",
-    percentage: 52,
-    booked: 62,
-    totalCapacity: 120,
+    id: "BK-2026-0002",
+    requesterInitials: "ST",
+    requesterName: "Prof. S. Thara",
+    venue: "AICTE Idea Lab",
+    date: "Oct 25, 2023",
+    statusLabel: "Pending",
+    statusClassName: "badgeWarn",
+    initialsClassName: "initAmber",
   },
   {
-    name: "Conference Room",
-    abbreviation: "CR",
-    percentage: 24,
-    booked: 29,
-    totalCapacity: 120,
+    id: "BK-2026-0003",
+    requesterInitials: "MA",
+    requesterName: "M. Arunagiri",
+    venue: "Board Room",
+    date: "Oct 26, 2023",
+    statusLabel: "Rejected",
+    statusClassName: "badgeErr",
+    initialsClassName: "initRose",
+  },
+  {
+    id: "BK-2026-0004",
+    requesterInitials: "PK",
+    requesterName: "Dr. Priya Kumaran",
+    venue: "Main Seminar Hall",
+    date: "Oct 27, 2023",
+    statusLabel: "Pending",
+    statusClassName: "badgeWarn",
+    initialsClassName: "initBlue",
+  },
+  {
+    id: "BK-2026-0005",
+    requesterInitials: "AN",
+    requesterName: "A. Nivetha",
+    venue: "AICTE Idea Lab",
+    date: "Oct 28, 2023",
+    statusLabel: "Approved",
+    statusClassName: "badgeOk",
+    initialsClassName: "initAmber",
   },
 ];
 
@@ -264,7 +303,7 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
                             animationEasing="ease-out"
                           >
                             {rankedVenueData.map((venue) => (
-                              <Cell key={venue.name} fill={venue.colorHex} />
+                              <Cell key={venue.name} fill={venue.colorHex} style={{cursor: 'pointer'}} onClick={() => navigate(`/venue/${venue.id}`)} />
                             ))}
                           </Pie>
                           <text x="50%" y="50%" textAnchor="middle" dominantBaseline="central">
@@ -282,7 +321,7 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
 
                     <div className={styles.vuList}>
                       {rankedVenueData.map((venue) => (
-                        <div className={styles.vuRow} key={venue.name}>
+                        <div className={styles.vuRow} key={venue.name} onClick={() => navigate(`/venue/${venue.id}`)} style={{cursor: 'pointer'}}>
                           <div className={styles.vuTop}>
                             <div className={styles.vuHead}>
                               <span className={styles.vuDot} style={{ backgroundColor: venue.colorHex }} />
@@ -312,11 +351,10 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
               <div className={styles.tableCard}>
                 <div className={styles.tableHead}>
                   <h3 className={styles.sectionTitle}>Recent Booking Requests</h3>
-                  <button className={styles.viewAll} type="button">View All</button>
                 </div>
 
                 <div className={styles.tableWrap}>
-                  <table className="w-full text-left">
+                  <table className={styles.requestsTable}>
                     <thead className={styles.tHead}>
                       <tr>
                         <th className={styles.th}>Requester</th>
@@ -326,47 +364,25 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
                       </tr>
                     </thead>
                     <tbody className={styles.tBody}>
-                      <tr className={styles.tRow}>
-                        <td className={styles.cell}>
-                          <div className={styles.cellInner}>
-                            <div className={styles.initBlue}>RJ</div>
-                            <span className={styles.cellText}>Dr. Rajesh Jain</span>
-                          </div>
-                        </td>
-                        <td className={styles.cellMuted}>Main Auditorium</td>
-                        <td className={styles.cellMuted}>Oct 24, 2023</td>
-                        <td className={styles.cell}>
-                          <span className={styles.badgeOk}>Approved</span>
-                        </td>
-                      </tr>
-
-                      <tr className={styles.tRow}>
-                        <td className={styles.cell}>
-                          <div className={styles.cellInner}>
-                            <div className={styles.initAmber}>ST</div>
-                            <span className={styles.cellText}>Prof. S. Thara</span>
-                          </div>
-                        </td>
-                        <td className={styles.cellMuted}>Idea Lab</td>
-                        <td className={styles.cellMuted}>Oct 25, 2023</td>
-                        <td className={styles.cell}>
-                          <span className={styles.badgeWarn}>Pending</span>
-                        </td>
-                      </tr>
-
-                      <tr className={styles.tRow}>
-                        <td className={styles.cell}>
-                          <div className={styles.cellInner}>
-                            <div className={styles.initRose}>MA</div>
-                            <span className={styles.cellText}>M. Arunagiri</span>
-                          </div>
-                        </td>
-                        <td className={styles.cellMuted}>Board Room</td>
-                        <td className={styles.cellMuted}>Oct 26, 2023</td>
-                        <td className={styles.cell}>
-                          <span className={styles.badgeErr}>Rejected</span>
-                        </td>
-                      </tr>
+                      {recentBookingRequests.map((request) => (
+                        <tr
+                          className={styles.tRow}
+                          key={request.id}
+                          onClick={() => navigate(`/inbox?requestId=${request.id}`)}
+                        >
+                          <td className={styles.cell}>
+                            <div className={styles.cellInner}>
+                              <div className={styles[request.initialsClassName]}>{request.requesterInitials}</div>
+                              <span className={styles.cellText}>{request.requesterName}</span>
+                            </div>
+                          </td>
+                          <td className={`${styles.cellMuted} ${styles.cellVenue}`}>{request.venue}</td>
+                          <td className={`${styles.cellMuted} ${styles.cellDate}`}>{request.date}</td>
+                          <td className={`${styles.cell} ${styles.cellStatus}`}>
+                            <span className={styles[request.statusClassName]}>{request.statusLabel}</span>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>

@@ -168,6 +168,18 @@ function formatTimeClock(date) {
   })
 }
 
+function getMockRightNowItemsForDate(date) {
+  const today = toInputDateValue(new Date())
+  const targetDate = toInputDateValue(date)
+  return targetDate === today ? RIGHT_NOW_DATA : []
+}
+
+function getMockUpcomingItemsForDate(date) {
+  const today = toInputDateValue(new Date())
+  const targetDate = toInputDateValue(date)
+  return targetDate === today ? UPCOMING_DATA : []
+}
+
 export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
   const datePickerRef = useRef(null)
   const [selectedDate, setSelectedDate] = useState(() => new Date())
@@ -176,7 +188,12 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
   const [autoRefreshOn, setAutoRefreshOn] = useState(true)
   const [lastRefreshedAt, setLastRefreshedAt] = useState(() => new Date())
   const [upcomingView, setUpcomingView] = useState('timeline')
-  const [upcomingItems, setUpcomingItems] = useState(UPCOMING_DATA)
+  const [upcomingItemsByDate, setUpcomingItemsByDate] = useState(() => {
+    const initialDate = new Date()
+    return {
+      [toInputDateValue(initialDate)]: getMockUpcomingItemsForDate(initialDate),
+    }
+  })
   const [selectedBooking, setSelectedBooking] = useState(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -222,19 +239,31 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
     return () => window.clearTimeout(timer)
   }, [toast])
 
+  const selectedDateKey = useMemo(() => toInputDateValue(selectedDate), [selectedDate])
+
+  const rightNowItemsForSelectedDate = useMemo(
+    () => getMockRightNowItemsForDate(selectedDate),
+    [selectedDate],
+  )
+
+  const upcomingItemsForSelectedDate = useMemo(
+    () => upcomingItemsByDate[selectedDateKey] || getMockUpcomingItemsForDate(selectedDate),
+    [selectedDate, selectedDateKey, upcomingItemsByDate],
+  )
+
   const filteredRightNowItems = useMemo(() => {
     if (selectedVenue === 'ALL') {
-      return RIGHT_NOW_DATA
+      return rightNowItemsForSelectedDate
     }
-    return RIGHT_NOW_DATA.filter((item) => item.venue === selectedVenue)
-  }, [selectedVenue])
+    return rightNowItemsForSelectedDate.filter((item) => item.venue === selectedVenue)
+  }, [selectedVenue, rightNowItemsForSelectedDate])
 
   const filteredUpcomingItems = useMemo(() => {
     if (selectedVenue === 'ALL') {
-      return upcomingItems
+      return upcomingItemsForSelectedDate
     }
-    return upcomingItems.filter((item) => item.venue === selectedVenue)
-  }, [selectedVenue, upcomingItems])
+    return upcomingItemsForSelectedDate.filter((item) => item.venue === selectedVenue)
+  }, [selectedVenue, upcomingItemsForSelectedDate])
 
   const closeBookingFlow = () => {
     setIsDetailsOpen(false)
@@ -268,28 +297,33 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
       return
     }
 
-    setUpcomingItems((prev) =>
-      prev.map((item) => {
-        if (item.id !== booking.id) {
-          return item
-        }
+    setUpcomingItemsByDate((prev) => {
+      const dateItems = prev[selectedDateKey] || []
 
-        if (action === 'approve') {
+      return {
+        ...prev,
+        [selectedDateKey]: dateItems.map((item) => {
+          if (item.id !== booking.id) {
+            return item
+          }
+
+          if (action === 'approve') {
+            return {
+              ...item,
+              type: 'confirmed',
+              statusText: 'CONFIRMED',
+            }
+          }
+
           return {
             ...item,
-            type: 'confirmed',
-            statusText: 'CONFIRMED',
+            type: 'rejected',
+            statusText: 'REJECTED',
+            rejectionReason,
           }
-        }
-
-        return {
-          ...item,
-          type: 'rejected',
-          statusText: 'REJECTED',
-          rejectionReason,
-        }
-      }),
-    )
+        }),
+      }
+    })
 
     setToast({
       kind: action === 'approve' ? 'success' : 'error',
@@ -340,16 +374,22 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
       resolutionMessage,
     }
 
-    setUpcomingItems((prev) => {
+    setUpcomingItemsByDate((prev) => {
+      const dateItems = prev[selectedDateKey] || []
       const nextItems = []
-      prev.forEach((item) => {
+
+      dateItems.forEach((item) => {
         if (item.id === conflictBooking.id) {
           nextItems.push(winningEvent)
         } else {
           nextItems.push(item)
         }
       })
-      return nextItems
+
+      return {
+        ...prev,
+        [selectedDateKey]: nextItems,
+      }
     })
 
     setToast({
@@ -361,7 +401,14 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
   }
 
   const handleCancelBooking = ({ bookingId, reason }) => {
-    setUpcomingItems((prev) => prev.filter((item) => item.id !== bookingId))
+    setUpcomingItemsByDate((prev) => {
+      const dateItems = prev[selectedDateKey] || []
+
+      return {
+        ...prev,
+        [selectedDateKey]: dateItems.filter((item) => item.id !== bookingId),
+      }
+    })
     void reason
   }
 
@@ -558,86 +605,90 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
               </header>
 
               <div className={statusStyles.panelBody}>
-                {filteredRightNowItems.map((item) => (
-                  <article
-                    className={
-                      item.type === 'inUse'
-                        ? statusStyles.venueCardInUse
-                        : item.type === 'available'
-                          ? statusStyles.venueCardAvailable
-                          : statusStyles.venueCardMaintenance
-                    }
-                    key={item.id}
-                  >
-                    <div className={statusStyles.venueTopRow}>
-                      <div className={statusStyles.venueIdentity}>
+                {filteredRightNowItems.length > 0 ? (
+                  filteredRightNowItems.map((item) => (
+                    <article
+                      className={
+                        item.type === 'inUse'
+                          ? statusStyles.venueCardInUse
+                          : item.type === 'available'
+                            ? statusStyles.venueCardAvailable
+                            : statusStyles.venueCardMaintenance
+                      }
+                      key={item.id}
+                    >
+                      <div className={statusStyles.venueTopRow}>
+                        <div className={statusStyles.venueIdentity}>
+                          <span
+                            className={
+                              item.type === 'inUse'
+                                ? statusStyles.venueIconInUse
+                                : item.type === 'available'
+                                  ? statusStyles.venueIconAvailable
+                                  : statusStyles.venueIconMaintenance
+                            }
+                          >
+                            <span className="material-icons">{item.icon}</span>
+                          </span>
+                          <div>
+                            <h3 className={statusStyles.venueName}>{item.venue}</h3>
+                            <p className={statusStyles.venueCapacity}>{item.capacityText}</p>
+                          </div>
+                        </div>
+
                         <span
                           className={
                             item.type === 'inUse'
-                              ? statusStyles.venueIconInUse
+                              ? statusStyles.badgeInUse
                               : item.type === 'available'
-                                ? statusStyles.venueIconAvailable
-                                : statusStyles.venueIconMaintenance
+                                ? statusStyles.badgeAvailable
+                                : statusStyles.badgeMaintenance
                           }
                         >
-                          <span className="material-icons">{item.icon}</span>
+                          {item.badge}
                         </span>
-                        <div>
-                          <h3 className={statusStyles.venueName}>{item.venue}</h3>
-                          <p className={statusStyles.venueCapacity}>{item.capacityText}</p>
-                        </div>
                       </div>
 
-                      <span
-                        className={
-                          item.type === 'inUse'
-                            ? statusStyles.badgeInUse
-                            : item.type === 'available'
-                              ? statusStyles.badgeAvailable
-                              : statusStyles.badgeMaintenance
-                        }
-                      >
-                        {item.badge}
-                      </span>
-                    </div>
-
-                    {item.type === 'inUse' ? (
-                      <>
-                        <p className={statusStyles.sessionText}>{item.sessionText}</p>
-                        <div className={statusStyles.progressRow}>
-                          <div className={statusStyles.progressBar}>
-                            <div className={statusStyles.progressFill} style={{ width: `${rightNowProgress.percent}%` }} />
+                      {item.type === 'inUse' ? (
+                        <>
+                          <p className={statusStyles.sessionText}>{item.sessionText}</p>
+                          <div className={statusStyles.progressRow}>
+                            <div className={statusStyles.progressBar}>
+                              <div className={statusStyles.progressFill} style={{ width: `${rightNowProgress.percent}%` }} />
+                            </div>
+                            <span className={statusStyles.endsInText}>{rightNowProgress.endsInText}</span>
                           </div>
-                          <span className={statusStyles.endsInText}>{rightNowProgress.endsInText}</span>
-                        </div>
-                        <div className={statusStyles.footerRow}>
-                          <span className={statusStyles.requestedBy}>
-                            <span className="material-icons">person</span>
-                            {item.requestedBy}
-                          </span>
-                          <span className={statusStyles.freeAtText}>Free at {item.freeAt}</span>
-                        </div>
-                      </>
-                    ) : null}
+                          <div className={statusStyles.footerRow}>
+                            <span className={statusStyles.requestedBy}>
+                              <span className="material-icons">person</span>
+                              {item.requestedBy}
+                            </span>
+                            <span className={statusStyles.freeAtText}>Free at {item.freeAt}</span>
+                          </div>
+                        </>
+                      ) : null}
 
-                    {item.type === 'available' ? (
-                      <div className={statusStyles.availableMeta}>
-                        <p className={statusStyles.vacantText}>{item.vacancyText}</p>
-                        <p className={statusStyles.nextBookingText}>{item.nextBookingText}</p>
-                      </div>
-                    ) : null}
+                      {item.type === 'available' ? (
+                        <div className={statusStyles.availableMeta}>
+                          <p className={statusStyles.vacantText}>{item.vacancyText}</p>
+                          <p className={statusStyles.nextBookingText}>{item.nextBookingText}</p>
+                        </div>
+                      ) : null}
 
-                    {item.type === 'maintenance' ? (
-                      <div className={statusStyles.maintenanceMeta}>
-                        <p className={statusStyles.maintenanceReason}>
-                          <span className="material-icons">warning</span>
-                          {item.maintenanceReason}
-                        </p>
-                        <p className={statusStyles.maintenanceEta}>{item.etaText}</p>
-                      </div>
-                    ) : null}
-                  </article>
-                ))}
+                      {item.type === 'maintenance' ? (
+                        <div className={statusStyles.maintenanceMeta}>
+                          <p className={statusStyles.maintenanceReason}>
+                            <span className="material-icons">warning</span>
+                            {item.maintenanceReason}
+                          </p>
+                          <p className={statusStyles.maintenanceEta}>{item.etaText}</p>
+                        </div>
+                      ) : null}
+                    </article>
+                  ))
+                ) : (
+                  <p className={statusStyles.emptyStateMessage}>No venue activity for this date.</p>
+                )}
               </div>
             </section>
 
@@ -668,123 +719,127 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
 
               {upcomingView === 'timeline' ? (
                 <div className={statusStyles.timeline}>
-                  {filteredUpcomingItems.map((item, index) => {
-                    const showConnector = index < filteredUpcomingItems.length - 1
+                  {filteredUpcomingItems.length > 0 ? (
+                    filteredUpcomingItems.map((item, index) => {
+                      const showConnector = index < filteredUpcomingItems.length - 1
 
-                    return (
-                      <article className={statusStyles.timelineRow} key={item.id}>
-                        <div className={statusStyles.timeColumn}>
-                          <span className={statusStyles.time12}>{item.time12}</span>
-                          <span className={statusStyles.time24}>{item.time24}</span>
-                          {showConnector ? <span className={statusStyles.timeConnector} /> : null}
-                        </div>
-
-                        <div
-                          className={
-                            item.type === 'confirmed'
-                              ? statusStyles.eventCardConfirmed
-                              : item.type === 'pending'
-                                ? statusStyles.eventCardPending
-                                : statusStyles.eventCardConflict
-                          }
-                          onClick={item.type === 'confirmed' ? () => openDetailsForConfirmed(item) : undefined}
-                          onKeyDown={
-                            item.type === 'confirmed'
-                              ? (event) => {
-                                  if (event.key === 'Enter' || event.key === ' ') {
-                                    event.preventDefault()
-                                    openDetailsForConfirmed(item)
-                                  }
-                                }
-                              : undefined
-                          }
-                          role={item.type === 'confirmed' ? 'button' : undefined}
-                          tabIndex={item.type === 'confirmed' ? 0 : undefined}
-                        >
-                          <div className={statusStyles.eventHead}>
-                            <h4 className={statusStyles.eventTitleRow}>
-                              {item.type === 'conflict' ? (
-                                <span className={statusStyles.conflictTitleWrap}>
-                                  <span className={`material-icons ${statusStyles.conflictWarnIcon}`}>error</span>
-                                  {item.title}
-                                </span>
-                              ) : (
-                                item.title
-                              )}
-                            </h4>
-                            <span
-                              className={
-                                item.type === 'confirmed'
-                                  ? statusStyles.badgeConfirmed
-                                  : item.type === 'pending'
-                                    ? statusStyles.badgePending
-                                    : statusStyles.badgeConflict
-                              }
-                            >
-                              {item.statusText}
-                            </span>
+                      return (
+                        <article className={statusStyles.timelineRow} key={item.id}>
+                          <div className={statusStyles.timeColumn}>
+                            <span className={statusStyles.time12}>{item.time12}</span>
+                            <span className={statusStyles.time24}>{item.time24}</span>
+                            {showConnector ? <span className={statusStyles.timeConnector} /> : null}
                           </div>
 
-                          {item.type !== 'conflict' ? (
-                            <div className={statusStyles.eventMeta}>
-                              <span>
-                                <span className="material-icons">location_on</span>
-                                {item.venue}
+                          <div
+                            className={
+                              item.type === 'confirmed'
+                                ? statusStyles.eventCardConfirmed
+                                : item.type === 'pending'
+                                  ? statusStyles.eventCardPending
+                                  : statusStyles.eventCardConflict
+                            }
+                            onClick={item.type === 'confirmed' ? () => openDetailsForConfirmed(item) : undefined}
+                            onKeyDown={
+                              item.type === 'confirmed'
+                                ? (event) => {
+                                    if (event.key === 'Enter' || event.key === ' ') {
+                                      event.preventDefault()
+                                      openDetailsForConfirmed(item)
+                                    }
+                                  }
+                                : undefined
+                            }
+                            role={item.type === 'confirmed' ? 'button' : undefined}
+                            tabIndex={item.type === 'confirmed' ? 0 : undefined}
+                          >
+                            <div className={statusStyles.eventHead}>
+                              <h4 className={statusStyles.eventTitleRow}>
+                                {item.type === 'conflict' ? (
+                                  <span className={statusStyles.conflictTitleWrap}>
+                                    <span className={`material-icons ${statusStyles.conflictWarnIcon}`}>error</span>
+                                    {item.title}
+                                  </span>
+                                ) : (
+                                  item.title
+                                )}
+                              </h4>
+                              <span
+                                className={
+                                  item.type === 'confirmed'
+                                    ? statusStyles.badgeConfirmed
+                                    : item.type === 'pending'
+                                      ? statusStyles.badgePending
+                                      : statusStyles.badgeConflict
+                                }
+                              >
+                                {item.statusText}
                               </span>
-                              {item.metaTwoText ? (
+                            </div>
+
+                            {item.type !== 'conflict' ? (
+                              <div className={statusStyles.eventMeta}>
                                 <span>
-                                  <span className="material-icons">{item.metaTwoIcon}</span>
-                                  {item.metaTwoText}
+                                  <span className="material-icons">location_on</span>
+                                  {item.venue}
                                 </span>
-                              ) : null}
-                            </div>
-                          ) : null}
+                                {item.metaTwoText ? (
+                                  <span>
+                                    <span className="material-icons">{item.metaTwoIcon}</span>
+                                    {item.metaTwoText}
+                                  </span>
+                                ) : null}
+                              </div>
+                            ) : null}
 
-                          {item.requesterName ? (
-                            <div className={statusStyles.requesterLine}>
-                              <span className={statusStyles.requesterAvatar}>{item.requesterInitials}</span>
-                              <span className={statusStyles.requesterText}>Req. by {item.requesterName}</span>
-                            </div>
-                          ) : null}
+                            {item.requesterName ? (
+                              <div className={statusStyles.requesterLine}>
+                                <span className={statusStyles.requesterAvatar}>{item.requesterInitials}</span>
+                                <span className={statusStyles.requesterText}>Req. by {item.requesterName}</span>
+                              </div>
+                            ) : null}
 
-                          {item.type === 'pending' ? (
-                            <div className={statusStyles.pendingActions}>
-                                  <button
-                                    className={statusStyles.btnSecondary}
-                                    onClick={() => openBookingActionModal('reject', item)}
-                                    type="button"
-                                  >
-                                Reject
-                              </button>
-                                  <button
-                                    className={statusStyles.btnPrimary}
-                                    onClick={() => openBookingActionModal('approve', item)}
-                                    type="button"
-                                  >
-                                Approve
-                              </button>
-                            </div>
-                          ) : null}
-
-                          {item.type === 'conflict' ? (
-                            <>
-                              <p className={statusStyles.conflictBodyText}>{item.conflictText}</p>
-                              <div className={statusStyles.conflictActions}>
-                                <button
-                                  className={statusStyles.resolveLink}
-                                  onClick={() => openConflictResolutionModal(item)}
-                                  type="button"
-                                >
-                                  Resolve Conflict
-                                  <span className="material-icons">arrow_forward</span>
+                            {item.type === 'pending' ? (
+                              <div className={statusStyles.pendingActions}>
+                                    <button
+                                      className={statusStyles.btnSecondary}
+                                      onClick={() => openBookingActionModal('reject', item)}
+                                      type="button"
+                                    >
+                                  Reject
+                                </button>
+                                    <button
+                                      className={statusStyles.btnPrimary}
+                                      onClick={() => openBookingActionModal('approve', item)}
+                                      type="button"
+                                    >
+                                  Approve
                                 </button>
                               </div>
-                            </>
-                          ) : null}
-                        </div>
-                      </article>
-                    )
-                  })}
+                            ) : null}
+
+                            {item.type === 'conflict' ? (
+                              <>
+                                <p className={statusStyles.conflictBodyText}>{item.conflictText}</p>
+                                <div className={statusStyles.conflictActions}>
+                                  <button
+                                    className={statusStyles.resolveLink}
+                                    onClick={() => openConflictResolutionModal(item)}
+                                    type="button"
+                                  >
+                                    Resolve Conflict
+                                    <span className="material-icons">arrow_forward</span>
+                                  </button>
+                                </div>
+                              </>
+                            ) : null}
+                          </div>
+                        </article>
+                      )
+                    })
+                  ) : (
+                    <p className={statusStyles.emptyStateMessage}>No bookings for this date.</p>
+                  )}
                 </div>
               ) : (
                 <div className={statusStyles.listView}>
@@ -796,62 +851,66 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
                     <span>Actions</span>
                   </div>
 
-                  {filteredUpcomingItems.map((item) => (
-                    <article className={statusStyles.listRow} key={item.id}>
-                      <span className={statusStyles.listTime}>{item.time12}</span>
-                      <span className={statusStyles.listEvent}>{item.title}</span>
-                      <span className={statusStyles.listVenue}>{item.venue}</span>
-                      <span
-                        className={
-                          item.type === 'confirmed'
-                            ? statusStyles.badgeConfirmed
-                            : item.type === 'pending'
-                              ? statusStyles.badgePending
-                              : statusStyles.badgeConflict
-                        }
-                      >
-                        {item.statusText}
-                      </span>
-                      <span className={statusStyles.listActions}>
-                        {item.type === 'confirmed' ? (
-                          <button
-                            className={statusStyles.btnSecondary}
-                            onClick={() => openDetailsForConfirmed(item)}
-                            type="button"
-                          >
-                            View
-                          </button>
-                        ) : null}
-                        {item.type === 'pending' ? (
-                          <>
+                  {filteredUpcomingItems.length > 0 ? (
+                    filteredUpcomingItems.map((item) => (
+                      <article className={statusStyles.listRow} key={item.id}>
+                        <span className={statusStyles.listTime}>{item.time12}</span>
+                        <span className={statusStyles.listEvent}>{item.title}</span>
+                        <span className={statusStyles.listVenue}>{item.venue}</span>
+                        <span
+                          className={
+                            item.type === 'confirmed'
+                              ? statusStyles.badgeConfirmed
+                              : item.type === 'pending'
+                                ? statusStyles.badgePending
+                                : statusStyles.badgeConflict
+                          }
+                        >
+                          {item.statusText}
+                        </span>
+                        <span className={statusStyles.listActions}>
+                          {item.type === 'confirmed' ? (
                             <button
                               className={statusStyles.btnSecondary}
-                              onClick={() => openBookingActionModal('reject', item)}
+                              onClick={() => openDetailsForConfirmed(item)}
                               type="button"
                             >
-                              Reject
+                              View
                             </button>
+                          ) : null}
+                          {item.type === 'pending' ? (
+                            <>
+                              <button
+                                className={statusStyles.btnSecondary}
+                                onClick={() => openBookingActionModal('reject', item)}
+                                type="button"
+                              >
+                                Reject
+                              </button>
+                              <button
+                                className={statusStyles.btnPrimary}
+                                onClick={() => openBookingActionModal('approve', item)}
+                                type="button"
+                              >
+                                Approve
+                              </button>
+                            </>
+                          ) : null}
+                          {item.type === 'conflict' ? (
                             <button
-                              className={statusStyles.btnPrimary}
-                              onClick={() => openBookingActionModal('approve', item)}
+                              className={statusStyles.resolveBtn}
+                              onClick={() => openConflictResolutionModal(item)}
                               type="button"
                             >
-                              Approve
+                              Resolve
                             </button>
-                          </>
-                        ) : null}
-                        {item.type === 'conflict' ? (
-                          <button
-                            className={statusStyles.resolveBtn}
-                            onClick={() => openConflictResolutionModal(item)}
-                            type="button"
-                          >
-                            Resolve
-                          </button>
-                        ) : null}
-                      </span>
-                    </article>
-                  ))}
+                          ) : null}
+                        </span>
+                      </article>
+                    ))
+                  ) : (
+                    <p className={statusStyles.emptyStateMessage}>No bookings for this date.</p>
+                  )}
                 </div>
               )}
 

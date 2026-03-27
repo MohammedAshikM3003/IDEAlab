@@ -132,6 +132,7 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
   const [isSecurityLogModalOpen, setIsSecurityLogModalOpen] = useState(false)
   const [notificationsRead, setNotificationsRead] = useState(() => localStorage.getItem(NOTIFICATIONS_READ_KEY) === 'true')
   const [isCropModalOpen, setIsCropModalOpen] = useState(false)
+  const [isAvatarViewerOpen, setIsAvatarViewerOpen] = useState(false)
   const [cropImageSrc, setCropImageSrc] = useState('')
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
@@ -192,6 +193,24 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (!isAvatarViewerOpen) {
+      return undefined
+    }
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsAvatarViewerOpen(false)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isAvatarViewerOpen])
 
   useEffect(() => {
     if (!isMobileModalOpen || mobileModalStep !== 'otp' || resendSeconds <= 0) {
@@ -441,6 +460,13 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
 
   const fullDisplayName = `${userProfile.titlePrefix} ${userProfile.firstName} ${userProfile.lastName}`
 
+  const openAvatarViewer = () => {
+    if (!userProfile.avatarUrl) {
+      return
+    }
+    setIsAvatarViewerOpen(true)
+  }
+
   return (
     <div className={styles.page}>
       <div className={styles.shell}>
@@ -470,8 +496,9 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
                 <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
                   <div className={styles.avatarWrap}>
                     <div
-                      className={styles.avatarLg}
+                      className={`${styles.avatarLg} ${userProfile.avatarUrl ? styles.avatarClickable : ''}`}
                       aria-hidden="true"
+                      onClick={openAvatarViewer}
                       style={userProfile.avatarUrl ? { backgroundImage: `url(${userProfile.avatarUrl})` } : undefined}
                     />
                     <div>
@@ -524,7 +551,12 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
                   <div className={styles.pcLastLogin}>Last Login: 2h ago</div>
                   <div className={styles.pcAvatarWrap}>
                     {userProfile.avatarUrl ? (
-                      <img alt="Settings Profile" className={styles.pcAvatarImg} src={userProfile.avatarUrl} />
+                      <img
+                        alt="Settings Profile"
+                        className={`${styles.pcAvatarImg} ${styles.avatarClickable}`}
+                        onClick={openAvatarViewer}
+                        src={userProfile.avatarUrl}
+                      />
                     ) : (
                       <div className={styles.pcAvatar} aria-hidden="true" />
                     )}
@@ -893,6 +925,25 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
                   </button>
                 </div>
               </div>
+            </div>
+          ) : null}
+
+          {isAvatarViewerOpen && userProfile.avatarUrl ? (
+            <div className={styles.avatarLightboxOverlay} onClick={() => setIsAvatarViewerOpen(false)} role="presentation">
+              <button
+                aria-label="Close profile image viewer"
+                className={styles.avatarLightboxClose}
+                onClick={() => setIsAvatarViewerOpen(false)}
+                type="button"
+              >
+                x
+              </button>
+              <img
+                alt="Enlarged profile"
+                className={styles.avatarLightboxImage}
+                onClick={(event) => event.stopPropagation()}
+                src={userProfile.avatarUrl}
+              />
             </div>
           ) : null}
           </div>

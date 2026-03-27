@@ -9,8 +9,11 @@ import FacilitiesManagementPage from './frontend/FacilitiesManagementPage.jsx'
 import AddFacilityPage from './frontend/AddFacilityPage.jsx'
 import HistoryPage from './frontend/HistoryPage.jsx'
 import SettingsPage from './frontend/SettingsPage.jsx'
-import AICTEVenuePage from './frontend/AICTEVenuePage.jsx'
+import FacilityVenueDetailPage from './frontend/FacilityVenueDetailPage.jsx'
+
 import { UserProfileProvider } from './frontend/UserProfileContext.jsx'
+
+import VenueDetailPage from './frontend/VenueDetailPage.jsx'
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -19,13 +22,14 @@ function App() {
     <UserProfileProvider>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/venue/aicte-idea-lab" element={<AICTEVenuePage />} />
+        <Route path="/venue/:venueId" element={<VenueDetailPage />} />
         <Route path="/landing" element={<Navigate to="/" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="/inbox" element={<RequestInboxPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="/status" element={<StatusPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="/facilities" element={<FacilitiesManagementPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
+        <Route path="/facilities/venue/:venueId" element={<FacilityVenueDetailPage />} />
         <Route path="/facilities/add" element={<AddFacilityPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="/history" element={<HistoryPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="/settings" element={<SettingsPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />

@@ -593,6 +593,15 @@
   border: 1px solid #e5e7eb;
 }
 
+.avatarClickable {
+  cursor: pointer;
+  transition: transform 0.18s ease;
+}
+
+.avatarClickable:hover {
+  transform: scale(1.03);
+}
+
 .onlineDot {
   position: absolute;
   right: 6px;
@@ -779,6 +788,38 @@
   justify-content: center;
   padding: 16px;
   z-index: 65;
+}
+
+.avatarLightboxOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.avatarLightboxImage {
+  width: 100%;
+  max-width: 320px;
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.avatarLightboxClose {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  border: 0;
+  background: transparent;
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .modalCard {
@@ -1019,6 +1060,47 @@
   .main {
     padding-left: 0 !important;
   }
+
+  .activityGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .activityGrid > .card {
+    width: 100%;
+  }
+
+  .activityItem > div {
+    min-width: 0;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .bottomHead {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .bottomHead .link {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .notificationItem > div {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .notTitle,
+  .notDesc {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
   .menu {
     display: block !important;
   }

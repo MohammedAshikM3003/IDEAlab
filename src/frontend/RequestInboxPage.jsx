@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
 import AdminApprovalConfirmationPopUp from './Alerts/AdminApprovalConfirmationPopUp'
 import AdminApprovalPopUp from './Alerts/AdminApprovalPopUp'
@@ -16,7 +16,7 @@ const cx = (...classes) => classes.filter(Boolean).join(' ')
 
 const REQUESTS = [
   {
-    id: 'r1',
+    id: 'BK-2026-0001',
     status: 'NEW REQUEST',
     venue: 'Main Seminar Hall',
     submittedAt: '2026-01-26T10:45:00',
@@ -38,7 +38,7 @@ const REQUESTS = [
     timeSlot: '09:00 AM - 04:30 PM',
   },
   {
-    id: 'r2',
+    id: 'BK-2026-0002',
     status: 'REJECTED',
     venue: 'Idea Lab',
     submittedAt: '2026-01-25T09:10:00',
@@ -59,7 +59,7 @@ const REQUESTS = [
     timeSlot: '10:00 AM - 12:00 PM',
   },
   {
-    id: 'r3',
+    id: 'BK-2026-0003',
     status: 'PENDING',
     venue: 'Board Room',
     submittedAt: '2026-01-24T15:40:00',
@@ -77,7 +77,7 @@ const REQUESTS = [
     timeSlot: '03:00 PM - 06:00 PM',
   },
   {
-    id: 'r4',
+    id: 'BK-2026-0004',
     status: 'APPROVED',
     venue: 'Workshop A',
     submittedAt: '2026-01-23T11:00:00',
@@ -95,7 +95,7 @@ const REQUESTS = [
     timeSlot: '11:00 AM - 02:00 PM',
   },
   {
-    id: 'r5',
+    id: 'BK-2026-0005',
     status: 'PENDING',
     venue: 'Idea Lab',
     submittedAt: '2026-01-26T11:20:00',
@@ -120,9 +120,20 @@ const REQUESTS = [
 
 export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
   const location = useLocation()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const requestItemRefs = useRef({})
+  const hasHandledDeepLink = useRef(false)
 
   const [requests, setRequests] = useState(REQUESTS)
-  const [selectedId, setSelectedId] = useState(null)
+  const [selectedId, setSelectedId] = useState(() => {
+    const initialRequestId = new URLSearchParams(location.search).get('requestId')
+    if (!initialRequestId) {
+      return null
+    }
+
+    return REQUESTS.some((request) => request.id === initialRequestId) ? initialRequestId : null
+  })
   const [activeFilter, setActiveFilter] = useState(location.state?.initialTab || 'ALL')
   const [sortOrder, setSortOrder] = useState('desc')
   const [showFilterMenu, setShowFilterMenu] = useState(false)
@@ -301,6 +312,33 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
     }
   }
 
+  useEffect(() => {
+    if (hasHandledDeepLink.current) {
+      return
+    }
+
+    const deepLinkedRequestId = searchParams.get('requestId')
+
+    if (!deepLinkedRequestId) {
+      hasHandledDeepLink.current = true
+      return
+    }
+
+    const matchedRequest = requests.find((request) => request.id === deepLinkedRequestId)
+
+    if (matchedRequest) {
+      requestAnimationFrame(() => {
+        requestItemRefs.current[matchedRequest.id]?.scrollIntoView({
+          block: 'nearest',
+          behavior: 'smooth',
+        })
+      })
+    }
+
+    hasHandledDeepLink.current = true
+    navigate('/inbox', { replace: true })
+  }, [navigate, requests, searchParams])
+
   return (
     <div className={styles.page}>
       <div className={styles.wrap}>
@@ -388,6 +426,11 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
                     <button
                       key={req.id}
                       type="button"
+                      ref={(element) => {
+                        if (element) {
+                          requestItemRefs.current[req.id] = element
+                        }
+                      }}
                       className={cx(
                         styles.reqBtn,
                         styles.reqIndicator,

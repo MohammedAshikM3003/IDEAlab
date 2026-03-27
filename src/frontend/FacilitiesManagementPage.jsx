@@ -5,6 +5,7 @@ import Calendar from "./Calendar";
 import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
 import styles from "./FacilitiesManagementPage.module.css";
+import venuesData from "../data/venuesData";
 
 const DONUT_RADIUS = 70;
 const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
@@ -234,101 +235,31 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
                 </div>
 
                 <div className={styles.facilityCards}>
-                  <div className={styles.facilityCard}>
-                    <div className={styles.facilityImage}>
-                      <img
-                        alt="Idea Lab"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKe8XC4f8NYr6XLZEJuTQ4T8aTSnvIE2nmJlDWmYRJXTBTd2csfBpYFRhGePKi8_a_KETh4JZ98JviL9o-YV-zFUdX3qnvdnaveznh_x6kTEsa65Yer-P-yS6W10QnF5hE1_6M6239ww3iYRX6LWpvIpoHCkTosooZJ3LAWsmJM6F7xq0XzBAqil2XzQRLS9g4SuEtdAaznISteudX8rJwJzS0_01MJZCKF0MbBHiy9bt2sGGWEWUAj9lMtqjT2Fmn7OOS4jEC_aM"
-                      />
-                      <span className={`${styles.facilityStatus} ${styles.statusActive}`}>Active</span>
-                    </div>
-                    <div className={styles.facilityDetails}>
-                      <h4 className={styles.facilityName}>AICTE Idea Lab</h4>
-                      <p className={styles.facilityLocation}>Ground Floor, Block A</p>
-                      <div className={styles.facilityStats}>
-                        <div className={styles.statItem}>
-                          <span className="material-icons statIcon">groups</span>
-                          <span className={styles.statValue}>45/60</span>
-                        </div>
-                        <div className={styles.statItem}>
-                          <span className="material-icons statIcon">wifi</span>
-                          <span className={`${styles.statValue} ${styles.statGood}`}>Good</span>
+                  {venuesData.slice(0, 4).map(venue => (
+                    <div className={styles.facilityCard} key={venue.id} onClick={() => navigate(`/facilities/venue/${venue.id}`)}>
+                      <div className={styles.facilityImage}>
+                        <img
+                          alt={venue.name}
+                          src={venue.images.hero}
+                        />
+                        <span className={`${styles.facilityStatus} ${styles.statusActive}`}>Active</span>
+                      </div>
+                      <div className={styles.facilityDetails}>
+                        <h4 className={styles.facilityName}>{venue.name}</h4>
+                        <p className={styles.facilityLocation}>{venue.location}</p>
+                        <div className={styles.facilityStats}>
+                          <div className={styles.statItem}>
+                            <span className="material-icons statIcon">groups</span>
+                            <span className={styles.statValue}>{Math.floor(venue.capacity * 0.7)}/{venue.capacity}</span>
+                          </div>
+                          <div className={styles.statItem}>
+                            <span className="material-icons statIcon">wifi</span>
+                            <span className={`${styles.statValue} ${styles.statGood}`}>Good</span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-
-                  <div className={styles.facilityCard}>
-                    <div className={styles.facilityImage}>
-                      <img
-                        alt="Seminar Hall"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2v_7M0itnps2kVbgugpSEnLEd5uyQU4GiBbonvwNHdqxslFtw7P4m6xR5AIMWPHQ_zhUDtQkgTI0cy8rfavn0MOuInZb2TNsl7IxvsY3LsgIi1xYzMmmO0oChm0_H78hn08FnjT-Jd5WTnkfma_i8m03cR_i4IfHJNgrILNCtl4xNgCZdK4hy9aovEO4B0nnhsDQgLAyFzQzvo4N2n-ywPXi40GOvU6TtxVv4Zba8S7ewKfkYlbQBxaEXcMpRQf7aLO0ohQUnnjA"
-                      />
-                      <span className={`${styles.facilityStatus} ${styles.statusCleaning}`}>Cleaning</span>
-                    </div>
-                    <div className={styles.facilityDetails}>
-                      <h4 className={styles.facilityName}>Platinum Hall</h4>
-                      <p className={styles.facilityLocation}>First Floor, Admin Block</p>
-                      <div className={styles.facilityStats}>
-                        <div className={styles.statItem}>
-                          <span className="material-icons statIcon">groups</span>
-                          <span className={styles.statValue}>0/250</span>
-                        </div>
-                        <div className={styles.statItem}>
-                          <span className="material-icons statIcon">ac_unit</span>
-                          <span className={styles.statValue}>On</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={styles.facilityCard}>
-                    <div className={styles.facilityImage}>
-                      <img
-                        alt="Meeting Room"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuB25Qiv52e1m10K3-72nMnyYvmeEUi22FU1ql2TeABLz09uIyL_tMYH7JaUlcMF6qj9bj5E3DDXzRi_vZ231DweMi1e4O749SMCXLAmoxzpGTYDXnqeip70xe2H5wcJFBST1goN-h51NsA9SM0qCXgYyDcebz7VqNoQcjXq3vPdjrW3gsd5qgUREHA1JgeDKqb21l9huoPYwigpUFB1EYA45pyJ8nmnJUqnYR_nHcYydZjxg0KoxnMMqW00VMeC4Baq82yGckyWG50"
-                      />
-                      <span className={`${styles.facilityStatus} ${styles.statusActive}`}>Active</span>
-                    </div>
-                    <div className={styles.facilityDetails}>
-                      <h4 className={styles.facilityName}>Board Meeting Room</h4>
-                      <p className={styles.facilityLocation}>Second Floor, East Wing</p>
-                      <div className={styles.facilityStats}>
-                        <div className={styles.statItem}>
-                          <span className="material-icons statIcon">groups</span>
-                          <span className={styles.statValue}>12/15</span>
-                        </div>
-                        <div className={styles.statItem}>
-                          <span className="material-icons statIcon">tv</span>
-                          <span className={styles.statValue}>Avail</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={styles.facilityCard}>
-                    <div className={styles.facilityImage}>
-                      <img
-                        alt="Conference Room"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuATVU30fHz2IM0XBtfqyXoej2Lp_Oon_ltWHoQfF7G5GA2G7JYzCoByVk3Ei6k0fdKKJSroqi0d7KdVqP-dZdh1PNaLaenv_aASeGXeIK1rCH1kpR3yxCtYhcAqCIiU8OroU73fLVPrKbfrSrgYaEMjX-4Eo2U32G0tAv0ohZh0vEbldPJORI8HHxgmuoBxMCZfync74YfAQnwyjhAOD8s5zCAyf89NUJotm58op8fydhDsoEqDFL5Tbukk3DOpY7XHS1jt3vW8VDc"
-                      />
-                      <span className={`${styles.facilityStatus} ${styles.statusReserved}`}>Reserved</span>
-                    </div>
-                    <div className={styles.facilityDetails}>
-                      <h4 className={styles.facilityName}>Conference Room B</h4>
-                      <p className={styles.facilityLocation}>Third Floor, West Wing</p>
-                      <div className={styles.facilityStats}>
-                        <div className={styles.statItem}>
-                          <span className="material-icons statIcon">groups</span>
-                          <span className={styles.statValue}>--/30</span>
-                        </div>
-                        <div className={styles.statItem}>
-                          <span className="material-icons statIcon">videocam</span>
-                          <span className={styles.statValue}>Setup</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
 

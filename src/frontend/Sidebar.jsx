@@ -67,7 +67,7 @@ export default function Sidebar({ activePage, isSidebarOpen, setIsSidebarOpen })
           >
             <span className={`material-icons ${activePage === 'facilities' ? '' : 'group-hover:text-primary'} transition-colors`}>business</span>
             <span className={`${styles.txt} ${activePage === 'facilities' ? '' : 'group-hover:text-primary'} transition-colors`}>
-              Venue Management
+              Facilities Management
             </span>
           </Link>
 
