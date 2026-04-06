@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Calendar from "./Calendar";
@@ -9,12 +9,15 @@ import venuesData from "../data/venuesData";
 
 const DONUT_RADIUS = 70;
 const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
+const TOTAL_EQUIPMENT_ITEMS = 47;
+const TOOLTIP_ESTIMATED_WIDTH = 180;
+const TOOLTIP_ESTIMATED_HEIGHT = 64;
 
 const EQUIPMENT_SEGMENTS = [
-  { id: "projectors", label: "Projectors & Screens", percentage: 40, color: "#FF9400" },
-  { id: "audio", label: "Audio Systems", percentage: 25, color: "#FF7A59" },
+  { id: "projectors", label: "Projectors & Screens", percentage: 40, color: "#f97316" },
+  { id: "audio", label: "Audio Systems", percentage: 25, color: "#ef4444" },
   { id: "network", label: "Network Equipment", percentage: 20, color: "#3B82F6" },
-  { id: "other", label: "Others", percentage: 15, color: "#E5E7EB" },
+  { id: "other", label: "Others", percentage: 15, color: "#d1d5db" },
 ];
 
 const INITIAL_MAINTENANCE_TASKS = [
@@ -69,27 +72,39 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleTime, setRescheduleTime] = useState("");
   const [toastMessage, setToastMessage] = useState("");
+  const [activeSegmentId, setActiveSegmentId] = useState("");
+  const [tooltipState, setTooltipState] = useState({ visible: false, x: 0, y: 0, mode: "desktop" });
+  const chartContainerRef = useRef(null);
+  const equipmentSectionRef = useRef(null);
 
-  const chartSegments = useMemo(
-    () =>
-      EQUIPMENT_SEGMENTS.reduce(
-        (acc, segment, index) => {
+  const chartSegments = useMemo(() => {
+    return EQUIPMENT_SEGMENTS.reduce(
+      (acc, segment, index) => {
           const segmentLength = (segment.percentage / 100) * DONUT_CIRCUMFERENCE;
+          const centerPercentage = acc.totalPercentage + segment.percentage / 2;
+          const centerAngle = (centerPercentage / 100) * (Math.PI * 2) - Math.PI / 2;
           const nextSegment = {
             ...segment,
             segmentLength,
             segmentOffset: -acc.totalLength,
             delay: index * 0.14,
+            itemCount: Math.round((TOTAL_EQUIPMENT_ITEMS * segment.percentage) / 100),
+            centerAngle,
           };
 
           return {
             totalLength: acc.totalLength + segmentLength,
+            totalPercentage: acc.totalPercentage + segment.percentage,
             items: [...acc.items, nextSegment],
           };
         },
-        { totalLength: 0, items: [] },
-      ).items,
-    [],
+      { totalLength: 0, totalPercentage: 0, items: [] },
+    ).items;
+  }, []);
+
+  const activeSegment = useMemo(
+    () => chartSegments.find((segment) => segment.id === activeSegmentId) || null,
+    [activeSegmentId, chartSegments],
   );
 
   useEffect(() => {
@@ -103,6 +118,87 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
 
     return () => window.clearTimeout(timer);
   }, [toastMessage]);
+
+  useEffect(() => {
+    if (!tooltipState.visible || tooltipState.mode !== "mobile") {
+      return undefined;
+    }
+
+    const handlePointerOutside = (event) => {
+      if (equipmentSectionRef.current?.contains(event.target)) {
+        return;
+      }
+
+      setActiveSegmentId("");
+      setTooltipState((previous) => ({ ...previous, visible: false }));
+    };
+
+    document.addEventListener("pointerdown", handlePointerOutside);
+    return () => document.removeEventListener("pointerdown", handlePointerOutside);
+  }, [tooltipState.mode, tooltipState.visible]);
+
+  const updateDesktopTooltipPosition = (event) => {
+    const mouseX = event.clientX;
+    const mouseY = event.clientY;
+
+    const horizontalOverflow = mouseX + TOOLTIP_ESTIMATED_WIDTH + 16 > window.innerWidth;
+    const verticalOverflow = mouseY + TOOLTIP_ESTIMATED_HEIGHT + 16 > window.innerHeight;
+
+    const nextX = horizontalOverflow
+      ? mouseX - TOOLTIP_ESTIMATED_WIDTH - 12
+      : mouseX + 12;
+    const nextY = verticalOverflow
+      ? mouseY - TOOLTIP_ESTIMATED_HEIGHT - 12
+      : mouseY + 12;
+
+    setTooltipState({
+      visible: true,
+      x: Math.max(12, nextX),
+      y: Math.max(12, nextY),
+      mode: "desktop",
+    });
+  };
+
+  const showMobileTooltip = () => {
+    const chartRect = chartContainerRef.current?.getBoundingClientRect();
+    if (!chartRect) {
+      return;
+    }
+
+    const tooltipHalfWidth = TOOLTIP_ESTIMATED_WIDTH / 2;
+    const centerX = chartRect.left + chartRect.width / 2;
+    const clampedX = Math.max(tooltipHalfWidth, Math.min(window.innerWidth - tooltipHalfWidth, centerX));
+    const clampedY = Math.max(12, chartRect.top - TOOLTIP_ESTIMATED_HEIGHT - 12);
+
+    setTooltipState({
+      visible: true,
+      x: clampedX,
+      y: clampedY,
+      mode: "mobile",
+    });
+  };
+
+  const activateSegment = (segmentId, event, mode) => {
+    setActiveSegmentId(segmentId);
+
+    if (mode === "mobile") {
+      showMobileTooltip();
+      return;
+    }
+
+    if (event) {
+      updateDesktopTooltipPosition(event);
+    }
+  };
+
+  const handleDesktopLeave = () => {
+    if (tooltipState.mode === "mobile") {
+      return;
+    }
+
+    setActiveSegmentId("");
+    setTooltipState((previous) => ({ ...previous, visible: false }));
+  };
 
   const openRescheduleModal = (task) => {
     setSelectedMaintenanceTask(task);
@@ -152,69 +248,67 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
               <div className={styles.summaryCard}>
                 <div className={styles.cardHeader}>
                   <div className={`${styles.cardIcon} ${styles.cardIconOrange}`}>
-                    <span className="material-icons">apartment</span>
+                    <span className={`${styles.cardIconGlyph} material-icons`}>apartment</span>
                   </div>
                   <span className={`${styles.cardBadge} ${styles.badgeGreen}`}>+2</span>
                 </div>
                 <div className={styles.cardContent}>
                   <p className={styles.cardLabel}>Total Facilities</p>
-                  <h3 className={styles.cardValue}>15</h3>
+                  <div className={styles.cardMetricGroup}>
+                    <h3 className={styles.cardValue}>15</h3>
+                  </div>
                 </div>
               </div>
 
               <div className={styles.summaryCard}>
                 <div className={styles.cardHeader}>
                   <div className={`${styles.cardIcon} ${styles.cardIconBlue}`}>
-                    <span className="material-icons">verified</span>
+                    <span className={`${styles.cardIconGlyph} material-icons`}>verified</span>
                   </div>
                   <span className={`${styles.cardBadge} ${styles.badgeAmber}`}>Attention</span>
                 </div>
                 <div className={styles.cardContent}>
-                  <p className={styles.activeNowLabel}>Active Now</p>
-                  <h3 className={styles.cardValue}>12</h3>
+                  <p className={styles.cardLabel}>Active Now</p>
+                  <div className={styles.cardMetricGroup}>
+                    <h3 className={styles.cardValue}>12</h3>
+                  </div>
                 </div>
               </div>
 
-              <div className={styles.summaryCard}>
+              <div className={`${styles.summaryCard} ${styles.capacityCard}`}>
                 <div className={styles.cardHeader}>
                   <div className={`${styles.cardIcon} ${styles.cardIconGreen}`}>
-                    <span className="material-icons">door_sliding</span>
+                    <span className={`${styles.cardIconGlyph} material-icons`}>door_sliding</span>
                   </div>
-                  <span className={`${styles.cardBadge} ${styles.badgeGray}`}>12 / 15</span>
+                  <span className={`${styles.cardBadge} ${styles.badgeGray}`}>12/15</span>
                 </div>
                 <div className={styles.cardContent}>
                   <p className={styles.cardLabel}>Capacity Utilization</p>
-                  <div className={styles.progressBar}>
-                    <div className={styles.progressFill} style={{ width: "78%" }} />
+                  <div className={styles.cardMetricGroup}>
+                    <h3 className={styles.cardValue}>78%</h3>
+                    <div className={styles.progressBar}>
+                      <div className={styles.progressFill} style={{ width: "78%" }} />
+                    </div>
+                    <p className={styles.cardUnit}>Occupancy Rate</p>
                   </div>
-                  <p className={styles.progressText}>78% Occupancy Rate</p>
                 </div>
               </div>
 
               <div className={styles.summaryCard}>
                 <div className={styles.cardHeader}>
                   <div className={`${styles.cardIcon} ${styles.cardIconIndigo}`}>
-                    <span className="material-icons">inventory_2</span>
+                    <span className={`${styles.cardIconGlyph} material-icons`}>build</span>
                   </div>
-                  <div className={styles.circularProgress}>
-                    <svg className="w-10 h-10" viewBox="0 0 40 40">
-                      <circle
-                        className="text-blue-500"
-                        cx="20"
-                        cy="20"
-                        fill="white"
-                        r="16"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                    </svg>
-                  </div>
+                  <span className={`${styles.cardBadge} ${styles.badgeGreen}`}>Good</span>
                 </div>
                 <div className={styles.cardContent}>
                   <p className={styles.cardLabel}>Equipment Status</p>
-                  <h3 className={styles.cardValue}>
-                    47<span className={styles.cardValueSmall}>Items</span>
-                  </h3>
+                  <div className={styles.cardMetricGroup}>
+                    <div className={styles.cardInlineMetric}>
+                      <span className={styles.cardValue}>47</span>
+                      <span className={styles.cardUnit}>Items</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -263,9 +357,9 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
                 </div>
               </div>
 
-              <div className={styles.equipmentDistribution}>
+              <div className={styles.equipmentDistribution} ref={equipmentSectionRef}>
                 <h3 className={styles.sectionTitle}>Equipment Distribution</h3>
-                <div className={styles.chartContainer}>
+                <div className={styles.chartContainer} ref={chartContainerRef} onMouseLeave={handleDesktopLeave}>
                   <div className={styles.donutChart}>
                     <svg className={styles.donutSvg} viewBox="0 0 180 180" aria-label="Equipment distribution chart" role="img">
                       <circle className={styles.donutTrack} cx="90" cy="90" r={DONUT_RADIUS} />
@@ -277,25 +371,75 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
                           key={segment.id}
                           r={DONUT_RADIUS}
                           stroke={segment.color}
+                          onMouseEnter={(event) => activateSegment(segment.id, event, "desktop")}
+                          onMouseMove={(event) => {
+                            if (activeSegmentId === segment.id && tooltipState.mode === "desktop") {
+                              updateDesktopTooltipPosition(event);
+                            }
+                          }}
+                          onTouchStart={() => activateSegment(segment.id, null, "mobile")}
                           style={{
                             "--circumference": DONUT_CIRCUMFERENCE,
                             "--segment-length": segment.segmentLength,
                             "--segment-offset": segment.segmentOffset,
                             "--draw-delay": `${segment.delay}s`,
+                            "--segment-translate-x":
+                              activeSegmentId === segment.id ? `${Math.cos(segment.centerAngle) * 4}px` : "0px",
+                            "--segment-translate-y":
+                              activeSegmentId === segment.id ? `${Math.sin(segment.centerAngle) * 4}px` : "0px",
+                            opacity: activeSegmentId && activeSegmentId !== segment.id ? 0.5 : 1,
                           }}
                         />
                       ))}
                     </svg>
                     <div className={styles.chartCenter}>
-                      <h2 className={styles.chartTotal}>47</h2>
+                      <h2 className={styles.chartTotal}>{TOTAL_EQUIPMENT_ITEMS}</h2>
                       <p className={styles.chartLabel}>Total Items</p>
                     </div>
                   </div>
+
+                  {tooltipState.visible && activeSegment ? (
+                    <div
+                      className={
+                        tooltipState.mode === "mobile"
+                          ? `${styles.chartTooltip} ${styles.chartTooltipMobile}`
+                          : styles.chartTooltip
+                      }
+                      style={
+                        tooltipState.mode === "mobile"
+                          ? { left: tooltipState.x, top: tooltipState.y }
+                          : { left: tooltipState.x, top: tooltipState.y }
+                      }
+                    >
+                      <div className={styles.tooltipTitleRow}>
+                        <span className={styles.tooltipDot} style={{ backgroundColor: activeSegment.color }} />
+                        <span className={styles.tooltipTitle}>{activeSegment.label}</span>
+                      </div>
+                      <div className={styles.tooltipMeta}>
+                        {activeSegment.itemCount} items  •  {activeSegment.percentage}%
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className={styles.legend}>
                   {EQUIPMENT_SEGMENTS.map((segment) => (
-                    <div className={styles.legendItem} key={segment.id}>
+                    <div
+                      className={
+                        activeSegmentId === segment.id
+                          ? `${styles.legendItem} ${styles.legendItemActive}`
+                          : styles.legendItem
+                      }
+                      key={segment.id}
+                      onMouseEnter={(event) => activateSegment(segment.id, event, "desktop")}
+                      onMouseMove={(event) => {
+                        if (activeSegmentId === segment.id && tooltipState.mode === "desktop") {
+                          updateDesktopTooltipPosition(event);
+                        }
+                      }}
+                      onMouseLeave={handleDesktopLeave}
+                      onTouchStart={() => activateSegment(segment.id, null, "mobile")}
+                    >
                       <div className={styles.legendItemLeft}>
                         <div className={styles.legendColor} style={{ backgroundColor: segment.color }} />
                         <span className={styles.legendLabel}>{segment.label}</span>

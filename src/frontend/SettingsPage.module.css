@@ -1110,3 +1110,98 @@
     display: none !important;
   }
 }
+
+@media (max-width: 767px) {
+  /* Shrink icon wrapper to match desktop proportions */
+  .notIconWrap,
+  .notificationItem .notIconWrap {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    max-width: 24px !important;
+    border-radius: 6px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0 !important;
+    padding: 0 !important;
+  }
+
+  .notIconWrap svg,
+  .notificationItem .notIconWrap svg,
+  .notIcon,
+  .notificationItem .notIcon {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  /* Ensure no continuous parent border and use per-item bars */
+  .notificationList {
+    border-left: none !important;
+  }
+
+  .notificationItem {
+    border-left: 3px solid transparent;
+    padding-left: 12px;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .notificationItem > div {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .notificationItem.notInfo {
+    border-left-color: #3b82f6;
+  }
+
+  .notificationItem.notWarn {
+    border-left-color: #f97316;
+  }
+
+  .notificationItem.notOk {
+    border-left-color: #22c55e;
+  }
+
+  /* Mobile typography tuning for notification content */
+  .notificationItem .notTitle {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+
+  .notificationItem .notDesc {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 2px;
+    line-height: 1.4;
+    white-space: normal;
+  }
+
+  /* Visual separation between rows */
+  .notificationItem {
+    border-bottom: 1px solid #f1f5f9;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .notificationItem:last-child {
+    border-bottom: none;
+  }
+
+  /* Prevent horizontal overflow causing right-edge strip */
+  .page,
+  .shell,
+  .main,
+  .mainContent {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+}

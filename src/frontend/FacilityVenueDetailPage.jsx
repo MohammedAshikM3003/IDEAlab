@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import venuesData from '../data/venuesData.js'
 import PageHeader from './PageHeader'
 import Sidebar from './Sidebar'
+import ImageCropModal from '../components/facilities/ImageCropModal'
 import styles from './FacilityVenueDetailPage.module.css'
 
 const createEquipmentRow = (item = {}) => ({
@@ -29,6 +30,14 @@ const createEditableVenue = (baseVenue) => ({
   },
 })
 
+const readFileAsDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result || ''))
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+
 export default function FacilityVenueDetailPage() {
   const navigate = useNavigate()
   const { venueId } = useParams()
@@ -41,6 +50,13 @@ export default function FacilityVenueDetailPage() {
   const galleryInputRef = useRef(null)
   const objectUrlsRef = useRef([])
   const [savedVenueEdits, setSavedVenueEdits] = useState({})
+  const [cropImageSrc, setCropImageSrc] = useState('')
+  const [cropAspectRatio, setCropAspectRatio] = useState(16 / 9)
+  const [cropTarget, setCropTarget] = useState('')
+  const [equipmentCropIndex, setEquipmentCropIndex] = useState(-1)
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false)
+  const [galleryCropQueue, setGalleryCropQueue] = useState([])
+  const [galleryCropIndex, setGalleryCropIndex] = useState(0)
 
   const baseVenueData = useMemo(() => (venue ? createEditableVenue(venue) : null), [venue])
   const venueData = savedVenueEdits[venueId] || baseVenueData
@@ -76,6 +92,48 @@ export default function FacilityVenueDetailPage() {
     return objectUrl
   }
 
+  const resetCropState = () => {
+    setCropImageSrc('')
+    setCropAspectRatio(16 / 9)
+    setCropTarget('')
+    setEquipmentCropIndex(-1)
+    setIsCropModalOpen(false)
+    setGalleryCropQueue([])
+    setGalleryCropIndex(0)
+  }
+
+  const openHeroCrop = (imageSrc) => {
+    setCropImageSrc(imageSrc)
+    setCropAspectRatio(16 / 9)
+    setCropTarget('hero')
+    setIsCropModalOpen(true)
+  }
+
+  const openGalleryCropAtIndex = (queue, index) => {
+    const imageSrc = queue[index]
+    if (!imageSrc) {
+      resetCropState()
+      return
+    }
+
+    setCropImageSrc(imageSrc)
+    setCropAspectRatio(4 / 3)
+    setCropTarget('gallery')
+    setGalleryCropQueue(queue)
+    setGalleryCropIndex(index)
+    setIsCropModalOpen(true)
+  }
+
+  const moveToNextGalleryCrop = () => {
+    const nextIndex = galleryCropIndex + 1
+    if (nextIndex >= galleryCropQueue.length) {
+      resetCropState()
+      return
+    }
+
+    openGalleryCropAtIndex(galleryCropQueue, nextIndex)
+  }
+
   const safeThumbnails = useMemo(() => venueData?.images?.thumbnails || [], [venueData])
 
   const openEditModal = () => {
@@ -103,6 +161,7 @@ export default function FacilityVenueDetailPage() {
     setDraftVenue(null)
     setAmenityInput('')
     setActiveTab('details')
+    resetCropState()
   }
 
   const handleSaveChanges = (event) => {
@@ -143,6 +202,7 @@ export default function FacilityVenueDetailPage() {
     setIsEditModalOpen(false)
     setDraftVenue(null)
     setAmenityInput('')
+    resetCropState()
   }
 
   const handleDraftFieldChange = (field, value) => {
@@ -196,54 +256,85 @@ export default function FacilityVenueDetailPage() {
     }))
   }
 
-  const handleEquipmentImageChange = (equipmentIndex, event) => {
+  const handleEquipmentImageChange = async (equipmentIndex, event) => {
     const file = event.target.files?.[0]
     if (!file) return
 
-    const objectUrl = registerObjectUrl(file)
-
-    setDraftVenue((prev) => ({
-      ...prev,
-      equipment: prev.equipment.map((item, index) =>
-        index === equipmentIndex
-          ? {
-              ...item,
-              image: objectUrl,
-            }
-          : item,
-      ),
-    }))
+    const rawImageDataUrl = await readFileAsDataUrl(file)
+    setCropImageSrc(rawImageDataUrl)
+    setCropAspectRatio(1)
+    setCropTarget('equipment')
+    setEquipmentCropIndex(equipmentIndex)
+    setIsCropModalOpen(true)
 
     // reset so the same file can be chosen again if needed
     event.target.value = ''
   }
 
-  const handleHeroImageChange = (event) => {
+  const handleHeroImageChange = async (event) => {
     const file = event.target.files?.[0]
     if (!file) return
 
-    const objectUrl = registerObjectUrl(file)
-
-    setDraftVenue((prev) => ({
-      ...prev,
-      heroImage: objectUrl,
-    }))
+    const rawImageDataUrl = await readFileAsDataUrl(file)
+    openHeroCrop(rawImageDataUrl)
 
     event.target.value = ''
   }
 
-  const handleGalleryImagesChange = (event) => {
+  const handleGalleryImagesChange = async (event) => {
     const files = Array.from(event.target.files || [])
     if (files.length === 0) return
 
-    const objectUrls = files.map((file) => registerObjectUrl(file))
-
-    setDraftVenue((prev) => ({
-      ...prev,
-      gallery: [...(prev.gallery || []), ...objectUrls],
-    }))
+    const galleryRawImages = await Promise.all(files.map((file) => readFileAsDataUrl(file)))
+    openGalleryCropAtIndex(galleryRawImages, 0)
 
     event.target.value = ''
+  }
+
+  const handleCropApply = async (croppedBlob) => {
+    const objectUrl = registerObjectUrl(croppedBlob)
+
+    if (cropTarget === 'hero') {
+      setDraftVenue((prev) => ({
+        ...prev,
+        heroImage: objectUrl,
+      }))
+      resetCropState()
+      return
+    }
+
+    if (cropTarget === 'gallery') {
+      setDraftVenue((prev) => ({
+        ...prev,
+        gallery: [...(prev.gallery || []), objectUrl],
+      }))
+      moveToNextGalleryCrop()
+      return
+    }
+
+    if (cropTarget === 'equipment' && equipmentCropIndex >= 0) {
+      setDraftVenue((prev) => ({
+        ...prev,
+        equipment: prev.equipment.map((item, index) =>
+          index === equipmentCropIndex
+            ? {
+                ...item,
+                image: objectUrl,
+              }
+            : item,
+        ),
+      }))
+      resetCropState()
+    }
+  }
+
+  const handleCropCancel = () => {
+    if (cropTarget === 'gallery') {
+      moveToNextGalleryCrop()
+      return
+    }
+
+    resetCropState()
   }
 
   const removeGalleryImage = (indexToRemove) => {
@@ -256,6 +347,10 @@ export default function FacilityVenueDetailPage() {
   const heroPreviewSrc = draftVenue?.heroImage || draftVenue?.images?.hero || ''
   const galleryImages =
     draftVenue?.gallery || (Array.isArray(draftVenue?.images?.thumbnails) ? draftVenue.images.thumbnails : [])
+  const galleryCropProgressLabel =
+    cropTarget === 'gallery' && galleryCropQueue.length > 0
+      ? `Cropping image ${galleryCropIndex + 1} of ${galleryCropQueue.length}...`
+      : ''
 
   if (!venue) {
     return (
@@ -767,6 +862,16 @@ export default function FacilityVenueDetailPage() {
             </form>
           </div>
         </div>
+      ) : null}
+
+      {isCropModalOpen && cropImageSrc ? (
+        <ImageCropModal
+          imageSrc={cropImageSrc}
+          aspectRatio={cropAspectRatio}
+          onCropComplete={handleCropApply}
+          onCancel={handleCropCancel}
+          progressLabel={galleryCropProgressLabel}
+        />
       ) : null}
     </div>
   )

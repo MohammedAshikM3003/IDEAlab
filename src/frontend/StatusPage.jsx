@@ -214,6 +214,7 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
   const [toast, setToast] = useState(null)
   const [showMaintenanceForm, setShowMaintenanceForm] = useState(false)
   const [showMaintenanceSuccess, setShowMaintenanceSuccess] = useState(false)
+  const [mobileTab, setMobileTab] = useState('rightNow')
 
   useEffect(() => {
     if (!autoRefreshOn) {
@@ -264,6 +265,17 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
     }
     return upcomingItemsForSelectedDate.filter((item) => item.venue === selectedVenue)
   }, [selectedVenue, upcomingItemsForSelectedDate])
+
+  const rightNowAlertCount = useMemo(
+    () => filteredRightNowItems.filter((item) => item.type !== 'available').length,
+    [filteredRightNowItems],
+  )
+
+  const scheduleAlertCount = useMemo(
+    () =>
+      filteredUpcomingItems.filter((item) => item.type === 'pending' || item.type === 'conflict').length,
+    [filteredUpcomingItems],
+  )
 
   const closeBookingFlow = () => {
     setIsDetailsOpen(false)
@@ -503,6 +515,30 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
     })
   }
 
+  const getEstimatedEndTime = (booking) => {
+    if (!booking?.time24) {
+      return ''
+    }
+
+    const [hourText, minuteText] = booking.time24.split(':')
+    const baseHour = Number(hourText)
+    const baseMinute = Number(minuteText)
+    if (Number.isNaN(baseHour) || Number.isNaN(baseMinute)) {
+      return booking.time24
+    }
+
+    const durationSource = booking.metaTwoText || booking.durationText || ''
+    const durationHoursMatch = String(durationSource).match(/(\d+)\s*h/i)
+    const durationHours = durationHoursMatch ? Number(durationHoursMatch[1]) : 1
+    const durationMinutes = durationHours * 60
+
+    const totalMinutes = baseHour * 60 + baseMinute + durationMinutes
+    const wrappedMinutes = ((totalMinutes % (24 * 60)) + (24 * 60)) % (24 * 60)
+    const endHour = String(Math.floor(wrappedMinutes / 60)).padStart(2, '0')
+    const endMinute = String(wrappedMinutes % 60).padStart(2, '0')
+    return `${endHour}:${endMinute}`
+  }
+
   return (
     <div className={layoutStyles.page}>
       <div className={layoutStyles.wrap}>
@@ -591,8 +627,37 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
             </div>
           </section>
 
+          <div className={statusStyles.mobileTabsRow}>
+            <div className={statusStyles.mobileTabsBar}>
+              <button
+                className={`${statusStyles.mobileTab} ${
+                  mobileTab === 'rightNow' ? statusStyles.mobileTabActive : ''
+                }`}
+                onClick={() => setMobileTab('rightNow')}
+                type="button"
+              >
+                <span>Right Now</span>
+                <span className={statusStyles.mobileTabCount}>{rightNowAlertCount}</span>
+              </button>
+              <button
+                className={`${statusStyles.mobileTab} ${
+                  mobileTab === 'schedule' ? statusStyles.mobileTabActive : ''
+                }`}
+                onClick={() => setMobileTab('schedule')}
+                type="button"
+              >
+                <span>Schedule</span>
+                <span className={statusStyles.mobileTabCount}>{scheduleAlertCount}</span>
+              </button>
+            </div>
+          </div>
+
           <main className={statusStyles.mainContent}>
-            <section className={`${statusStyles.panel} ${statusStyles.panelUpcoming}`}>
+            <section
+              className={`${statusStyles.panel} ${statusStyles.panelUpcoming} ${statusStyles.mobilePanel} ${statusStyles.mobilePanelRightNow} ${
+                mobileTab === 'rightNow' ? statusStyles.mobilePanelActive : ''
+              }`}
+            >
               <header className={statusStyles.panelHeader}>
                 <div className={statusStyles.panelHeaderTitleWrap}>
                   <span className={`material-icons ${statusStyles.panelHeaderIcon}`}>schedule</span>
@@ -692,7 +757,11 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
               </div>
             </section>
 
-            <section className={statusStyles.panel}>
+            <section
+              className={`${statusStyles.panel} ${statusStyles.mobilePanel} ${statusStyles.mobilePanelSchedule} ${
+                mobileTab === 'schedule' ? statusStyles.mobilePanelActive : ''
+              }`}
+            >
               <header className={statusStyles.panelHeader}>
                 <div className={statusStyles.panelHeaderTitleWrap}>
                   <span className={`material-icons ${statusStyles.panelHeaderIcon}`}>schedule</span>
@@ -952,9 +1021,9 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
 
       {isEditOpen && selectedBooking ? (
         <AdminEditBookingPopUpFM
-          bookingId={`#BK-${selectedBooking.id.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}`}
+          bookingId={selectedBooking.id}
           initialDate={toInputDateValue(selectedDate)}
-          initialEndTime={selectedBooking.time24}
+          initialEndTime={getEstimatedEndTime(selectedBooking)}
           initialEventTitle={selectedBooking.title}
           initialOrganizer={selectedBooking.requesterName || ''}
           initialStartTime={selectedBooking.time24}
@@ -964,8 +1033,12 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
             setIsEditSuccessOpen(true)
           }}
           organizerHint={selectedBooking.requesterName || ''}
-          prefilledVenue=""
+          prefilledVenue={selectedBooking.venue}
           subtitle={selectedBooking.venue}
+          venues={VENUE_OPTIONS.map((venueOption) => ({
+            value: venueOption.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            label: venueOption,
+          }))}
         />
       ) : null}
 

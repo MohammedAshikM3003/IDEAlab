@@ -1,0 +1,95 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal {
+  background: #ffffff;
+  border-radius: 12px;
+  width: min(600px, 95vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  padding: 18px 24px 8px;
+}
+
+.title {
+  margin: 0;
+  color: #0d2347;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.progressLabel {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.cropArea {
+  position: relative;
+  height: 350px;
+  margin: 0 24px;
+  border-radius: 8px;
+  background: #000000;
+  overflow: hidden;
+}
+
+.zoomRow {
+  padding: 12px 24px 0;
+}
+
+.zoomSlider {
+  width: 100%;
+  accent-color: #f97316;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.cancelButton {
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 6px;
+}
+
+.applyButton {
+  border: none;
+  background: #f97316;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.applyButton:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+@media (max-width: 640px) {
+  .cropArea {
+    height: 280px;
+  }
+}

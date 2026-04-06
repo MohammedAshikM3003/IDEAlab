@@ -108,10 +108,158 @@
   pointer-events: none;
 }
 
-.timeGrid {
+.timePickersRow {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.timePickerPanel {
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.timePickerHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.timePickerHeading {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.timePickerCurrent {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.timePickerCurrentError {
+  color: #ef4444;
+}
+
+.timeWarning {
+  margin-top: -2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ef4444;
+}
+
+.meridiemToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.meridiemBtn {
+  width: 44px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #ff7a59;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.meridiemBtn:hover {
+  background: #fff0ed;
+}
+
+.meridiemBtnActive {
+  background: #ff7a59;
+  color: #ffffff;
+}
+
+.timeSectionLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.hourGrid {
   display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(4, 36px);
+  gap: 4px;
+}
+
+.minuteRow {
+  display: flex;
+  gap: 4px;
+}
+
+.minuteGridWrap {
+  max-height: 132px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.minuteGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 36px);
+  gap: 4px;
+}
+
+.timeCell {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #374151;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.timeCell:hover {
+  background: #fff0ed;
+}
+
+.timeCellActive {
+  background: #ff7a59;
+  color: #ffffff;
+}
+
+.minuteGridWrap::-webkit-scrollbar {
+  width: 8px;
+}
+
+.minuteGridWrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.minuteGridWrap::-webkit-scrollbar-thumb {
+  background: #fed7cc;
+  border-radius: 8px;
+}
+
+.minuteGridWrap::-webkit-scrollbar-thumb:hover {
+  background: #ffb09d;
+}
+
+@media (max-width: 767px) {
+  .timePickersRow {
+    flex-direction: column;
+  }
 }
 
 .slotAvailable {
@@ -134,6 +282,7 @@
   gap: 8px;
   font-size: 14px;
   color: #334155;
+  position: relative;
 }
 
 .checkbox {
@@ -145,10 +294,56 @@
   font-weight: 500;
 }
 
+.infoTooltipWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.infoIconBtn {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .infoIcon {
   font-family: "Material Icons";
   font-size: 16px;
   color: #94a3b8;
+}
+
+.tooltipBubble {
+  position: absolute;
+  z-index: 50;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  background: #1f2937;
+  color: #ffffff;
+  font-size: 12px;
+  border-radius: 6px;
+  padding: 4px 8px;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.22);
+  white-space: normal;
+  width: max-content;
+  max-width: min(220px, calc(100vw - 48px));
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .tooltipBubble {
+    left: auto;
+    right: 0;
+    transform: none;
+    max-width: min(220px, calc(100vw - 40px));
+  }
 }
 
 .footer {

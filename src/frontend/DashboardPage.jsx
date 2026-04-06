@@ -303,7 +303,7 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
                             animationEasing="ease-out"
                           >
                             {rankedVenueData.map((venue) => (
-                              <Cell key={venue.name} fill={venue.colorHex} style={{cursor: 'pointer'}} onClick={() => navigate(`/venue/${venue.id}`)} />
+                              <Cell key={venue.name} fill={venue.colorHex} style={{cursor: 'pointer'}} onClick={() => navigate(`/facilities/venue/${venue.id}`)} />
                             ))}
                           </Pie>
                           <text x="50%" y="50%" textAnchor="middle" dominantBaseline="central">
@@ -321,7 +321,7 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
 
                     <div className={styles.vuList}>
                       {rankedVenueData.map((venue) => (
-                        <div className={styles.vuRow} key={venue.name} onClick={() => navigate(`/venue/${venue.id}`)} style={{cursor: 'pointer'}}>
+                        <div className={styles.vuRow} key={venue.name} onClick={() => navigate(`/facilities/venue/${venue.id}`)} style={{cursor: 'pointer'}}>
                           <div className={styles.vuTop}>
                             <div className={styles.vuHead}>
                               <span className={styles.vuDot} style={{ backgroundColor: venue.colorHex }} />
