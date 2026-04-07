@@ -484,6 +484,59 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
+.facilityCardSkeleton {
+  border: 1px solid var(--gray-200);
+  border-radius: 0.75rem;
+  min-height: 240px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.facilitiesStatusWrap {
+  border: 1px dashed var(--gray-300);
+  border-radius: 0.75rem;
+  min-height: 180px;
+  padding: 1rem;
+  display: grid;
+  place-items: center;
+  gap: 0.85rem;
+}
+
+.facilitiesStatusText {
+  margin: 0;
+  color: var(--gray-600);
+  font-weight: 600;
+  text-align: center;
+}
+
+.btnRetry {
+  background: #ffffff;
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
+  border-radius: 0.65rem;
+  min-height: 2.5rem;
+  padding: 0 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btnRetry:hover {
+  border-color: var(--gray-400);
+  background: #f8fafc;
+}
+
 .facilityImage {
   height: 128px;
   position: relative;
@@ -1105,6 +1158,134 @@
   color: var(--primary-orange);
 }
 
+.moreBtnActive {
+  background: #f1f5f9;
+  border-radius: 6px;
+  color: #0f172a;
+}
+
+.recentUpdatesMenuWrapper {
+  position: relative;
+}
+
+.updatesMenuDropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  margin-top: 8px;
+  min-width: 200px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  padding: 6px 0;
+}
+
+.updatesMenuItem {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+}
+
+.updatesMenuItem:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.updatesMenuDivider {
+  border-top: 1px solid #f1f5f9;
+  margin: 6px 0;
+}
+
+.updatesMenuItemDestructive {
+  color: #ef4444;
+}
+
+.updatesMenuItemDestructive:hover {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.clearUpdatesConfirm {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  margin-top: 8px;
+  min-width: 260px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+}
+
+.clearUpdatesText {
+  margin: 0;
+  color: #374151;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.clearUpdatesActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.clearUpdatesCancelBtn,
+.clearUpdatesConfirmBtn {
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.clearUpdatesCancelBtn {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.clearUpdatesConfirmBtn {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.updatesFilterRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -0.4rem 0 1rem;
+}
+
+.updatesFilterBtn {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.updatesFilterBtnActive {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  color: #3b82f6;
+}
+
 .updatesList {
   display: flex;
   flex-direction: column;
@@ -1160,6 +1341,19 @@
   margin-bottom: 0.25rem;
 }
 
+.updateHeaderMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.updateUnreadDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #3b82f6;
+}
+
 .updateTitle {
   font-size: 0.875rem;
   font-weight: 600;
@@ -1176,6 +1370,57 @@
   font-size: 0.75rem;
   color: var(--gray-500);
   margin: 0;
+}
+
+.updatesEmptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 1.5rem 0.5rem;
+}
+
+.updatesEmptyIcon {
+  font-size: 28px;
+  color: #94a3b8;
+}
+
+.updatesEmptyText {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.updatesToast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  background: #0f172a;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  z-index: 9999;
+  animation: updatesToastFade 3s ease-in-out;
+}
+
+@keyframes updatesToastFade {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  10%,
+  85% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 
 @media (max-width: 768px) {

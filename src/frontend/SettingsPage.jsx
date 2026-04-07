@@ -1,12 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Cropper from 'react-easy-crop'
 
 import PageHeader from './PageHeader'
 import Sidebar from './Sidebar'
 import styles from './SettingsPage.module.css'
 import { useUserProfile } from './UserProfileContext.jsx'
-
-const NOTIFICATIONS_READ_KEY = 'notificationsRead'
+import { api } from './utils/api.js'
 
 function IconShield({ className }) {
   return (
@@ -100,37 +99,33 @@ async function getCroppedImage(imageSrc, pixelCrop) {
 export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
   const { userProfile, setUserProfile } = useUserProfile()
   const [activeTab, setActiveTab] = useState('profile')
-  const [firstName, setFirstName] = useState(() => userProfile.firstName)
-  const [lastName, setLastName] = useState(() => userProfile.lastName)
-  const [emailAddress, setEmailAddress] = useState(() => userProfile.email)
+  const [user, setUser] = useState(null)
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [emailAddress, setEmailAddress] = useState('')
+  const [designation, setDesignation] = useState('')
+  const [mobileNumberInput, setMobileNumberInput] = useState('')
   const [avatarError, setAvatarError] = useState('')
   const [toast, setToast] = useState(null)
+  const [isUserLoading, setIsUserLoading] = useState(true)
+  const [userError, setUserError] = useState('')
   const [isMobileModalOpen, setIsMobileModalOpen] = useState(false)
-  const [mobileNumberInput, setMobileNumberInput] = useState('')
   const [mobileNumberError, setMobileNumberError] = useState('')
   const [mobileModalStep, setMobileModalStep] = useState('number')
   const [otpInput, setOtpInput] = useState('')
   const [otpError, setOtpError] = useState('')
   const [resendSeconds, setResendSeconds] = useState(30)
   const [pendingMobileNumber, setPendingMobileNumber] = useState('')
-  const [isMobileVerified, setIsMobileVerified] = useState(() => {
-    try {
-      const storedProfile = localStorage.getItem('adminProfile')
-      if (!storedProfile) {
-        return false
-      }
-      const parsed = JSON.parse(storedProfile)
-      return Boolean(parsed?.mobileVerified)
-    } catch {
-      return false
-    }
-  })
   const [isTwoFactorModalOpen, setIsTwoFactorModalOpen] = useState(false)
   const [twoFactorCode, setTwoFactorCode] = useState('')
   const [twoFactorError, setTwoFactorError] = useState('')
-  const [isTwoFactorEnabled, setIsTwoFactorEnabled] = useState(false)
   const [isSecurityLogModalOpen, setIsSecurityLogModalOpen] = useState(false)
-  const [notificationsRead, setNotificationsRead] = useState(() => localStorage.getItem(NOTIFICATIONS_READ_KEY) === 'true')
+  const [activity, setActivity] = useState([])
+  const [isActivityLoading, setIsActivityLoading] = useState(true)
+  const [activityError, setActivityError] = useState('')
+  const [notifications, setNotifications] = useState([])
+  const [isNotificationsLoading, setIsNotificationsLoading] = useState(true)
+  const [notificationsError, setNotificationsError] = useState('')
   const [isCropModalOpen, setIsCropModalOpen] = useState(false)
   const [isAvatarViewerOpen, setIsAvatarViewerOpen] = useState(false)
   const [cropImageSrc, setCropImageSrc] = useState('')
@@ -148,29 +143,124 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
     [],
   )
 
-  const [activityEvents, setActivityEvents] = useState([
-    {
-      id: 'activity-password-updated',
-      title: 'Password updated successfully',
-      time: 'Just now',
-      icon: IconCheck,
-      iconClass: styles.iconGreen,
-    },
-    {
-      id: 'activity-login-chrome-windows',
-      title: 'New login from Chrome/Windows',
-      time: '2h ago',
-      icon: IconDevices,
-      iconClass: styles.iconBlue,
-    },
-    {
-      id: 'activity-profile-updated-yesterday',
-      title: 'Profile information updated',
-      time: 'Yesterday',
-      icon: IconCircle,
-      iconClass: styles.iconGray,
-    },
-  ])
+  const relativeTime = (timestamp) => {
+    if (!timestamp) return 'Just now'
+    const time = new Date(timestamp).getTime()
+    const deltaSeconds = Math.max(0, Math.floor((Date.now() - time) / 1000))
+
+    if (deltaSeconds < 60) return 'Just now'
+    if (deltaSeconds < 3600) return `${Math.floor(deltaSeconds / 60)}m ago`
+    if (deltaSeconds < 86400) return `${Math.floor(deltaSeconds / 3600)}h ago`
+    if (deltaSeconds < 172800) return 'Yesterday'
+    return `${Math.floor(deltaSeconds / 86400)}d ago`
+  }
+
+  const activityWithPresentation = useMemo(
+    () =>
+      activity.map((item) => {
+        const iconType = item.iconType || ''
+        const isDevice = iconType === 'device' || /login|chrome|windows/i.test(item.action || '')
+        const isSuccess = iconType === 'success' || /password|updated|verified/i.test(item.action || '')
+
+        return {
+          ...item,
+          icon: isDevice ? IconDevices : isSuccess ? IconCheck : IconCircle,
+          iconClass: isDevice ? styles.iconBlue : isSuccess ? styles.iconGreen : styles.iconGray,
+          timeLabel: relativeTime(item.timestamp),
+        }
+      }),
+    [activity],
+  )
+
+  const notificationsRead = useMemo(() => notifications.length > 0 && notifications.every((item) => item.read), [notifications])
+
+  const getNotificationClass = (type) => {
+    if (type === 'maintenance') return styles.notInfo
+    if (type === 'approval') return styles.notWarn
+    return styles.notOk
+  }
+
+  const syncUserProfileContext = useCallback((apiUser) => {
+    if (!apiUser) {
+      return
+    }
+
+    const nameParts = String(apiUser.name || 'Admin').trim().split(/\s+/)
+    const nextFirstName = nameParts[0] || 'Admin'
+    const nextLastName = nameParts.slice(1).join(' ')
+
+    setUserProfile((previousProfile) => ({
+      ...previousProfile,
+      firstName: nextFirstName,
+      lastName: nextLastName,
+      email: apiUser.email || previousProfile.email,
+      role: apiUser.designation || apiUser.role || previousProfile.role,
+      avatarUrl: apiUser.avatar ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${apiUser.avatar}` : previousProfile.avatarUrl,
+    }))
+  }, [setUserProfile])
+
+  const applySettingsResponse = useCallback((settingsData) => {
+    const profile = settingsData?.profile || {}
+    setUser(profile)
+
+    const nameParts = String(profile.name || 'Admin').trim().split(/\s+/)
+    setFirstName(nameParts[0] || '')
+    setLastName(nameParts.slice(1).join(' '))
+    setEmailAddress(profile.email || '')
+    setDesignation(profile.designation || profile.role || '')
+    setMobileNumberInput(profile.mobile || '')
+    setNotifications(Array.isArray(settingsData?.notifications) ? settingsData.notifications : [])
+    setActivity(Array.isArray(settingsData?.securityActivity) ? settingsData.securityActivity : [])
+    syncUserProfileContext(profile)
+  }, [syncUserProfileContext])
+
+  const loadUser = useCallback(async () => {
+    setIsUserLoading(true)
+    setUserError('')
+
+    try {
+      const data = await api.get('/api/settings')
+      applySettingsResponse(data)
+    } catch (error) {
+      setUserError(error.message || 'Failed to load')
+    } finally {
+      setIsUserLoading(false)
+    }
+  }, [applySettingsResponse])
+
+  const loadSecurityActivity = useCallback(async () => {
+    setIsActivityLoading(true)
+    setActivityError('')
+
+    try {
+      const data = await api.get('/api/settings')
+      setActivity(Array.isArray(data?.securityActivity) ? data.securityActivity : [])
+    } catch (error) {
+      setActivityError(error.message || 'Failed to load')
+    } finally {
+      setIsActivityLoading(false)
+    }
+  }, [])
+
+  const loadNotifications = useCallback(async () => {
+    setIsNotificationsLoading(true)
+    setNotificationsError('')
+
+    try {
+      const data = await api.get('/api/settings')
+      setNotifications(Array.isArray(data?.notifications) ? data.notifications : [])
+    } catch (error) {
+      setNotificationsError(error.message || 'Failed to load')
+    } finally {
+      setIsNotificationsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadUser()
+    loadSecurityActivity()
+    loadNotifications()
+  }, [loadNotifications, loadSecurityActivity, loadUser])
 
   useEffect(() => {
     if (!toast) {
@@ -310,49 +400,64 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
       return
     }
 
-    const croppedImage = await getCroppedImage(cropImageSrc, croppedAreaPixels)
+    try {
+      const croppedImage = await getCroppedImage(cropImageSrc, croppedAreaPixels)
+      const blob = await (await fetch(croppedImage)).blob()
+      const formData = new FormData()
+      formData.append('avatar', blob, `avatar-${Date.now()}.png`)
 
-    setUserProfile((previousProfile) => ({
-      ...previousProfile,
-      avatarUrl: croppedImage,
-    }))
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/settings/avatar`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: formData,
+      })
 
-    closeCropModal()
-  }
-
-  const handleSaveProfile = () => {
-    const normalizedFirstName = firstName.trim() || userProfile.firstName
-    const normalizedLastName = lastName.trim() || userProfile.lastName
-    const normalizedEmailAddress = emailAddress.trim() || userProfile.email
-
-    setUserProfile((previousProfile) => ({
-      ...previousProfile,
-      firstName: normalizedFirstName,
-      lastName: normalizedLastName,
-      email: normalizedEmailAddress,
-    }))
-
-    setActivityEvents((previousEvents) => {
-      if (previousEvents[0]?.title === 'Profile information updated') {
-        return [{ ...previousEvents[0], time: 'Just now' }, ...previousEvents.slice(1, 3)]
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(payload?.message || 'Avatar update failed')
       }
 
-      return [
-        {
-          id: `activity-profile-updated-${Date.now()}`,
-          title: 'Profile information updated',
-          time: 'Just now',
-          icon: IconCircle,
-          iconClass: styles.iconGray,
-        },
-        ...previousEvents,
-      ].slice(0, 3)
-    })
+      applySettingsResponse(payload)
+      setToast({
+        id: `toast-avatar-updated-${Date.now()}`,
+        text: 'Profile photo updated.',
+      })
+      closeCropModal()
+    } catch (error) {
+      setAvatarError(error.message || 'Avatar update failed')
+    }
+  }
 
-    setToast({
-      id: `toast-profile-updated-${Date.now()}`,
-      text: 'Profile updated successfully.',
-    })
+  const handleSaveProfile = async () => {
+    if (!user) {
+      return
+    }
+
+    const normalizedFirstName = firstName.trim()
+    const normalizedLastName = lastName.trim()
+    const combinedName = `${normalizedFirstName} ${normalizedLastName}`.trim() || user.name || 'Admin'
+
+    try {
+      const updated = await api.put('/api/settings/profile', {
+        name: combinedName,
+        designation,
+        mobile: mobileNumberInput,
+      })
+
+      applySettingsResponse(updated)
+
+      setToast({
+        id: `toast-profile-updated-${Date.now()}`,
+        text: 'Profile updated',
+      })
+    } catch (error) {
+      setToast({
+        id: `toast-profile-update-failed-${Date.now()}`,
+        text: error.message || 'Update failed',
+      })
+    }
   }
 
   const closeMobileModal = () => {
@@ -393,37 +498,12 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
       return
     }
 
-    // TODO: Replace with real OTP verification API call
-    setIsMobileVerified(true)
-    setUserProfile((previousProfile) => ({
-      ...previousProfile,
-      mobileNumber: pendingMobileNumber,
-      mobileVerified: true,
-    }))
-
-    try {
-      const storedProfile = localStorage.getItem('adminProfile')
-      const parsedProfile = storedProfile ? JSON.parse(storedProfile) : {}
-      const updatedProfile = {
-        ...parsedProfile,
-        mobileNumber: pendingMobileNumber,
-        mobileVerified: true,
-      }
-      localStorage.setItem('adminProfile', JSON.stringify(updatedProfile))
-    } catch {
-      localStorage.setItem(
-        'adminProfile',
-        JSON.stringify({
-          mobileNumber: pendingMobileNumber,
-          mobileVerified: true,
-        }),
-      )
-    }
-
+    setMobileNumberInput(pendingMobileNumber)
     closeMobileModal()
+
     setToast({
-      id: `toast-mobile-updated-${Date.now()}`,
-      text: 'Mobile number updated successfully.',
+      id: `toast-mobile-verified-${Date.now()}`,
+      text: 'Mobile verified. Click Save Changes to persist.',
     })
   }
 
@@ -445,7 +525,7 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
       return
     }
 
-    setIsTwoFactorEnabled(true)
+    setUser((previous) => (previous ? { ...previous, twoFactorEnabled: true } : previous))
     closeTwoFactorModal()
     setToast({
       id: `toast-2fa-enabled-${Date.now()}`,
@@ -453,12 +533,27 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
     })
   }
 
-  const markAllNotificationsAsRead = () => {
-    setNotificationsRead(true)
-    localStorage.setItem(NOTIFICATIONS_READ_KEY, 'true')
+  const markAllNotificationsAsRead = async () => {
+    try {
+      const response = await api.patch('/api/settings/notifications/read-all', {})
+      setNotifications(Array.isArray(response?.settings?.notifications) ? response.settings.notifications : [])
+      setToast({ id: `toast-notifications-read-${Date.now()}`, text: 'All marked as read' })
+    } catch (error) {
+      setToast({ id: `toast-notifications-read-failed-${Date.now()}`, text: error.message || 'Update failed' })
+    }
   }
 
-  const fullDisplayName = `${userProfile.titlePrefix} ${userProfile.firstName} ${userProfile.lastName}`
+  const clearAllNotifications = async () => {
+    try {
+      const response = await api.delete('/api/settings/notifications')
+      setNotifications(Array.isArray(response?.settings?.notifications) ? response.settings.notifications : [])
+      setToast({ id: `toast-notifications-cleared-${Date.now()}`, text: 'Notifications cleared' })
+    } catch (error) {
+      setToast({ id: `toast-notifications-clear-failed-${Date.now()}`, text: error.message || 'Update failed' })
+    }
+  }
+
+  const fullDisplayName = `${userProfile.titlePrefix} ${firstName || userProfile.firstName} ${lastName || userProfile.lastName}`
 
   const openAvatarViewer = () => {
     if (!userProfile.avatarUrl) {
@@ -493,6 +588,18 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
                   ))}
                 </nav>
 
+                {isUserLoading ? (
+                  <div className={styles.form}>
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLine} />
+                    <div className={styles.skeletonLine} />
+                  </div>
+                ) : userError ? (
+                  <div className={styles.formLoadError}>
+                    <span>Failed to load.</span>
+                    <button className={styles.linkBtn} onClick={loadUser} type="button">Retry</button>
+                  </div>
+                ) : (
                 <form className={styles.form} onSubmit={(e) => e.preventDefault()}>
                   <div className={styles.avatarWrap}>
                     <div
@@ -535,7 +642,7 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
 
                   <label className={styles.field}>
                     <span className={styles.label}>Role Designation</span>
-                    <input className={`${styles.input} ${styles.inputOff}`} defaultValue={userProfile.role} readOnly type="text" />
+                    <input className={styles.input} onChange={(event) => setDesignation(event.target.value)} type="text" value={designation} />
                   </label>
 
                   <div className={styles.formBtns}>
@@ -544,11 +651,12 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
                     </button>
                   </div>
                 </form>
+                )}
               </div>
 
               <div className={styles.rightCol}>
                 <div className={`${styles.card} ${styles.profileCardWrap}`}>
-                  <div className={styles.pcLastLogin}>Last Login: 2h ago</div>
+                  <div className={styles.pcLastLogin}>Last Login: {user?.lastLogin ? relativeTime(user.lastLogin) : 'N/A'}</div>
                   <div className={styles.pcAvatarWrap}>
                     {userProfile.avatarUrl ? (
                       <img
@@ -563,34 +671,42 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
                     <span className={styles.onlineDot} />
                   </div>
                   <div className={styles.pcName}>{fullDisplayName}</div>
-                  <div className={styles.pcMeta}>Member since 2018</div>
+                  <div className={styles.pcMeta}>
+                    Member since {user?.memberSince ? new Date(user.memberSince).getFullYear() : 'N/A'}
+                  </div>
                   <div className={styles.badges}>
-                    <span className={`${styles.badge} ${styles.tagBlue}`}>Admin</span>
-                    <span className={`${styles.badge} ${styles.tagPurple}`}>Faculty Head</span>
+                    <span className={`${styles.badge} ${styles.tagBlue}`}>{user?.role || 'Admin'}</span>
+                    <span className={`${styles.badge} ${styles.tagPurple}`}>{designation || 'Not set'}</span>
                   </div>
                 </div>
 
                 <div className={styles.card}>
                   <div className={styles.verifyHead}>
                     <div className={styles.cardHead}>Verification Status</div>
-                    <div className={styles.verifyDate}>Oct 2018</div>
+                    <div className={styles.verifyDate}>
+                      {user?.memberSince ? new Date(user.memberSince).toLocaleDateString() : 'N/A'}
+                    </div>
                   </div>
 
                   <ul className={styles.verifyList}>
                     <li className={styles.verifyItem}>
                       <div className={styles.verifyLeft}>
-                        <IconCheck className={`${styles.verifyIco} ${styles.verifyIcoOk}`} />
-                        <span className={styles.verifyTxt}>Email Verified</span>
-                      </div>
-                    </li>
-                    <li className={styles.verifyItem}>
-                      <div className={styles.verifyLeft}>
-                        {isMobileVerified ? (
+                        {user?.emailVerified ? (
                           <IconCheck className={`${styles.verifyIco} ${styles.verifyIcoOk}`} />
                         ) : (
                           <IconCircle className={`${styles.verifyIco} ${styles.verifyIcoPend}`} />
                         )}
-                        <span className={isMobileVerified ? styles.verifyTxt : styles.verifyMuted}>Mobile Number</span>
+                        <span className={user?.emailVerified ? styles.verifyTxt : styles.verifyMuted}>Email Verified</span>
+                      </div>
+                    </li>
+                    <li className={styles.verifyItem}>
+                      <div className={styles.verifyLeft}>
+                        {user?.mobile ? (
+                          <IconCheck className={`${styles.verifyIco} ${styles.verifyIcoOk}`} />
+                        ) : (
+                          <IconCircle className={`${styles.verifyIco} ${styles.verifyIcoPend}`} />
+                        )}
+                        <span className={user?.mobile ? styles.verifyTxt : styles.verifyMuted}>Mobile Number</span>
                       </div>
                       <button className={styles.linkBtn} onClick={() => setIsMobileModalOpen(true)} type="button">
                         Update
@@ -598,14 +714,14 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
                     </li>
                     <li className={styles.verifyItem}>
                       <div className={styles.verifyLeft}>
-                        {isTwoFactorEnabled ? (
+                        {user?.twoFactorEnabled ? (
                           <IconCheck className={`${styles.verifyIco} ${styles.verifyIcoOk}`} />
                         ) : (
                           <IconCircle className={`${styles.verifyIco} ${styles.verifyIcoPend}`} />
                         )}
-                        <span className={isTwoFactorEnabled ? styles.verifyTxt : styles.verifyMuted}>Two-Factor Auth (2FA)</span>
+                        <span className={user?.twoFactorEnabled ? styles.verifyTxt : styles.verifyMuted}>Two-Factor Auth (2FA)</span>
                       </div>
-                      {isTwoFactorEnabled ? (
+                      {user?.twoFactorEnabled ? (
                         <button className={styles.linkBtn} onClick={openTwoFactorModal} type="button">
                           Manage
                         </button>
@@ -634,61 +750,65 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
     </div>
 
     <ul className={styles.activityList}>
-      {activityEvents.map((event) => {
-        const EventIcon = event.icon
-        return (
-          <li className={styles.activityItem} key={event.id}>
-            <EventIcon className={`${styles.actIcon} ${event.iconClass}`} />
-            <div>
-              <div>{event.title}</div>
-              <div className={styles.activityTime}>{event.time}</div>
-            </div>
-          </li>
-        )
-      })}
+      {isActivityLoading ? (
+        <li className={styles.activityItem}><div className={styles.skeletonLine} /><div className={styles.skeletonLine} /></li>
+      ) : activityError ? (
+        <li className={styles.activityItem}><span>Failed to load.</span><button className={styles.linkBtn} onClick={loadSecurityActivity} type="button">Retry</button></li>
+      ) : (
+        activityWithPresentation.map((event) => {
+          const EventIcon = event.icon
+          return (
+            <li className={styles.activityItem} key={event._id || event.id}>
+              <EventIcon className={`${styles.actIcon} ${event.iconClass}`} />
+              <div>
+                <div>{event.action}</div>
+                <div className={styles.activityTime}>{event.timeLabel}</div>
+              </div>
+            </li>
+          )
+        })
+      )}
     </ul>
   </div>
 
   <div className={styles.card}>
     <div className={styles.bottomHead}>
       <span>System Notifications</span>
-      <button
-        className={`${styles.link} ${notificationsRead ? styles.linkMuted : ''}`}
-        onClick={markAllNotificationsAsRead}
-        type="button"
-      >
-        {notificationsRead ? 'All read' : 'Mark all read'}
-      </button>
+      <div className={styles.notificationsActions}>
+        <button
+          className={`${styles.link} ${notificationsRead ? styles.linkMuted : ''}`}
+          onClick={markAllNotificationsAsRead}
+          type="button"
+        >
+          {notificationsRead ? 'All read' : 'Mark all read'}
+        </button>
+        <button className={styles.link} onClick={clearAllNotifications} type="button">Clear all updates</button>
+      </div>
     </div>
 
     <ul className={styles.notificationList}>
-      <li className={`${styles.notificationItem} ${styles.notInfo} ${notificationsRead ? styles.notificationRead : ''}`}>
-        <div className={styles.notIconWrap}>
-          <IconShield className={styles.notIcon} />
-        </div>
-        <div>
-          <div className={styles.notTitle}>System Maintenance Scheduled</div>
-          <div className={styles.notDesc}>The portal will be down for maintenance on Oct 28th from 2 AM to 4 AM.</div>
-        </div>
-      </li>
-      <li className={`${styles.notificationItem} ${styles.notWarn} ${notificationsRead ? styles.notificationRead : ''}`}>
-        <div className={styles.notIconWrap}>
-          <IconShield className={styles.notIcon} />
-        </div>
-        <div>
-          <div className={styles.notTitle}>Pending Venue Approvals</div>
-          <div className={styles.notDesc}>You have 5 venue requests awaiting your approval.</div>
-        </div>
-      </li>
-      <li className={`${styles.notificationItem} ${styles.notOk} ${notificationsRead ? styles.notificationRead : ''}`}>
-        <div className={styles.notIconWrap}>
-          <IconShield className={styles.notIcon} />
-        </div>
-        <div>
-          <div className={styles.notTitle}>Monthly Report Generated</div>
-          <div className={styles.notDesc}>October analytics report is ready for download.</div>
-        </div>
-      </li>
+      {isNotificationsLoading ? (
+        <li className={styles.notificationItem}><div className={styles.skeletonLine} /><div className={styles.skeletonLine} /></li>
+      ) : notificationsError ? (
+        <li className={styles.notificationItem}><span>Failed to load.</span><button className={styles.linkBtn} onClick={loadNotifications} type="button">Retry</button></li>
+      ) : notifications.length === 0 ? (
+        <li className={styles.notificationsEmpty}><IconCircle className={styles.notificationsEmptyIcon} /><span>No notifications</span></li>
+      ) : (
+        notifications.map((notification) => (
+          <li
+            className={`${styles.notificationItem} ${getNotificationClass(notification.type)} ${notification.read ? styles.notificationRead : ''}`}
+            key={notification._id}
+          >
+            <div className={styles.notIconWrap}>
+              <IconShield className={styles.notIcon} />
+            </div>
+            <div>
+              <div className={styles.notTitle}>{notification.title}</div>
+              <div className={styles.notDesc}>{notification.message}</div>
+            </div>
+          </li>
+        ))
+      )}
     </ul>
   </div>
 </section>
@@ -842,14 +962,14 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
                 <h3 className={styles.modalTitle}>Security Activity Log</h3>
 
                 <ul className={styles.logList}>
-                  {activityEvents.map((event) => {
+                  {activityWithPresentation.map((event) => {
                     const EventIcon = event.icon
                     return (
-                      <li className={styles.logItem} key={`log-${event.id}`}>
+                      <li className={styles.logItem} key={`log-${event._id || event.id}`}>
                         <EventIcon className={`${styles.actIcon} ${event.iconClass}`} />
                         <div>
-                          <div>{event.title}</div>
-                          <div className={styles.activityTime}>{event.time}</div>
+                          <div>{event.action}</div>
+                          <div className={styles.activityTime}>{event.timeLabel}</div>
                         </div>
                       </li>
                     )

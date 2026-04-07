@@ -10,6 +10,9 @@ import naacLogo from '../assets/NAAC_LOGO.svg'
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState('');
   const authTimerRef = useRef(null);
   const navigate = useNavigate();
 
@@ -28,10 +31,38 @@ export default function LoginPage() {
       return;
     }
 
+    if (!email.trim() || !password) {
+      setAuthError('Email and password are required');
+      return;
+    }
+
+    setAuthError('');
     setIsAuthenticating(true);
-    authTimerRef.current = window.setTimeout(() => {
-      navigate('/dashboard');
-    }, 2000);
+
+    fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email.trim(),
+        password,
+      }),
+    })
+      .then(async (response) => {
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload.message || 'Login failed');
+        }
+
+        authTimerRef.current = window.setTimeout(() => {
+          navigate('/dashboard');
+        }, 900);
+      })
+      .catch((error) => {
+        setAuthError(error.message || 'Login failed');
+        setIsAuthenticating(false);
+      });
   };
 
   if (isAuthenticating) {
@@ -107,6 +138,8 @@ export default function LoginPage() {
                     placeholder="admin@ksrce.ac.in"
                     type="email"
                     autoComplete="username"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
               </div>
@@ -126,6 +159,8 @@ export default function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••••••"
                     autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                   />
                   <button
                     type="button"
@@ -139,6 +174,12 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
+
+              {authError ? (
+                <p style={{ margin: '-0.25rem 0 0', color: '#dc2626', fontSize: '0.875rem', fontWeight: 600 }}>
+                  {authError}
+                </p>
+              ) : null}
 
               <button className={styles.submit} type="submit">
                 Authenticate

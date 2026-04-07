@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
 import styles from "./AddFacilityPage.module.css";
 
-const INVENTORY_CONDITIONS = ["Good", "Needs Repair", "Out of Service"];
+const INVENTORY_CONDITIONS = ["Good", "Fair", "Poor"];
 const FACILITY_TYPES = ["Seminar Hall", "Conference Room", "Lab", "Auditorium", "Classroom", "Studio"];
+const MAX_BANNER_SIZE_BYTES = 10 * 1024 * 1024;
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const AMENITY_PRESET = [
   { id: "amenity-ac", name: "Air Conditioning", icon: "ac_unit", selected: true },
@@ -26,6 +28,7 @@ function createEquipmentRow(id) {
 
 export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
   const navigate = useNavigate();
+  const locationState = useLocation();
 
   const [facilityName, setFacilityName] = useState("");
   const [facilityType, setFacilityType] = useState("");
@@ -33,31 +36,44 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
   const [location, setLocation] = useState("");
   const [rules, setRules] = useState("");
   const [bannerImage, setBannerImage] = useState(null);
+  const [isBannerUploading, setIsBannerUploading] = useState(false);
+  const [bannerUploadError, setBannerUploadError] = useState("");
   const [galleryImages, setGalleryImages] = useState([]);
+  const [isGalleryUploading, setIsGalleryUploading] = useState(false);
+  const [galleryUploadError, setGalleryUploadError] = useState("");
+  const [equipmentUploadError, setEquipmentUploadError] = useState("");
   const [amenities, setAmenities] = useState(AMENITY_PRESET);
+  const [facilityNameError, setFacilityNameError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [isVenueLoading, setIsVenueLoading] = useState(false);
 
   const [inventoryRows, setInventoryRows] = useState([createInventoryRow("inv-1"), createInventoryRow("inv-2")]);
   const [equipmentRows, setEquipmentRows] = useState([createEquipmentRow("eq-1"), createEquipmentRow("eq-2")]);
 
   const inventoryId = useRef(3);
   const equipmentId = useRef(3);
-  const publishTimeoutRef = useRef(null);
 
   const hiddenBannerInput = useRef(null);
   const hiddenGalleryInput = useRef(null);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState("idle");
+  const searchParams = useMemo(() => new URLSearchParams(locationState.search), [locationState.search]);
+  const venueId = searchParams.get("venueId") || "";
 
   const selectedAmenityCount = useMemo(() => amenities.filter((item) => item.selected).length, [amenities]);
 
   useEffect(() => {
-    return () => {
-      if (publishTimeoutRef.current) {
-        window.clearTimeout(publishTimeoutRef.current);
-      }
-    };
-  }, []);
+    if (!submitError) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setSubmitError("");
+    }, 3000);
+
+    return () => window.clearTimeout(timer);
+  }, [submitError]);
 
   const updateInventoryRow = (rowId, key, value) => {
     setInventoryRows((prev) => prev.map((row) => (row.id === rowId ? { ...row, [key]: value } : row)));
@@ -87,38 +103,152 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
     setEquipmentRows((prev) => (prev.length > 1 ? prev.filter((row) => row.id !== rowId) : prev));
   };
 
-  const onSelectBanner = (event) => {
+  const onSelectBanner = async (event) => {
     const file = event.target.files?.[0];
     if (!file) {
       return;
     }
-    setBannerImage(URL.createObjectURL(file));
+
+    if (!file.type.startsWith("image/")) {
+      setBannerUploadError("Only image files are allowed.");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_BANNER_SIZE_BYTES) {
+      setBannerUploadError("Banner image is too large. Max size is 10MB.");
+      event.target.value = "";
+      return;
+    }
+
+    setBannerUploadError("");
+    setIsBannerUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("banner", file);
+
+      const response = await fetch(`${API_BASE_URL}/api/facilities/media/banner`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: formData,
+      });
+
+      const rawText = await response.text();
+      const payload = (() => {
+        try {
+          return rawText ? JSON.parse(rawText) : {};
+        } catch {
+          return { message: rawText };
+        }
+      })();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || "Banner upload failed");
+      }
+
+      setBannerImage(`${API_BASE_URL}${payload.url}`);
+    } catch (error) {
+      setBannerUploadError(error.message || "Banner upload failed");
+    } finally {
+      setIsBannerUploading(false);
+      event.target.value = "";
+    }
   };
 
-  const onSelectGallery = (event) => {
-    const files = Array.from(event.target.files || []);
+  const uploadFacilityImage = async (endpoint, formField, file) => {
+    const formData = new FormData();
+    formData.append(formField, file);
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: formData,
+    });
+
+    const rawText = await response.text();
+    const payload = (() => {
+      try {
+        return rawText ? JSON.parse(rawText) : {};
+      } catch {
+        return { message: rawText };
+      }
+    })();
+
+    if (!response.ok) {
+      throw new Error(payload?.message || "Image upload failed");
+    }
+
+    return `${API_BASE_URL}${payload.url}`;
+  };
+
+  const uploadGalleryFiles = async (files) => {
     if (!files.length) {
       return;
     }
-    const previews = files.map((file) => URL.createObjectURL(file));
-    setGalleryImages((prev) => [...prev, ...previews].slice(0, 8));
+
+    setGalleryUploadError("");
+    setIsGalleryUploading(true);
+
+    try {
+      const validFiles = files
+        .filter((file) => String(file.type || "").startsWith("image/"))
+        .slice(0, Math.max(0, 8 - galleryImages.length));
+
+      const uploadedUrls = [];
+      for (const file of validFiles) {
+        if (file.size > MAX_BANNER_SIZE_BYTES) {
+          throw new Error("Each gallery image must be 10MB or smaller.");
+        }
+        const imageUrl = await uploadFacilityImage("/api/facilities/media/gallery", "gallery", file);
+        uploadedUrls.push(imageUrl);
+      }
+
+      setGalleryImages((prev) => [...prev, ...uploadedUrls].slice(0, 8));
+    } catch (error) {
+      setGalleryUploadError(error.message || "Gallery upload failed");
+    } finally {
+      setIsGalleryUploading(false);
+    }
   };
 
-  const onDropGallery = (event) => {
+  const onSelectGallery = async (event) => {
+    const files = Array.from(event.target.files || []);
+    await uploadGalleryFiles(files);
+    event.target.value = "";
+  };
+
+  const onDropGallery = async (event) => {
     event.preventDefault();
     const files = Array.from(event.dataTransfer.files || []);
-    if (!files.length) {
-      return;
-    }
-    const previews = files.map((file) => URL.createObjectURL(file));
-    setGalleryImages((prev) => [...prev, ...previews].slice(0, 8));
+    await uploadGalleryFiles(files);
   };
 
-  const onEquipmentImage = (rowId, file) => {
+  const onEquipmentImage = async (rowId, file) => {
     if (!file) {
       return;
     }
-    updateEquipmentRow(rowId, "image", URL.createObjectURL(file));
+
+    if (!String(file.type || "").startsWith("image/")) {
+      return;
+    }
+
+    if (file.size > MAX_BANNER_SIZE_BYTES) {
+      setEquipmentUploadError("Each equipment image must be 10MB or smaller.");
+      return;
+    }
+
+    try {
+      setEquipmentUploadError("");
+      const imageUrl = await uploadFacilityImage("/api/facilities/media/equipment", "equipment", file);
+      updateEquipmentRow(rowId, "image", imageUrl);
+    } catch (error) {
+      setEquipmentUploadError(error.message || "Equipment image upload failed");
+    }
   };
 
   const toggleAmenity = (amenityId) => {
@@ -145,51 +275,215 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
     setRules("");
     setBannerImage(null);
     setGalleryImages([]);
+    setGalleryUploadError("");
+    setEquipmentUploadError("");
     setAmenities(AMENITY_PRESET.map((item) => ({ ...item })));
     setInventoryRows([createInventoryRow("inv-1"), createInventoryRow("inv-2")]);
     setEquipmentRows([createEquipmentRow("eq-1"), createEquipmentRow("eq-2")]);
+    setFacilityNameError("");
+    setBannerUploadError("");
+    setSubmitError("");
     inventoryId.current = 3;
     equipmentId.current = 3;
   };
 
-  const openPublishModal = () => {
-    setSubmitStatus("idle");
-    setIsModalOpen(true);
+  const normalizeImageUrl = (value) => {
+    if (!value) {
+      return "";
+    }
+
+    if (String(value).startsWith("http://") || String(value).startsWith("https://")) {
+      return value;
+    }
+
+    if (String(value).startsWith("/")) {
+      return `${API_BASE_URL}${value}`;
+    }
+
+    return value;
   };
 
-  const closePublishModal = () => {
-    if (submitStatus === "submitting") {
-      return;
+  const normalizeCondition = (value) => {
+    if (value === "Good" || value === "Fair" || value === "Poor") {
+      return value;
     }
-    if (publishTimeoutRef.current) {
-      window.clearTimeout(publishTimeoutRef.current);
-      publishTimeoutRef.current = null;
-    }
-    setIsModalOpen(false);
-    setSubmitStatus("idle");
+
+    return "Good";
   };
 
-  const confirmPublish = () => {
-    if (submitStatus === "submitting") {
+  useEffect(() => {
+    const loadVenueForEdit = async () => {
+      if (!venueId) {
+        setIsVenueLoading(false);
+        return;
+      }
+
+      setIsVenueLoading(true);
+      setSubmitError("");
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/venues/${venueId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        const rawText = await response.text();
+        const payload = (() => {
+          try {
+            return rawText ? JSON.parse(rawText) : {};
+          } catch {
+            return { message: rawText };
+          }
+        })();
+
+        if (!response.ok) {
+          throw new Error(payload?.message || "Failed to load facility data");
+        }
+
+        setFacilityName(payload?.name || "");
+        setFacilityType(payload?.facilityType || "");
+        setCapacity(payload?.capacity ? String(payload.capacity) : "");
+        setLocation(payload?.location || "");
+        setRules(payload?.description || "");
+        setBannerImage(normalizeImageUrl(payload?.bannerImage));
+        setGalleryImages(Array.isArray(payload?.gallery) ? payload.gallery.map((item) => normalizeImageUrl(item)).filter(Boolean) : []);
+
+        const incomingAmenities = Array.isArray(payload?.amenities) ? payload.amenities : [];
+        const existingAmenityNames = new Set(AMENITY_PRESET.map((item) => item.name));
+        const presetWithSelection = AMENITY_PRESET.map((item) => ({
+          ...item,
+          selected: incomingAmenities.includes(item.name),
+        }));
+        const extraAmenities = incomingAmenities
+          .filter((name) => !existingAmenityNames.has(name))
+          .map((name) => ({
+            id: `amenity-${String(name).toLowerCase().replace(/\s+/g, "-")}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            name,
+            icon: "check_circle",
+            selected: true,
+          }));
+        setAmenities([...presetWithSelection, ...extraAmenities]);
+
+        const mappedInventory = Array.isArray(payload?.inventory)
+          ? payload.inventory.map((item, index) => ({
+              id: `inv-${index + 1}`,
+              name: item?.itemName || "",
+              quantity: item?.quantity ? String(item.quantity) : "",
+              condition: normalizeCondition(item?.condition),
+            }))
+          : [];
+        setInventoryRows(mappedInventory.length ? mappedInventory : [createInventoryRow("inv-1")]);
+
+        const mappedEquipment = Array.isArray(payload?.equipment)
+          ? payload.equipment.map((item, index) => ({
+              id: `eq-${index + 1}`,
+              name: item?.itemDetails || "",
+              quantity: item?.quantity ? String(item.quantity) : "",
+              condition: normalizeCondition(item?.condition),
+              description: item?.description || "",
+              image: normalizeImageUrl(item?.image),
+            }))
+          : [];
+        setEquipmentRows(mappedEquipment.length ? mappedEquipment : [createEquipmentRow("eq-1")]);
+
+        inventoryId.current = (mappedInventory.length || 1) + 1;
+        equipmentId.current = (mappedEquipment.length || 1) + 1;
+      } catch (error) {
+        setSubmitError(error.message || "Failed to load facility data");
+      } finally {
+        setIsVenueLoading(false);
+      }
+    };
+
+    loadVenueForEdit();
+  }, [venueId]);
+
+  const mapInventoryCondition = (value) => {
+    if (value === "Good" || value === "Fair" || value === "Poor") {
+      return value;
+    }
+
+    return "Good";
+  };
+
+  const handlePublish = async () => {
+    if (isSubmitting) {
       return;
     }
 
-    setSubmitStatus("submitting");
-    publishTimeoutRef.current = window.setTimeout(() => {
-      setSubmitStatus("success");
-      publishTimeoutRef.current = null;
-    }, 1500);
+    const trimmedName = facilityName.trim();
+    if (!trimmedName) {
+      setFacilityNameError("Facility name is required");
+      setSubmitError("");
+      return;
+    }
+
+    setFacilityNameError("");
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    const venueData = {
+      name: trimmedName,
+      facilityType: facilityType || "",
+      capacity: capacity ? Number(capacity) : undefined,
+      location: location || "",
+      description: rules || "",
+      inventory: inventoryRows.map((item) => ({
+        itemName: item.name || "",
+        quantity: item.quantity ? Number(item.quantity) : 0,
+        condition: mapInventoryCondition(item.condition),
+      })),
+      equipment: equipmentRows.map((item) => ({
+        image: item.image || "",
+        itemDetails: item.name || "",
+        quantity: item.quantity ? Number(item.quantity) : 0,
+        condition: item.condition || "",
+        description: item.description || "",
+      })),
+      amenities: amenities.filter((item) => item.selected).map((item) => item.name),
+      bannerImage: bannerImage || "",
+      gallery: galleryImages,
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/venues`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(venueData),
+      });
+
+      const rawText = await response.text();
+      const payload = (() => {
+        try {
+          return rawText ? JSON.parse(rawText) : {};
+        } catch {
+          return { message: rawText };
+        }
+      })();
+
+      if (!response.ok) {
+        throw new Error(payload?.message || `Failed to publish (HTTP ${response.status})`);
+      }
+
+      setIsSuccessModalOpen(true);
+    } catch (error) {
+      setSubmitError(error.message || "Failed to publish facility. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleAddAnotherFacility = () => {
     resetForm();
-    setIsModalOpen(false);
-    setSubmitStatus("idle");
+    setIsSuccessModalOpen(false);
   };
 
   const handleViewFacilities = () => {
-    setIsModalOpen(false);
-    setSubmitStatus("idle");
+    setIsSuccessModalOpen(false);
     navigate("/facilities");
   };
 
@@ -208,16 +502,22 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
                   <span className="material-icons">arrow_back</span>
                 </button>
                 <div>
-                  <h1 className={styles.pageTitle}>Add New Facility</h1>
-                  <p className={styles.pageSubtitle}>Create a new space for students and staff to book.</p>
+                  <h1 className={styles.pageTitle}>{venueId ? "Edit Facility" : "Add New Facility"}</h1>
+                  <p className={styles.pageSubtitle}>
+                    {isVenueLoading
+                      ? "Loading facility details..."
+                      : venueId
+                        ? "Update facility details fetched from database."
+                        : "Create a new space for students and staff to book."}
+                  </p>
                 </div>
               </div>
 
               <div className={styles.topActions}>
                 <button className={styles.btnSecondary} onClick={() => navigate("/facilities")} type="button">Cancel</button>
-                <button className={styles.btnPrimary} onClick={openPublishModal} type="button">
-                  <span className="material-icons">check</span>
-                  Publish Facility
+                <button className={styles.btnPrimary} disabled={isSubmitting} onClick={handlePublish} type="button">
+                  <span className={`material-icons ${isSubmitting ? styles.spinning : ""}`}>{isSubmitting ? "autorenew" : "check"}</span>
+                  {isSubmitting ? "Publishing..." : "Publish Facility"}
                 </button>
               </div>
             </header>
@@ -233,7 +533,19 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
                   <div className={styles.formGrid}>
                     <label className={styles.field}>
                       <span className={styles.label}>Facility Name</span>
-                      <input className={styles.input} onChange={(event) => setFacilityName(event.target.value)} placeholder="e.g. Main Auditorium" type="text" value={facilityName} />
+                      <input
+                        className={facilityNameError ? `${styles.input} ${styles.inputError}` : styles.input}
+                        onChange={(event) => {
+                          setFacilityName(event.target.value);
+                          if (facilityNameError && event.target.value.trim()) {
+                            setFacilityNameError("");
+                          }
+                        }}
+                        placeholder="e.g. Main Auditorium"
+                        type="text"
+                        value={facilityName}
+                      />
+                      {facilityNameError ? <span className={styles.fieldError}>{facilityNameError}</span> : null}
                     </label>
 
                     <label className={styles.field}>
@@ -379,9 +691,16 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
                   <p className={styles.helper}>This image will appear on the landing page under Featured Venues.</p>
 
                   <button className={styles.bannerUpload} onClick={() => hiddenBannerInput.current?.click()} type="button">
-                    {bannerImage ? <img alt="Banner" className={styles.bannerPreview} src={bannerImage} /> : <span className="material-icons">add_photo_alternate</span>}
+                    {isBannerUploading ? (
+                      <span className={styles.bannerUploading}>Uploading...</span>
+                    ) : bannerImage ? (
+                      <img alt="Banner" className={styles.bannerPreview} src={bannerImage} />
+                    ) : (
+                      <span className="material-icons">add_photo_alternate</span>
+                    )}
                   </button>
                   <input accept="image/*" className={styles.hide} onChange={onSelectBanner} ref={hiddenBannerInput} type="file" />
+                  {bannerUploadError ? <p className={styles.bannerUploadError}>{bannerUploadError}</p> : null}
                 </section>
 
                 <section className={styles.card}>
@@ -397,10 +716,11 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
                     onDrop={onDropGallery}
                   >
                     <span className={`material-icons ${styles.galleryIcon}`}>add_photo_alternate</span>
-                    <span className={styles.galleryMain}>Click to upload photos</span>
-                    <span className={styles.gallerySub}>or drag and drop multiple images (PNG, JPG, SVG up to 5MB)</span>
+                    <span className={styles.galleryMain}>{isGalleryUploading ? "Uploading photos..." : "Click to upload photos"}</span>
+                    <span className={styles.gallerySub}>or drag and drop multiple images (PNG, JPG, SVG up to 10MB each)</span>
                     <input accept="image/*" className={styles.hide} multiple onChange={onSelectGallery} ref={hiddenGalleryInput} type="file" />
                   </label>
+                  {galleryUploadError ? <p className={styles.bannerUploadError}>{galleryUploadError}</p> : null}
 
                   <div className={styles.thumbGrid}>
                     {galleryImages.slice(0, 3).map((src, index) => (
@@ -438,6 +758,7 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
                   </div>
 
                   <p className={styles.helper}>{selectedAmenityCount} amenities selected</p>
+                  {equipmentUploadError ? <p className={styles.bannerUploadError}>{equipmentUploadError}</p> : null}
                 </section>
               </aside>
             </section>
@@ -445,49 +766,29 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
         </div>
       </div>
 
-      {isModalOpen ? (
+      {isSuccessModalOpen ? (
         <div className={styles.publishModalBackdrop} role="presentation">
           <div aria-modal="true" className={styles.publishModalCard} role="dialog">
-            {submitStatus === "success" ? (
-              <>
-                <div className={styles.publishSuccessIconWrap}>
-                  <span className={`material-icons ${styles.publishSuccessIcon}`}>check</span>
-                </div>
-                <h3 className={styles.publishModalTitle}>Facility Published!</h3>
-                <p className={styles.publishModalMessage}>Your new facility is now available for booking.</p>
-                <div className={styles.publishModalActions}>
-                  <button className={styles.publishBtnSecondary} onClick={handleViewFacilities} type="button">
-                    View Facilities List
-                  </button>
-                  <button className={styles.publishBtnPrimary} onClick={handleAddAnotherFacility} type="button">
-                    Add Another Facility
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <h3 className={styles.publishModalTitle}>Confirm Publication</h3>
-                <p className={styles.publishModalMessage}>
-                  Are you sure you want to publish this new facility and make it available for booking?
-                </p>
-                <div className={styles.publishModalActions}>
-                  <button className={styles.publishBtnSecondary} onClick={closePublishModal} type="button">
-                    Cancel
-                  </button>
-                  <button
-                    className={styles.publishBtnPrimary}
-                    disabled={submitStatus === "submitting"}
-                    onClick={confirmPublish}
-                    type="button"
-                  >
-                    {submitStatus === "submitting" ? "Publishing..." : "Confirm & Publish"}
-                  </button>
-                </div>
-              </>
-            )}
+            <>
+              <div className={styles.publishSuccessIconWrap}>
+                <span className={`material-icons ${styles.publishSuccessIcon}`}>check</span>
+              </div>
+              <h3 className={styles.publishModalTitle}>Facility Published!</h3>
+              <p className={styles.publishModalMessage}>Your new facility is now available for booking.</p>
+              <div className={styles.publishModalActions}>
+                <button className={styles.publishBtnSecondary} onClick={handleViewFacilities} type="button">
+                  View Facilities List
+                </button>
+                <button className={styles.publishBtnPrimary} onClick={handleAddAnotherFacility} type="button">
+                  Add Another Facility
+                </button>
+              </div>
+            </>
           </div>
         </div>
       ) : null}
+
+      {submitError ? <div className={styles.toastError}>{submitError}</div> : null}
     </div>
   );
 }

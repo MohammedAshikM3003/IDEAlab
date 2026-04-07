@@ -6,6 +6,7 @@ import DashboardPage from './frontend/DashboardPage.jsx'
 import RequestInboxPage from './frontend/RequestInboxPage.jsx'
 import StatusPage from './frontend/StatusPage.jsx'
 import FacilitiesManagementPage from './frontend/FacilitiesManagementPage.jsx'
+import FacilitiesAllPage from './frontend/FacilitiesAllPage.jsx'
 import AddFacilityPage from './frontend/AddFacilityPage.jsx'
 import HistoryPage from './frontend/HistoryPage.jsx'
 import SettingsPage from './frontend/SettingsPage.jsx'
@@ -29,6 +30,7 @@ function App() {
         <Route path="/inbox" element={<RequestInboxPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="/status" element={<StatusPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="/facilities" element={<FacilitiesManagementPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
+        <Route path="/facilities/all" element={<FacilitiesAllPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="/facilities/venue/:venueId" element={<FacilityVenueDetailPage />} />
         <Route path="/facilities/add" element={<AddFacilityPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="/history" element={<HistoryPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />

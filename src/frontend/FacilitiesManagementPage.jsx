@@ -5,7 +5,25 @@ import Calendar from "./Calendar";
 import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
 import styles from "./FacilitiesManagementPage.module.css";
-import venuesData from "../data/venuesData";
+
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const FALLBACK_FACILITY_IMAGE = "https://placehold.co/800x450?text=Facility";
+
+function resolveVenueImageSrc(value) {
+  if (!value) {
+    return FALLBACK_FACILITY_IMAGE;
+  }
+
+  if (String(value).startsWith("http://") || String(value).startsWith("https://")) {
+    return value;
+  }
+
+  if (String(value).startsWith("/")) {
+    return `${API_BASE}${value}`;
+  }
+
+  return value;
+}
 
 const DONUT_RADIUS = 70;
 const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
@@ -24,6 +42,49 @@ const INITIAL_MAINTENANCE_TASKS = [
   { id: "task-projector", title: "Projector Calibration", location: "Room 304, IT Block", date: "2026-10-24", time: "10:00" },
   { id: "task-audio", title: "Audio System Check", location: "Auditorium Main Stage", date: "2026-10-26", time: "11:00" },
   { id: "task-network", title: "Network Maintenance", location: "Campus Wide (11 PM - 2 AM)", date: "2026-10-28", time: "23:00" },
+];
+
+const INITIAL_RECENT_UPDATES = [
+  {
+    id: "update-maintenance-completed",
+    type: "maintenance",
+    icon: "build",
+    iconStyle: "blue",
+    title: "AC Maintenance Completed",
+    time: "2h ago",
+    description: "Seminar Hall cooling system serviced and filters replaced.",
+    isRead: false,
+  },
+  {
+    id: "update-booking-smith",
+    type: "bookings",
+    icon: "event_available",
+    iconStyle: "orange",
+    title: "New Booking Request",
+    time: "4h ago",
+    description: "Dr. Smith requested Idea Lab for \"Innovation Workshop\" on Oct 25.",
+    isRead: false,
+  },
+  {
+    id: "update-cleaning-verified",
+    type: "cleaning",
+    icon: "check_circle",
+    iconStyle: "green",
+    title: "Cleaning Verified",
+    time: "6h ago",
+    description: "Housekeeping staff marked \"Conference Room B\" as ready.",
+    isRead: false,
+  },
+  {
+    id: "update-booking-maan",
+    type: "bookings",
+    icon: "event_available",
+    iconStyle: "orange",
+    title: "New Booking Request",
+    time: "7h ago",
+    description: "Prof. Maan requested Dhenuka Hall for \"Seminar on AI Ethics\" on Oct 25.",
+    isRead: false,
+  },
 ];
 
 function formatMonthDay(dateValue) {
@@ -74,8 +135,18 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
   const [toastMessage, setToastMessage] = useState("");
   const [activeSegmentId, setActiveSegmentId] = useState("");
   const [tooltipState, setTooltipState] = useState({ visible: false, x: 0, y: 0, mode: "desktop" });
+  const [recentUpdates, setRecentUpdates] = useState(INITIAL_RECENT_UPDATES);
+  const [isUpdatesMenuOpen, setIsUpdatesMenuOpen] = useState(false);
+  const [isFilterRowVisible, setIsFilterRowVisible] = useState(false);
+  const [updatesFilter, setUpdatesFilter] = useState("all");
+  const [isClearConfirmOpen, setIsClearConfirmOpen] = useState(false);
+  const [updatesToastMessage, setUpdatesToastMessage] = useState("");
+  const [venues, setVenues] = useState([]);
+  const [isVenuesLoading, setIsVenuesLoading] = useState(true);
+  const [venuesError, setVenuesError] = useState("");
   const chartContainerRef = useRef(null);
   const equipmentSectionRef = useRef(null);
+  const updatesMenuRef = useRef(null);
 
   const chartSegments = useMemo(() => {
     return EQUIPMENT_SEGMENTS.reduce(
@@ -107,6 +178,14 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
     [activeSegmentId, chartSegments],
   );
 
+  const visibleRecentUpdates = useMemo(() => {
+    if (updatesFilter === "all") {
+      return recentUpdates;
+    }
+
+    return recentUpdates.filter((update) => update.type === updatesFilter);
+  }, [recentUpdates, updatesFilter]);
+
   useEffect(() => {
     if (!toastMessage) {
       return undefined;
@@ -136,6 +215,78 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
     document.addEventListener("pointerdown", handlePointerOutside);
     return () => document.removeEventListener("pointerdown", handlePointerOutside);
   }, [tooltipState.mode, tooltipState.visible]);
+
+  useEffect(() => {
+    if (!updatesToastMessage) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setUpdatesToastMessage("");
+    }, 3000);
+
+    return () => window.clearTimeout(timer);
+  }, [updatesToastMessage]);
+
+  const fetchVenues = async () => {
+    try {
+      setIsVenuesLoading(true);
+      setVenuesError("");
+
+      const response = await fetch(`${API_BASE}/api/venues`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to load facilities");
+      }
+
+      const payload = await response.json();
+      setVenues(Array.isArray(payload) ? payload : []);
+    } catch {
+      setVenuesError("Failed to load facilities.");
+    } finally {
+      setIsVenuesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVenues();
+  }, []);
+
+  useEffect(() => {
+    if (!isUpdatesMenuOpen && !isClearConfirmOpen) {
+      return undefined;
+    }
+
+    const handlePointerOutside = (event) => {
+      if (updatesMenuRef.current?.contains(event.target)) {
+        return;
+      }
+
+      setIsUpdatesMenuOpen(false);
+      setIsClearConfirmOpen(false);
+    };
+
+    const handleEscape = (event) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      setIsUpdatesMenuOpen(false);
+      setIsClearConfirmOpen(false);
+    };
+
+    document.addEventListener("pointerdown", handlePointerOutside);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isClearConfirmOpen, isUpdatesMenuOpen]);
 
   const updateDesktopTooltipPosition = (event) => {
     const mouseX = event.clientX;
@@ -235,6 +386,60 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
     setToastMessage("Schedule Updated");
   };
 
+  const toggleUpdatesMenu = () => {
+    setIsUpdatesMenuOpen((previous) => {
+      const nextValue = !previous;
+      if (!nextValue) {
+        setIsClearConfirmOpen(false);
+      }
+      return nextValue;
+    });
+  };
+
+  const markAllUpdatesAsRead = () => {
+    setRecentUpdates((previous) => previous.map((update) => ({ ...update, isRead: true })));
+    setIsUpdatesMenuOpen(false);
+    setIsClearConfirmOpen(false);
+    setUpdatesToastMessage("All updates marked as read");
+  };
+
+  const toggleUpdatesFilterRow = () => {
+    setIsFilterRowVisible((previous) => !previous);
+    setIsUpdatesMenuOpen(false);
+    setIsClearConfirmOpen(false);
+  };
+
+  const handleViewActivityLog = () => {
+    const activityRouteExists = false;
+    const facilitiesRouteExists = true;
+
+    if (activityRouteExists) {
+      navigate("/facilities/activity");
+      return;
+    }
+
+    if (facilitiesRouteExists) {
+      navigate("/facilities?tab=activity");
+      return;
+    }
+
+    setUpdatesToastMessage("Activity log coming soon");
+  };
+
+  const requestClearAllUpdates = () => {
+    setIsClearConfirmOpen(true);
+    setIsUpdatesMenuOpen(false);
+  };
+
+  const cancelClearAllUpdates = () => {
+    setIsClearConfirmOpen(false);
+  };
+
+  const confirmClearAllUpdates = () => {
+    setRecentUpdates([]);
+    setIsClearConfirmOpen(false);
+  };
+
   return (
     <div className={styles.page}>
       <div className={styles.mainContainer}>
@@ -318,7 +523,7 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
                 <div className={styles.sectionHeader}>
                   <h3 className={styles.sectionTitle}>Facility Overview</h3>
                   <div className={styles.sectionActions}>
-                    <button className={styles.btnViewAll} type="button">
+                    <button className={styles.btnViewAll} onClick={() => navigate("/facilities/all")} type="button">
                       View All
                     </button>
                     <button className={styles.btnAddFacility} onClick={() => navigate("/facilities/add")} type="button">
@@ -329,31 +534,60 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
                 </div>
 
                 <div className={styles.facilityCards}>
-                  {venuesData.slice(0, 4).map(venue => (
-                    <div className={styles.facilityCard} key={venue.id} onClick={() => navigate(`/facilities/venue/${venue.id}`)}>
-                      <div className={styles.facilityImage}>
-                        <img
-                          alt={venue.name}
-                          src={venue.images.hero}
-                        />
-                        <span className={`${styles.facilityStatus} ${styles.statusActive}`}>Active</span>
-                      </div>
-                      <div className={styles.facilityDetails}>
-                        <h4 className={styles.facilityName}>{venue.name}</h4>
-                        <p className={styles.facilityLocation}>{venue.location}</p>
-                        <div className={styles.facilityStats}>
-                          <div className={styles.statItem}>
-                            <span className="material-icons statIcon">groups</span>
-                            <span className={styles.statValue}>{Math.floor(venue.capacity * 0.7)}/{venue.capacity}</span>
+                  {isVenuesLoading
+                    ? Array.from({ length: 4 }).map((_, index) => (
+                        <div aria-hidden="true" className={styles.facilityCardSkeleton} key={`skeleton-${index}`} />
+                      ))
+                    : null}
+
+                  {!isVenuesLoading && venuesError ? (
+                    <div className={styles.facilitiesStatusWrap}>
+                      <p className={styles.facilitiesStatusText}>Failed to load facilities.</p>
+                      <button className={styles.btnRetry} onClick={fetchVenues} type="button">Retry</button>
+                    </div>
+                  ) : null}
+
+                  {!isVenuesLoading && !venuesError && !venues.length ? (
+                    <div className={styles.facilitiesStatusWrap}>
+                      <p className={styles.facilitiesStatusText}>No facilities added yet.</p>
+                      <button className={styles.btnAddFacility} onClick={() => navigate("/facilities/add")} type="button">
+                        <span className="material-icons">add</span>
+                        Add Facility
+                      </button>
+                    </div>
+                  ) : null}
+
+                  {!isVenuesLoading && !venuesError
+                    ? venues.slice(0, 4).map((venue) => (
+                        <div className={styles.facilityCard} key={venue._id} onClick={() => navigate(`/facilities/add?venueId=${venue._id}`)}>
+                          <div className={styles.facilityImage}>
+                            <img
+                              alt={venue.name}
+                              onError={(event) => {
+                                event.currentTarget.onerror = null;
+                                event.currentTarget.src = FALLBACK_FACILITY_IMAGE;
+                              }}
+                              src={resolveVenueImageSrc(venue.bannerImage)}
+                            />
+                            <span className={`${styles.facilityStatus} ${styles.statusActive}`}>{venue.status || "active"}</span>
                           </div>
-                          <div className={styles.statItem}>
-                            <span className="material-icons statIcon">wifi</span>
-                            <span className={`${styles.statValue} ${styles.statGood}`}>Good</span>
+                          <div className={styles.facilityDetails}>
+                            <h4 className={styles.facilityName}>{venue.name}</h4>
+                            <p className={styles.facilityLocation}>{venue.location || "Location not set"}</p>
+                            <div className={styles.facilityStats}>
+                              <div className={styles.statItem}>
+                                <span className="material-icons statIcon">groups</span>
+                                <span className={styles.statValue}>{venue.currentOccupancy || 0}/{venue.capacity || 0}</span>
+                              </div>
+                              <div className={styles.statItem}>
+                                <span className="material-icons statIcon">wifi</span>
+                                <span className={`${styles.statValue} ${styles.statGood}`}>{venue.wifiStatus || "Good"}</span>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  ))}
+                      ))
+                    : null}
                 </div>
               </div>
 
@@ -483,62 +717,117 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
               <div className={styles.recentUpdates}>
                 <div className={styles.sectionHeader}>
                   <h3 className={styles.sectionTitle}>Recent Facility Updates</h3>
-                  <button className={styles.moreBtn} type="button">
-                    <span className="material-icons">more_horiz</span>
-                  </button>
+                  <div className={styles.recentUpdatesMenuWrapper} ref={updatesMenuRef}>
+                    <button
+                      aria-expanded={isUpdatesMenuOpen}
+                      aria-haspopup="menu"
+                      className={isUpdatesMenuOpen ? `${styles.moreBtn} ${styles.moreBtnActive}` : styles.moreBtn}
+                      onClick={toggleUpdatesMenu}
+                      type="button"
+                    >
+                      <span className="material-icons">more_horiz</span>
+                    </button>
+
+                    {isUpdatesMenuOpen ? (
+                      <div className={styles.updatesMenuDropdown} role="menu">
+                        <button className={styles.updatesMenuItem} onClick={markAllUpdatesAsRead} role="menuitem" type="button">
+                          <span className="material-icons">done_all</span>
+                          Mark all as read
+                        </button>
+                        <button className={styles.updatesMenuItem} onClick={toggleUpdatesFilterRow} role="menuitem" type="button">
+                          <span className="material-icons">filter_list</span>
+                          Filter by type
+                        </button>
+                        <button className={styles.updatesMenuItem} onClick={handleViewActivityLog} role="menuitem" type="button">
+                          <span className="material-icons">list_alt</span>
+                          View full activity log
+                        </button>
+                        <div className={styles.updatesMenuDivider} />
+                        <button
+                          className={`${styles.updatesMenuItem} ${styles.updatesMenuItemDestructive}`}
+                          onClick={requestClearAllUpdates}
+                          role="menuitem"
+                          type="button"
+                        >
+                          <span className="material-icons">delete_outline</span>
+                          Clear all updates
+                        </button>
+                      </div>
+                    ) : null}
+
+                    {isClearConfirmOpen ? (
+                      <div className={styles.clearUpdatesConfirm} role="dialog" aria-modal="false">
+                        <p className={styles.clearUpdatesText}>Clear all recent updates? This cannot be undone.</p>
+                        <div className={styles.clearUpdatesActions}>
+                          <button className={styles.clearUpdatesCancelBtn} onClick={cancelClearAllUpdates} type="button">
+                            Cancel
+                          </button>
+                          <button className={styles.clearUpdatesConfirmBtn} onClick={confirmClearAllUpdates} type="button">
+                            Clear
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
+
+                {isFilterRowVisible ? (
+                  <div className={styles.updatesFilterRow}>
+                    {[
+                      { id: "all", label: "All" },
+                      { id: "maintenance", label: "Maintenance" },
+                      { id: "bookings", label: "Bookings" },
+                      { id: "cleaning", label: "Cleaning" },
+                    ].map((filterOption) => (
+                      <button
+                        className={
+                          updatesFilter === filterOption.id
+                            ? `${styles.updatesFilterBtn} ${styles.updatesFilterBtnActive}`
+                            : styles.updatesFilterBtn
+                        }
+                        key={filterOption.id}
+                        onClick={() => setUpdatesFilter(filterOption.id)}
+                        type="button"
+                      >
+                        {filterOption.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+
                 <div className={styles.updatesList}>
-                  <div className={styles.updateItem}>
-                    <div className={`${styles.updateIcon} ${styles.updateIconBlue}`}>
-                      <span className="material-icons">build</span>
-                    </div>
-                    <div className={styles.updateContent}>
-                      <div className={styles.updateHeader}>
-                        <h5 className={styles.updateTitle}>AC Maintenance Completed</h5>
-                        <span className={styles.updateTime}>2h ago</span>
+                  {visibleRecentUpdates.length ? (
+                    visibleRecentUpdates.map((update) => (
+                      <div className={styles.updateItem} key={update.id}>
+                        <div
+                          className={
+                            update.iconStyle === "blue"
+                              ? `${styles.updateIcon} ${styles.updateIconBlue}`
+                              : update.iconStyle === "orange"
+                                ? `${styles.updateIcon} ${styles.updateIconOrange}`
+                                : `${styles.updateIcon} ${styles.updateIconGreen}`
+                          }
+                        >
+                          <span className="material-icons">{update.icon}</span>
+                        </div>
+                        <div className={styles.updateContent}>
+                          <div className={styles.updateHeader}>
+                            <h5 className={styles.updateTitle}>{update.title}</h5>
+                            <div className={styles.updateHeaderMeta}>
+                              {!update.isRead ? <span className={styles.updateUnreadDot} aria-hidden="true" /> : null}
+                              <span className={styles.updateTime}>{update.time}</span>
+                            </div>
+                          </div>
+                          <p className={styles.updateDescription}>{update.description}</p>
+                        </div>
                       </div>
-                      <p className={styles.updateDescription}>Seminar Hall cooling system serviced and filters replaced.</p>
+                    ))
+                  ) : (
+                    <div className={styles.updatesEmptyState}>
+                      <span className={`material-icons ${styles.updatesEmptyIcon}`}>notifications_off</span>
+                      <p className={styles.updatesEmptyText}>No recent updates</p>
                     </div>
-                  </div>
-
-                  <div className={styles.updateItem}>
-                    <div className={`${styles.updateIcon} ${styles.updateIconOrange}`}>
-                      <span className="material-icons">event_available</span>
-                    </div>
-                    <div className={styles.updateContent}>
-                      <div className={styles.updateHeader}>
-                        <h5 className={styles.updateTitle}>New Booking Request</h5>
-                        <span className={styles.updateTime}>4h ago</span>
-                      </div>
-                      <p className={styles.updateDescription}>Dr. Smith requested Idea Lab for "Innovation Workshop" on Oct 25.</p>
-                    </div>
-                  </div>
-
-                  <div className={styles.updateItem}>
-                    <div className={`${styles.updateIcon} ${styles.updateIconGreen}`}>
-                      <span className="material-icons">check_circle</span>
-                    </div>
-                    <div className={styles.updateContent}>
-                      <div className={styles.updateHeader}>
-                        <h5 className={styles.updateTitle}>Cleaning Verified</h5>
-                        <span className={styles.updateTime}>6h ago</span>
-                      </div>
-                      <p className={styles.updateDescription}>Housekeeping staff marked "Conference Room B" as ready.</p>
-                    </div>
-                  </div>
-
-                  <div className={styles.updateItem}>
-                    <div className={`${styles.updateIcon} ${styles.updateIconOrange}`}>
-                      <span className="material-icons">event_available</span>
-                    </div>
-                    <div className={styles.updateContent}>
-                      <div className={styles.updateHeader}>
-                        <h5 className={styles.updateTitle}>New Booking Request</h5>
-                        <span className={styles.updateTime}>7h ago</span>
-                      </div>
-                      <p className={styles.updateDescription}>Prof. Maan requested Dhenuka Hall for "Seminar on AI Ethics" on Oct 25.</p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -579,6 +868,7 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
       )}
 
       {toastMessage && <div className={styles.toast}>{toastMessage}</div>}
+      {updatesToastMessage ? <div className={styles.updatesToast}>{updatesToastMessage}</div> : null}
     </div>
   );
 }

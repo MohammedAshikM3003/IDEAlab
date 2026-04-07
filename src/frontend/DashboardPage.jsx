@@ -448,7 +448,7 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
                   <span className="material-icons text-sm">pending_actions</span>
                   View pending requests
                 </button>
-                <button className={styles.btnGhost} type="button">
+                <button className={styles.btnGhost} onClick={() => navigate("/status")} type="button">
                   <span className="material-icons text-sm">today</span>
                   Check today&apos;s bookings
                 </button>

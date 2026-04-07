@@ -6,6 +6,12 @@ export default defineConfig({
   server: {
     host: true, // This enables the Network IP automatically
     port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+    },
   },
   plugins: [
     react({

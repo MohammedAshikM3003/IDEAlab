@@ -164,6 +164,21 @@
   background: #f17f00;
 }
 
+.btnPrimary:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.spinning {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .layout {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -261,6 +276,17 @@
   outline: none;
   border-color: #ff9400;
   box-shadow: 0 0 0 3px rgba(255, 148, 0, 0.16);
+}
+
+.inputError {
+  border-color: #dc2626;
+  background: #fff1f2;
+}
+
+.fieldError {
+  color: #dc2626;
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .textarea {
@@ -413,6 +439,19 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.bannerUploading {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.bannerUploadError {
+  margin: 0.45rem 0 0;
+  color: #dc2626;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .galleryDrop {
@@ -603,6 +642,20 @@
 .publishBtnPrimary:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+.toastError {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 10000;
+  background: #7f1d1d;
+  color: #ffffff;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.25);
 }
 
 @media (max-width: 1200px) {
