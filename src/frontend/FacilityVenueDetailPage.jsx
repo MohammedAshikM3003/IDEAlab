@@ -1,356 +1,252 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import venuesData from '../data/venuesData.js'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import PageHeader from './PageHeader'
 import Sidebar from './Sidebar'
-import ImageCropModal from '../components/facilities/ImageCropModal'
 import styles from './FacilityVenueDetailPage.module.css'
 
-const createEquipmentRow = (item = {}) => ({
-  name: item.name || '',
-  specs: item.specs || '',
-  description: item.description || '',
-  quantity: item.quantity ?? '',
-  image: item.image || '',
-})
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
-const createEditableVenue = (baseVenue) => ({
-  name: baseVenue.name || '',
-  location: baseVenue.location || '',
-  capacity: baseVenue.capacity ?? '',
-  size: baseVenue.size || '',
-  description: baseVenue.description || '',
-  amenities: Array.isArray(baseVenue.amenities) ? [...baseVenue.amenities] : [],
-  equipment: Array.isArray(baseVenue.equipment)
-    ? baseVenue.equipment.map((item) => createEquipmentRow(item))
+const normalizeImageUrl = (value) => {
+  if (!value) return ''
+  if (String(value).startsWith('http://') || String(value).startsWith('https://')) return value
+  if (String(value).startsWith('/')) return `${API_BASE}${value}`
+  return value
+}
+
+const toViewVenue = (payload = {}) => ({
+  id: payload._id || payload.id || '',
+  name: payload.name || '',
+  location: payload.location || '',
+  capacity: payload.capacity ?? '',
+  size: payload.size || '',
+  description: payload.description || '',
+  amenities: Array.isArray(payload.amenities) ? payload.amenities : [],
+  equipment: Array.isArray(payload.equipment)
+    ? payload.equipment.map((item, index) => ({
+        id: item?._id || `eq-${index + 1}`,
+        name: item?.itemDetails || item?.name || '',
+        specs: item?.condition || item?.specs || '',
+        description: item?.description || '',
+        quantity: item?.quantity ?? '',
+        image: normalizeImageUrl(item?.image),
+      }))
     : [],
   images: {
-    hero: baseVenue.images?.hero || '',
-    thumbnails: Array.isArray(baseVenue.images?.thumbnails) ? [...baseVenue.images.thumbnails] : [],
+    hero: normalizeImageUrl(payload.bannerImage),
+    thumbnails: Array.isArray(payload.gallery) ? payload.gallery.map((image) => normalizeImageUrl(image)).filter(Boolean) : [],
   },
 })
 
-const readFileAsDataUrl = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(String(reader.result || ''))
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(file)
-  })
-
 export default function FacilityVenueDetailPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { venueId } = useParams()
-  const venue = useMemo(() => venuesData.find((v) => v.id === venueId), [venueId])
+  const preload = location.state?.preload || null
+  const [venue, setVenue] = useState(() => (preload ? toViewVenue(preload) : null))
+  const [venueLoadError, setVenueLoadError] = useState('')
+  const [fullDataLoading, setFullDataLoading] = useState(true)
+  const [imageLoaded, setImageLoaded] = useState(false)
+  const [galleryLoadedMap, setGalleryLoadedMap] = useState({})
+  const [lightbox, setLightbox] = useState({
+    open: false,
+    images: [],
+    currentIndex: 0,
+    title: '',
+  })
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState('details')
-  const [amenityInput, setAmenityInput] = useState('')
-  const heroInputRef = useRef(null)
-  const galleryInputRef = useRef(null)
-  const objectUrlsRef = useRef([])
-  const [savedVenueEdits, setSavedVenueEdits] = useState({})
-  const [cropImageSrc, setCropImageSrc] = useState('')
-  const [cropAspectRatio, setCropAspectRatio] = useState(16 / 9)
-  const [cropTarget, setCropTarget] = useState('')
-  const [equipmentCropIndex, setEquipmentCropIndex] = useState(-1)
-  const [isCropModalOpen, setIsCropModalOpen] = useState(false)
-  const [galleryCropQueue, setGalleryCropQueue] = useState([])
-  const [galleryCropIndex, setGalleryCropIndex] = useState(0)
 
-  const baseVenueData = useMemo(() => (venue ? createEditableVenue(venue) : null), [venue])
-  const venueData = savedVenueEdits[venueId] || baseVenueData
-  const [draftVenue, setDraftVenue] = useState(null)
+  const skeletonStyle = {
+    background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
+    backgroundSize: '200% 100%',
+    animation: 'fmShimmer 1.5s infinite linear',
+    borderRadius: '6px',
+  }
 
   useEffect(() => {
-    return () => {
-      objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
-      objectUrlsRef.current = []
-    }
-  }, [])
+    const loadVenue = async () => {
+      if (!venueId) {
+        setVenue(null)
+        setVenueLoadError('Venue not found')
+        setFullDataLoading(false)
+        return
+      }
 
-  useEffect(() => {
-    if (!isEditModalOpen) return undefined
+      setFullDataLoading(true)
+      setVenueLoadError('')
+      if (preload) {
+        setVenue(toViewVenue(preload))
+      }
 
-    const handleEscape = (event) => {
-      if (event.key === 'Escape') {
-        setIsEditModalOpen(false)
-        setDraftVenue(null)
-        setAmenityInput('')
-        setActiveTab('details')
+      try {
+        const response = await fetch(`${API_BASE}/api/venues/${venueId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        })
+
+        const rawText = await response.text()
+        const payload = (() => {
+          try {
+            return rawText ? JSON.parse(rawText) : {}
+          } catch {
+            return { message: rawText }
+          }
+        })()
+
+        if (!response.ok) {
+          throw new Error(payload?.message || 'Failed to load venue')
+        }
+
+        setVenue(toViewVenue(payload))
+      } catch (error) {
+        if (!preload) {
+          setVenue(null)
+        }
+        setVenueLoadError(error.message || 'Venue not found')
+      } finally {
+        setFullDataLoading(false)
       }
     }
 
-    window.addEventListener('keydown', handleEscape)
+    loadVenue()
+  }, [preload, venueId])
 
-    return () => window.removeEventListener('keydown', handleEscape)
-  }, [isEditModalOpen])
+  useEffect(() => {
+    setImageLoaded(false)
+  }, [venue?.images?.hero])
 
-  const registerObjectUrl = (file) => {
-    const objectUrl = URL.createObjectURL(file)
-    objectUrlsRef.current.push(objectUrl)
-    return objectUrl
-  }
+  useEffect(() => {
+    setGalleryLoadedMap({})
+  }, [venue?.id])
 
-  const resetCropState = () => {
-    setCropImageSrc('')
-    setCropAspectRatio(16 / 9)
-    setCropTarget('')
-    setEquipmentCropIndex(-1)
-    setIsCropModalOpen(false)
-    setGalleryCropQueue([])
-    setGalleryCropIndex(0)
-  }
+  const safeThumbnails = useMemo(() => venue?.images?.thumbnails || [], [venue])
+  const equipmentImages = useMemo(
+    () => (venue?.equipment || []).filter((item) => item?.image).map((item) => item.image),
+    [venue],
+  )
 
-  const openHeroCrop = (imageSrc) => {
-    setCropImageSrc(imageSrc)
-    setCropAspectRatio(16 / 9)
-    setCropTarget('hero')
-    setIsCropModalOpen(true)
-  }
-
-  const openGalleryCropAtIndex = (queue, index) => {
-    const imageSrc = queue[index]
-    if (!imageSrc) {
-      resetCropState()
+  const openLightbox = (images, index, title) => {
+    const sanitizedImages = Array.isArray(images) ? images.filter(Boolean) : []
+    if (!sanitizedImages.length) {
       return
     }
 
-    setCropImageSrc(imageSrc)
-    setCropAspectRatio(4 / 3)
-    setCropTarget('gallery')
-    setGalleryCropQueue(queue)
-    setGalleryCropIndex(index)
-    setIsCropModalOpen(true)
-  }
-
-  const moveToNextGalleryCrop = () => {
-    const nextIndex = galleryCropIndex + 1
-    if (nextIndex >= galleryCropQueue.length) {
-      resetCropState()
-      return
-    }
-
-    openGalleryCropAtIndex(galleryCropQueue, nextIndex)
-  }
-
-  const safeThumbnails = useMemo(() => venueData?.images?.thumbnails || [], [venueData])
-
-  const openEditModal = () => {
-    if (!venueData) return
-    const editable = JSON.parse(JSON.stringify(venueData))
-    const heroImage = editable.heroImage || editable.images?.hero || ''
-    const gallery = Array.isArray(editable.gallery)
-      ? [...editable.gallery]
-      : Array.isArray(editable.images?.thumbnails)
-        ? [...editable.images.thumbnails]
-        : []
-
-    setDraftVenue({
-      ...editable,
-      heroImage,
-      gallery,
+    const boundedIndex = Math.max(0, Math.min(index, sanitizedImages.length - 1))
+    setLightbox({
+      open: true,
+      images: sanitizedImages,
+      currentIndex: boundedIndex,
+      title,
     })
-    setAmenityInput('')
-    setActiveTab('details')
-    setIsEditModalOpen(true)
+    document.body.style.overflow = 'hidden'
   }
 
-  const handleDiscardModalChanges = () => {
-    setIsEditModalOpen(false)
-    setDraftVenue(null)
-    setAmenityInput('')
-    setActiveTab('details')
-    resetCropState()
+  const closeLightbox = () => {
+    setLightbox((previous) => ({ ...previous, open: false }))
+    document.body.style.overflow = ''
   }
 
-  const handleSaveChanges = (event) => {
-    event.preventDefault()
-    if (!draftVenue || !draftVenue.name.trim() || !draftVenue.location.trim()) return
+  const nextImage = () => {
+    setLightbox((previous) => {
+      if (!previous.images.length) {
+        return previous
+      }
 
-    const cleanedHeroImage = draftVenue.heroImage || draftVenue.images?.hero || ''
-    const cleanedGallery = Array.isArray(draftVenue.gallery)
-      ? draftVenue.gallery
-      : Array.isArray(draftVenue.images?.thumbnails)
-        ? draftVenue.images.thumbnails
-        : []
-
-    setSavedVenueEdits((prev) => ({
-      ...prev,
-      [venueId]: {
-        ...draftVenue,
-        name: draftVenue.name.trim(),
-        location: draftVenue.location.trim(),
-        size: draftVenue.size.trim(),
-        description: draftVenue.description.trim(),
-        amenities: draftVenue.amenities.map((item) => item.trim()).filter(Boolean),
-        equipment: draftVenue.equipment.map((item) => ({
-          ...item,
-          name: item.name.trim(),
-          specs: item.specs.trim(),
-          description: item.description.trim(),
-        })),
-        images: {
-          hero: cleanedHeroImage,
-          thumbnails: cleanedGallery,
-        },
-        heroImage: cleanedHeroImage,
-        gallery: cleanedGallery,
-      },
-    }))
-
-    setIsEditModalOpen(false)
-    setDraftVenue(null)
-    setAmenityInput('')
-    resetCropState()
+      return {
+        ...previous,
+        currentIndex: (previous.currentIndex + 1) % previous.images.length,
+      }
+    })
   }
 
-  const handleDraftFieldChange = (field, value) => {
-    setDraftVenue((prev) => ({ ...prev, [field]: value }))
+  const prevImage = () => {
+    setLightbox((previous) => {
+      if (!previous.images.length) {
+        return previous
+      }
+
+      return {
+        ...previous,
+        currentIndex: (previous.currentIndex - 1 + previous.images.length) % previous.images.length,
+      }
+    })
   }
 
-  const addAmenity = () => {
-    const trimmed = amenityInput.trim()
-    if (!trimmed) return
+  useEffect(() => {
+    const handleKey = (event) => {
+      if (!lightbox.open) {
+        return
+      }
 
-    setDraftVenue((prev) => ({
-      ...prev,
-      amenities: [...prev.amenities, trimmed],
-    }))
+      if (event.key === 'Escape') {
+        closeLightbox()
+      }
 
-    setAmenityInput('')
-  }
+      if (event.key === 'ArrowRight') {
+        nextImage()
+      }
 
-  const removeAmenity = (indexToRemove) => {
-    setDraftVenue((prev) => ({
-      ...prev,
-      amenities: prev.amenities.filter((_, index) => index !== indexToRemove),
-    }))
-  }
-
-  const updateEquipmentField = (equipmentIndex, field, value) => {
-    setDraftVenue((prev) => ({
-      ...prev,
-      equipment: prev.equipment.map((item, index) =>
-        index === equipmentIndex
-          ? {
-              ...item,
-              [field]: value,
-            }
-          : item,
-      ),
-    }))
-  }
-
-  const addEquipmentRow = () => {
-    setDraftVenue((prev) => ({
-      ...prev,
-      equipment: [...prev.equipment, createEquipmentRow({ quantity: 1 })],
-    }))
-  }
-
-  const removeEquipmentRow = (equipmentIndex) => {
-    setDraftVenue((prev) => ({
-      ...prev,
-      equipment: prev.equipment.filter((_, index) => index !== equipmentIndex),
-    }))
-  }
-
-  const handleEquipmentImageChange = async (equipmentIndex, event) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    const rawImageDataUrl = await readFileAsDataUrl(file)
-    setCropImageSrc(rawImageDataUrl)
-    setCropAspectRatio(1)
-    setCropTarget('equipment')
-    setEquipmentCropIndex(equipmentIndex)
-    setIsCropModalOpen(true)
-
-    // reset so the same file can be chosen again if needed
-    event.target.value = ''
-  }
-
-  const handleHeroImageChange = async (event) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    const rawImageDataUrl = await readFileAsDataUrl(file)
-    openHeroCrop(rawImageDataUrl)
-
-    event.target.value = ''
-  }
-
-  const handleGalleryImagesChange = async (event) => {
-    const files = Array.from(event.target.files || [])
-    if (files.length === 0) return
-
-    const galleryRawImages = await Promise.all(files.map((file) => readFileAsDataUrl(file)))
-    openGalleryCropAtIndex(galleryRawImages, 0)
-
-    event.target.value = ''
-  }
-
-  const handleCropApply = async (croppedBlob) => {
-    const objectUrl = registerObjectUrl(croppedBlob)
-
-    if (cropTarget === 'hero') {
-      setDraftVenue((prev) => ({
-        ...prev,
-        heroImage: objectUrl,
-      }))
-      resetCropState()
-      return
+      if (event.key === 'ArrowLeft') {
+        prevImage()
+      }
     }
 
-    if (cropTarget === 'gallery') {
-      setDraftVenue((prev) => ({
-        ...prev,
-        gallery: [...(prev.gallery || []), objectUrl],
-      }))
-      moveToNextGalleryCrop()
-      return
-    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [lightbox.currentIndex, lightbox.open])
 
-    if (cropTarget === 'equipment' && equipmentCropIndex >= 0) {
-      setDraftVenue((prev) => ({
-        ...prev,
-        equipment: prev.equipment.map((item, index) =>
-          index === equipmentCropIndex
-            ? {
-                ...item,
-                image: objectUrl,
-              }
-            : item,
-        ),
-      }))
-      resetCropState()
-    }
+  useEffect(
+    () => () => {
+      document.body.style.overflow = ''
+    },
+    [],
+  )
+
+  if (!preload && fullDataLoading) {
+    return (
+      <div className={styles.page}>
+        <style>{`@keyframes fmShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
+        <div className={styles.mainContainer}>
+          <Sidebar
+            activePage="facilities"
+            isSidebarOpen={isSidebarOpen}
+            setIsSidebarOpen={setIsSidebarOpen}
+          />
+          <div className={styles.mainContent}>
+            <PageHeader title="Facilities Management" setIsSidebarOpen={setIsSidebarOpen} />
+            <main className={styles.content}>
+              <div className={styles.card}>
+                <div className={styles.topBar}>
+                  <div style={{ ...skeletonStyle, height: 36, width: 170 }} />
+                  <div style={{ ...skeletonStyle, height: 36, width: 120 }} />
+                </div>
+
+                <section className={styles.headerSection}>
+                  <div style={{ ...skeletonStyle, height: 34, width: 200 }} />
+                  <div style={{ ...skeletonStyle, height: 18, width: 120, marginTop: 8 }} />
+                </section>
+
+                <section className={styles.statsRow}>
+                  <div style={{ ...skeletonStyle, height: 76, width: '100%' }} />
+                  <div style={{ ...skeletonStyle, height: 76, width: '100%' }} />
+                </section>
+
+                <section className={styles.heroSection}>
+                  <div style={{ ...skeletonStyle, height: 300, width: '100%' }} />
+                </section>
+
+                <section className={styles.section}>
+                  <div style={{ ...skeletonStyle, height: 16, width: '100%' }} />
+                  <div style={{ ...skeletonStyle, height: 16, width: '80%', marginTop: 8 }} />
+                  <div style={{ ...skeletonStyle, height: 16, width: '60%', marginTop: 8 }} />
+                </section>
+              </div>
+            </main>
+          </div>
+        </div>
+      </div>
+    )
   }
-
-  const handleCropCancel = () => {
-    if (cropTarget === 'gallery') {
-      moveToNextGalleryCrop()
-      return
-    }
-
-    resetCropState()
-  }
-
-  const removeGalleryImage = (indexToRemove) => {
-    setDraftVenue((prev) => ({
-      ...prev,
-      gallery: (prev.gallery || []).filter((_, index) => index !== indexToRemove),
-    }))
-  }
-
-  const heroPreviewSrc = draftVenue?.heroImage || draftVenue?.images?.hero || ''
-  const galleryImages =
-    draftVenue?.gallery || (Array.isArray(draftVenue?.images?.thumbnails) ? draftVenue.images.thumbnails : [])
-  const galleryCropProgressLabel =
-    cropTarget === 'gallery' && galleryCropQueue.length > 0
-      ? `Cropping image ${galleryCropIndex + 1} of ${galleryCropQueue.length}...`
-      : ''
 
   if (!venue) {
     return (
@@ -366,7 +262,7 @@ export default function FacilityVenueDetailPage() {
             <main className={styles.content}>
               <div className={styles.card}>
                 <div className={styles.notFoundContainer}>
-                  <h1 className={styles.notFoundTitle}>Venue not found</h1>
+                  <h1 className={styles.notFoundTitle}>{venueLoadError || 'Venue not found'}</h1>
                   <button
                     className={styles.backButton}
                     onClick={() => navigate('/facilities')}
@@ -385,6 +281,7 @@ export default function FacilityVenueDetailPage() {
 
   return (
     <div className={styles.page}>
+      <style>{`@keyframes fmShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
       <div className={styles.mainContainer}>
         <Sidebar
           activePage="facilities"
@@ -406,55 +303,103 @@ export default function FacilityVenueDetailPage() {
                   ← Back to Facilities
                 </button>
 
-                <button className={styles.editButton} onClick={openEditModal} type="button">
+                <button
+                  className={styles.editButton}
+                  onClick={() => navigate(`/facilities/venue/${venueId}/edit`)}
+                  type="button"
+                >
                   Edit Details
                 </button>
               </div>
 
               <section className={styles.headerSection}>
-                <h1 className={styles.venueName}>{venueData?.name}</h1>
-                <p className={styles.venueMeta}>{venueData?.location}</p>
+                <h1 className={styles.venueName}>{venue?.name}</h1>
+                <p className={styles.venueMeta}>{venue?.location}</p>
               </section>
 
               <section className={styles.statsRow}>
                 <div className={styles.statCard}>
                   <p className={styles.statLabel}>Capacity</p>
-                  <p className={styles.statValue}>{venueData?.capacity}</p>
+                  <p className={styles.statValue}>{venue?.capacity}</p>
                 </div>
                 <div className={styles.statCard}>
                   <p className={styles.statLabel}>Size</p>
-                  <p className={styles.statValue}>{venueData?.size}</p>
+                  <p className={styles.statValue}>{venue?.size}</p>
                 </div>
               </section>
 
               <section className={styles.heroSection}>
-                <img alt={venueData?.name} className={styles.heroImage} src={venueData?.images?.hero} />
-              </section>
-
-              <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Description</h2>
-                <p className={styles.sectionBody}>{venueData?.description}</p>
-              </section>
-
-              <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Amenities</h2>
-                <div className={styles.amenitiesWrap}>
-                  {venueData?.amenities?.map((amenity) => (
-                    <span className={styles.amenityTag} key={amenity}>
-                      {amenity}
-                    </span>
-                  ))}
+                <div style={{ background: '#f0f0f0', borderRadius: 8 }}>
+                  <img
+                    alt={venue?.name}
+                    className={`${styles.heroImage} ${styles.clickableImage}`}
+                    onError={() => setImageLoaded(true)}
+                    onLoad={() => setImageLoaded(true)}
+                    onClick={() => openLightbox([venue?.images?.hero], 0, venue?.name || 'Venue')}
+                    src={venue?.images?.hero}
+                    style={{ opacity: imageLoaded ? 1 : 0, transition: 'opacity 0.3s ease' }}
+                    title="Click to view full size"
+                  />
                 </div>
               </section>
 
               <section className={styles.section}>
+                <h2 className={styles.sectionTitle}>Description</h2>
+                {fullDataLoading ? (
+                  <div style={{ display: 'grid', gap: 8 }}>
+                    <div style={{ ...skeletonStyle, height: 16, width: '100%' }} />
+                    <div style={{ ...skeletonStyle, height: 16, width: '80%' }} />
+                    <div style={{ ...skeletonStyle, height: 16, width: '60%' }} />
+                  </div>
+                ) : (
+                  <p className={styles.sectionBody}>{venue?.description}</p>
+                )}
+              </section>
+
+              <section className={styles.section}>
+                <h2 className={styles.sectionTitle}>Amenities</h2>
+                {fullDataLoading ? (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {Array.from({ length: 6 }).map((_, index) => (
+                      <div key={`amenity-skeleton-${index}`} style={{ ...skeletonStyle, width: 80, height: 28 }} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className={styles.amenitiesWrap}>
+                    {venue?.amenities?.map((amenity) => (
+                      <span className={styles.amenityTag} key={amenity}>
+                        {amenity}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              <section className={styles.section}>
                 <h2 className={styles.sectionTitle}>Equipment</h2>
-                {venueData?.equipment?.length > 0 ? (
+                {fullDataLoading ? (
+                  <div style={{ display: 'grid', gap: 12 }}>
+                    <div style={{ ...skeletonStyle, height: 80, width: '100%' }} />
+                    <div style={{ ...skeletonStyle, height: 80, width: '100%' }} />
+                  </div>
+                ) : venue?.equipment?.length > 0 ? (
                   <div className={styles.equipmentGrid}>
-                    {venueData.equipment.map((item) => (
+                    {venue.equipment.map((item) => (
                       <article className={styles.equipmentCard} key={item.id}>
                         {item.image ? (
-                          <img alt={item.name} className={styles.equipmentImage} src={item.image} />
+                          <img
+                            alt={item.name}
+                            className={`${styles.equipmentImage} ${styles.clickableImage}`}
+                            onClick={() =>
+                              openLightbox(
+                                equipmentImages,
+                                Math.max(0, equipmentImages.findIndex((image) => image === item.image)),
+                                'Equipment',
+                              )
+                            }
+                            src={item.image}
+                            title="Click to view full size"
+                          />
                         ) : null}
                         <div className={styles.equipmentBody}>
                           <h3 className={styles.equipmentName}>{item.name}</h3>
@@ -472,407 +417,136 @@ export default function FacilityVenueDetailPage() {
 
               <section className={styles.section}>
                 <h2 className={styles.sectionTitle}>Images</h2>
-                <div className={styles.thumbnailGrid}>
-                  {safeThumbnails.map((image, index) => (
-                    <img
-                      alt={`${venueData?.name} thumbnail ${index + 1}`}
-                      className={styles.thumbnailImage}
-                      key={`${venueId}-thumb-${index}`}
-                      src={image}
-                    />
-                  ))}
-                </div>
+                {fullDataLoading ? (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {Array.from({ length: 4 }).map((_, index) => (
+                      <div key={`gallery-skeleton-${index}`} style={{ ...skeletonStyle, width: 120, height: 90 }} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className={styles.thumbnailGrid}>
+                    {safeThumbnails.map((image, index) => (
+                      <div key={`${venueId}-thumb-wrap-${index}`} style={{ background: '#f0f0f0', borderRadius: 8 }}>
+                        <img
+                          alt={`${venue?.name} thumbnail ${index + 1}`}
+                          className={`${styles.thumbnailImage} ${styles.clickableImage}`}
+                          key={`${venueId}-thumb-${index}`}
+                          onError={() =>
+                            setGalleryLoadedMap((previous) => ({
+                              ...previous,
+                              [index]: true,
+                            }))
+                          }
+                          onLoad={() =>
+                            setGalleryLoadedMap((previous) => ({
+                              ...previous,
+                              [index]: true,
+                            }))
+                          }
+                          onClick={() => openLightbox(safeThumbnails, index, 'Gallery')}
+                          src={image}
+                          style={{ opacity: galleryLoadedMap[index] ? 1 : 0, transition: 'opacity 0.3s ease' }}
+                          title="Click to view full size"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
             </div>
           </main>
         </div>
       </div>
 
-      {isEditModalOpen ? (
-        <div className={styles.modalOverlay} onClick={handleDiscardModalChanges} role="presentation">
-          <div
-            className={styles.modalBox}
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
+      {lightbox.open && (
+        <div className={styles.lightboxOverlay} onClick={closeLightbox}>
+          <button
+            aria-label="Close"
+            className={styles.lightboxClose}
+            onClick={(event) => {
+              event.stopPropagation()
+              closeLightbox()
+            }}
+            type="button"
           >
-            <div className={styles.modalHeader}>
-              <h3 className={styles.modalTitle}>Edit Venue Details</h3>
-              <div className={styles.tabRow}>
-                <button
-                  type="button"
-                  className={
-                    activeTab === 'details'
-                      ? `${styles.tabButton} ${styles.tabButtonActive}`
-                      : styles.tabButton
-                  }
-                  onClick={() => setActiveTab('details')}
-                >
-                  Details
-                </button>
-                <button
-                  type="button"
-                  className={
-                    activeTab === 'amenities'
-                      ? `${styles.tabButton} ${styles.tabButtonActive}`
-                      : styles.tabButton
-                  }
-                  onClick={() => setActiveTab('amenities')}
-                >
-                  Amenities &amp; Equipment
-                </button>
-                <button
-                  type="button"
-                  className={
-                    activeTab === 'images'
-                      ? `${styles.tabButton} ${styles.tabButtonActive}`
-                      : styles.tabButton
-                  }
-                  onClick={() => setActiveTab('images')}
-                >
-                  Images
-                </button>
-              </div>
+            ✕
+          </button>
+
+          {lightbox.images.length > 1 ? (
+            <div className={styles.lightboxCounter}>
+              {lightbox.currentIndex + 1} / {lightbox.images.length}
             </div>
-            <form className={styles.modalForm} onSubmit={handleSaveChanges}>
-              <div className={styles.modalBody}>
-                {activeTab === 'details' && (
-                  <>
-                    <div className={styles.fieldGroup}>
-                      <label className={styles.fieldLabel} htmlFor="venue-name">
-                        Venue Name
-                      </label>
-                      <input
-                        id="venue-name"
-                        className={styles.textInput}
-                        type="text"
-                        value={draftVenue?.name || ''}
-                        onChange={(event) => handleDraftFieldChange('name', event.target.value)}
-                      />
-                    </div>
+          ) : null}
 
-                    <div className={styles.fieldGroup}>
-                      <label className={styles.fieldLabel} htmlFor="venue-location">
-                        Location
-                      </label>
-                      <input
-                        id="venue-location"
-                        className={styles.textInput}
-                        type="text"
-                        value={draftVenue?.location || ''}
-                        onChange={(event) => handleDraftFieldChange('location', event.target.value)}
-                      />
-                    </div>
+          <div className={styles.lightboxTitle}>{lightbox.title}</div>
 
-                    <div className={styles.fieldGroup}>
-                      <div className={styles.fieldRowTwoColumn}>
-                        <div>
-                          <label className={styles.fieldLabel} htmlFor="venue-capacity">
-                            Capacity
-                          </label>
-                          <input
-                            id="venue-capacity"
-                            className={styles.textInput}
-                            type="number"
-                            min="0"
-                            value={draftVenue?.capacity || ''}
-                            onChange={(event) => handleDraftFieldChange('capacity', event.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <label className={styles.fieldLabel} htmlFor="venue-size">
-                            Size
-                          </label>
-                          <input
-                            id="venue-size"
-                            className={styles.textInput}
-                            type="text"
-                            value={draftVenue?.size || ''}
-                            onChange={(event) => handleDraftFieldChange('size', event.target.value)}
-                          />
-                        </div>
-                      </div>
-                    </div>
+          <div
+            className={styles.lightboxContent}
+            onClick={(event) => {
+              event.stopPropagation()
+            }}
+            role="presentation"
+          >
+            {lightbox.images.length > 1 ? (
+              <button
+                aria-label="Previous"
+                className={`${styles.lightboxArrow} ${styles.lightboxArrowLeft}`}
+                onClick={prevImage}
+                type="button"
+              >
+                ‹
+              </button>
+            ) : null}
 
-                    <div className={styles.fieldGroup}>
-                      <label className={styles.fieldLabel} htmlFor="venue-description">
-                        Description
-                      </label>
-                      <textarea
-                        id="venue-description"
-                        className={`${styles.textInput} ${styles.textarea}`}
-                        rows={5}
-                        value={draftVenue?.description || ''}
-                        onChange={(event) => handleDraftFieldChange('description', event.target.value)}
-                      />
-                    </div>
-                  </>
-                )}
+            <img
+              alt={`${lightbox.title} ${lightbox.currentIndex + 1}`}
+              className={styles.lightboxImage}
+              src={lightbox.images[lightbox.currentIndex]}
+            />
 
-                {activeTab === 'amenities' && (
-                  <>
-                    <div className={styles.modalSubSection}>
-                      <h4 className={styles.subSectionLabel}>Amenities</h4>
-                      <div className={styles.amenitiesPillsRow}>
-                        {draftVenue?.amenities?.map((amenity, index) => (
-                          <span className={styles.amenityPill} key={`${amenity}-${index}`}>
-                            <span className={styles.amenityText}>{amenity}</span>
-                            <button
-                              type="button"
-                              className={styles.amenityRemoveButton}
-                              onClick={() => removeAmenity(index)}
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                      <div className={styles.amenitiesInputRow}>
-                        <input
-                          className={styles.textInput}
-                          type="text"
-                          placeholder="Add amenity"
-                          value={amenityInput}
-                          onChange={(event) => setAmenityInput(event.target.value)}
-                          onKeyDown={(event) => {
-                            if (event.key === 'Enter') {
-                              event.preventDefault()
-                              addAmenity()
-                            }
-                          }}
-                        />
-                        <button
-                          type="button"
-                          className={styles.addAmenityButton}
-                          onClick={addAmenity}
-                        >
-                          Add
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className={styles.modalSectionDivider} />
-
-                    <div className={styles.modalSubSection}>
-                      <h4 className={styles.subSectionLabel}>Equipment</h4>
-                      {draftVenue?.equipment?.map((item, index) => (
-                        <div className={styles.equipmentEditCard} key={`equipment-${index}`}>
-                          <div className={styles.fieldRowTwoColumn}>
-                            <div>
-                              <label className={styles.fieldLabel} htmlFor={`equipment-name-${index}`}>
-                                Name
-                              </label>
-                              <input
-                                id={`equipment-name-${index}`}
-                                className={styles.textInput}
-                                type="text"
-                                value={item.name}
-                                onChange={(event) =>
-                                  updateEquipmentField(index, 'name', event.target.value)
-                                }
-                              />
-                            </div>
-                            <div>
-                              <label className={styles.fieldLabel} htmlFor={`equipment-specs-${index}`}>
-                                Specs
-                              </label>
-                              <input
-                                id={`equipment-specs-${index}`}
-                                className={styles.textInput}
-                                type="text"
-                                value={item.specs}
-                                onChange={(event) =>
-                                  updateEquipmentField(index, 'specs', event.target.value)
-                                }
-                              />
-                            </div>
-                          </div>
-
-                          <div className={styles.fieldGroup}>
-                            <label className={styles.fieldLabel} htmlFor={`equipment-description-${index}`}>
-                              Description
-                            </label>
-                            <textarea
-                              id={`equipment-description-${index}`}
-                              className={`${styles.textInput} ${styles.textarea} ${styles.equipmentTextarea}`}
-                              rows={3}
-                              value={item.description}
-                              onChange={(event) =>
-                                updateEquipmentField(index, 'description', event.target.value)
-                              }
-                            />
-                          </div>
-
-                          {item.image ? (
-                            <img
-                              alt={`${item.name || 'Equipment'} image`}
-                              className={styles.equipmentImagePreview}
-                              src={item.image}
-                            />
-                          ) : null}
-
-                          <div className={styles.equipmentImageRow}>
-                            <input
-                              id={`equipment-image-${index}`}
-                              accept="image/*"
-                              className={styles.fileInputHidden}
-                              type="file"
-                              onChange={(event) => handleEquipmentImageChange(index, event)}
-                            />
-                            <button
-                              type="button"
-                              className={styles.imageChangeButton}
-                              onClick={() => {
-                                const input = document.getElementById(`equipment-image-${index}`)
-                                if (input) {
-                                  input.click()
-                                }
-                              }}
-                            >
-                              {item.image ? 'Change Image' : 'Add Image'}
-                            </button>
-                          </div>
-
-                          <div className={styles.equipmentBottomRow}>
-                            <div>
-                              <label
-                                className={styles.fieldLabel}
-                                htmlFor={`equipment-quantity-${index}`}
-                              >
-                                Quantity
-                              </label>
-                              <input
-                                id={`equipment-quantity-${index}`}
-                                className={`${styles.textInput} ${styles.quantityInput}`}
-                                type="number"
-                                min="0"
-                                value={item.quantity}
-                                onChange={(event) =>
-                                  updateEquipmentField(index, 'quantity', event.target.value)
-                                }
-                              />
-                            </div>
-                            <button
-                              type="button"
-                              className={styles.equipmentRemoveButton}
-                              onClick={() => removeEquipmentRow(index)}
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-
-                      <button
-                        type="button"
-                        className={styles.addEquipmentButton}
-                        onClick={addEquipmentRow}
-                      >
-                        + Add Equipment
-                      </button>
-                    </div>
-                  </>
-                )}
-
-                {activeTab === 'images' && (
-                  <>
-                    <div className={styles.modalSubSection}>
-                      <h4 className={styles.subSectionLabel}>Hero Image</h4>
-                      {heroPreviewSrc ? (
-                        <img
-                          alt="Hero preview"
-                          className={styles.heroPreview}
-                          src={heroPreviewSrc}
-                        />
-                      ) : null}
-                      <input
-                        accept="image/*"
-                        className={styles.fileInputHidden}
-                        type="file"
-                        ref={heroInputRef}
-                        onChange={handleHeroImageChange}
-                      />
-                      <button
-                        type="button"
-                        className={styles.imageChangeButton}
-                        onClick={() => heroInputRef.current?.click()}
-                      >
-                        Change Image
-                      </button>
-                    </div>
-
-                    <div className={styles.modalSectionDivider} />
-
-                    <div className={styles.modalSubSection}>
-                      <h4 className={styles.subSectionLabel}>Gallery Images</h4>
-                      <div className={styles.galleryGrid}>
-                        {galleryImages.map((image, index) => (
-                          <div className={styles.galleryItem} key={`gallery-${index}`}>
-                            <img
-                              alt={`Gallery ${index + 1}`}
-                              className={styles.galleryImage}
-                              src={image}
-                            />
-                            <button
-                              type="button"
-                              className={styles.galleryRemoveButton}
-                              onClick={() => removeGalleryImage(index)}
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                      <input
-                        accept="image/*"
-                        className={styles.fileInputHidden}
-                        type="file"
-                        multiple
-                        ref={galleryInputRef}
-                        onChange={handleGalleryImagesChange}
-                      />
-                      <button
-                        type="button"
-                        className={styles.addImagesButton}
-                        onClick={() => galleryInputRef.current?.click()}
-                      >
-                        + Add Images
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div className={styles.modalFooter}>
-                <button
-                  type="button"
-                  className={styles.footerButtonCancel}
-                  onClick={handleDiscardModalChanges}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={styles.footerButtonSave}
-                  disabled={!draftVenue?.name?.trim() || !draftVenue?.location?.trim()}
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
+            {lightbox.images.length > 1 ? (
+              <button
+                aria-label="Next"
+                className={`${styles.lightboxArrow} ${styles.lightboxArrowRight}`}
+                onClick={nextImage}
+                type="button"
+              >
+                ›
+              </button>
+            ) : null}
           </div>
-        </div>
-      ) : null}
 
-      {isCropModalOpen && cropImageSrc ? (
-        <ImageCropModal
-          imageSrc={cropImageSrc}
-          aspectRatio={cropAspectRatio}
-          onCropComplete={handleCropApply}
-          onCancel={handleCropCancel}
-          progressLabel={galleryCropProgressLabel}
-        />
-      ) : null}
+          {lightbox.images.length > 1 ? (
+            <div
+              className={styles.lightboxThumbnails}
+              onClick={(event) => {
+                event.stopPropagation()
+              }}
+              role="presentation"
+            >
+              {lightbox.images.map((image, index) => (
+                <img
+                  alt={`thumb ${index + 1}`}
+                  className={
+                    index === lightbox.currentIndex
+                      ? `${styles.lightboxThumb} ${styles.lightboxThumbActive}`
+                      : styles.lightboxThumb
+                  }
+                  key={image + String(index)}
+                  onClick={() =>
+                    setLightbox((previous) => ({
+                      ...previous,
+                      currentIndex: index,
+                    }))
+                  }
+                  src={image}
+                />
+              ))}
+            </div>
+          ) : null}
+        </div>
+      )}
+
     </div>
   )
 }

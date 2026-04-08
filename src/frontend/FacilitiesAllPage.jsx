@@ -128,7 +128,7 @@ export default function FacilitiesAllPage({ isSidebarOpen, setIsSidebarOpen }) {
             {!loading && !error && filteredVenues.length ? (
               <div className={styles.grid}>
                 {filteredVenues.map((venue) => (
-                  <button className={styles.card} key={venue._id} onClick={() => navigate(`/facilities/add?venueId=${venue._id}`)} type="button">
+                  <button className={styles.card} key={venue._id} onClick={() => navigate(`/facilities/venue/${venue._id}`)} type="button">
                     <div className={styles.cardImageWrap}>
                       <img
                         alt={venue.name}

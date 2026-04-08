@@ -34,17 +34,41 @@ router.get('/:id', authMiddleware, async (req, res) => {
 })
 
 router.post('/', authMiddleware, async (req, res) => {
-  const payload = req.body || {}
-  if (!String(payload.name || '').trim()) {
+  const {
+    name,
+    facilityType,
+    capacity,
+    size,
+    location,
+    description,
+    inventory,
+    equipment,
+    amenities,
+    bannerImage,
+    gallery,
+  } = req.body || {}
+
+  if (!String(name || '').trim()) {
     return res.status(400).json({ message: 'Facility name is required' })
   }
 
   try {
-    const createdVenue = await Venue.create({
-      ...payload,
-      name: String(payload.name).trim(),
+    const venue = new Venue({
+      name: String(name).trim(),
+      facilityType,
+      capacity,
+      size,
+      location,
+      description,
+      inventory,
+      equipment,
+      amenities,
+      bannerImage,
+      gallery,
       updatedAt: new Date(),
     })
+
+    const createdVenue = await venue.save()
 
     return res.status(201).json(createdVenue)
   } catch {

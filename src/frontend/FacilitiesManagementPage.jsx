@@ -559,7 +559,25 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
 
                   {!isVenuesLoading && !venuesError
                     ? venues.slice(0, 4).map((venue) => (
-                        <div className={styles.facilityCard} key={venue._id} onClick={() => navigate(`/facilities/add?venueId=${venue._id}`)}>
+                        <div
+                          className={styles.facilityCard}
+                          key={venue._id}
+                          onClick={() =>
+                            navigate(`/facilities/venue/${venue._id}`, {
+                              state: {
+                                preload: {
+                                  name: venue.name,
+                                  location: venue.location,
+                                  capacity: venue.capacity,
+                                  size: venue.size,
+                                  bannerImage: venue.bannerImage,
+                                  status: venue.status,
+                                  wifiStatus: venue.wifiStatus,
+                                },
+                              },
+                            })
+                          }
+                        >
                           <div className={styles.facilityImage}>
                             <img
                               alt={venue.name}

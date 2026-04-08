@@ -28,6 +28,7 @@ const venueSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   facilityType: { type: String },
   capacity: { type: Number },
+  size: { type: String },
   location: { type: String },
   description: { type: String, maxlength: 500 },
   inventory: [inventorySchema],

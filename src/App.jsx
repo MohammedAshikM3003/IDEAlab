@@ -8,6 +8,7 @@ import StatusPage from './frontend/StatusPage.jsx'
 import FacilitiesManagementPage from './frontend/FacilitiesManagementPage.jsx'
 import FacilitiesAllPage from './frontend/FacilitiesAllPage.jsx'
 import AddFacilityPage from './frontend/AddFacilityPage.jsx'
+import EditFacilityPage from './frontend/EditFacilityPage.jsx'
 import HistoryPage from './frontend/HistoryPage.jsx'
 import SettingsPage from './frontend/SettingsPage.jsx'
 import FacilityVenueDetailPage from './frontend/FacilityVenueDetailPage.jsx'
@@ -32,6 +33,7 @@ function App() {
         <Route path="/facilities" element={<FacilitiesManagementPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="/facilities/all" element={<FacilitiesAllPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="/facilities/venue/:venueId" element={<FacilityVenueDetailPage />} />
+        <Route path="/facilities/venue/:id/edit" element={<EditFacilityPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="/facilities/add" element={<AddFacilityPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="/history" element={<HistoryPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="/settings" element={<SettingsPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />

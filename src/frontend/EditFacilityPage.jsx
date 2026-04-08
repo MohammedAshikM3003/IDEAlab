@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
-import styles from "./AddFacilityPage.module.css";
+import styles from "./EditFacilityPage.module.css";
 
 const INVENTORY_CONDITIONS = ["Good", "Fair", "Poor"];
 const FACILITY_TYPES = ["Seminar Hall", "Conference Room", "Lab", "Auditorium", "Classroom", "Studio"];
@@ -26,9 +26,9 @@ function createEquipmentRow(id) {
   return { id, name: "", quantity: "", condition: "Good", description: "", image: null };
 }
 
-export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
+export default function EditFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
   const navigate = useNavigate();
-  const locationState = useLocation();
+  const { id } = useParams();
 
   const [facilityName, setFacilityName] = useState("");
   const [facilityType, setFacilityType] = useState("");
@@ -46,35 +46,29 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
   const [amenities, setAmenities] = useState(AMENITY_PRESET);
   const [facilityNameError, setFacilityNameError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [isVenueLoading, setIsVenueLoading] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState("");
+  const [isVenueLoading, setIsVenueLoading] = useState(true);
 
   const [inventoryRows, setInventoryRows] = useState([createInventoryRow("inv-1"), createInventoryRow("inv-2")]);
   const [equipmentRows, setEquipmentRows] = useState([createEquipmentRow("eq-1"), createEquipmentRow("eq-2")]);
 
   const inventoryId = useRef(3);
   const equipmentId = useRef(3);
+  const navigateTimerRef = useRef(null);
 
   const hiddenBannerInput = useRef(null);
   const hiddenGalleryInput = useRef(null);
 
-  const searchParams = useMemo(() => new URLSearchParams(locationState.search), [locationState.search]);
-  const venueId = searchParams.get("venueId") || "";
-
   const selectedAmenityCount = useMemo(() => amenities.filter((item) => item.selected).length, [amenities]);
 
   useEffect(() => {
-    if (!submitError) {
-      return undefined;
-    }
-
-    const timer = window.setTimeout(() => {
-      setSubmitError("");
-    }, 3000);
-
-    return () => window.clearTimeout(timer);
-  }, [submitError]);
+    return () => {
+      if (navigateTimerRef.current) {
+        window.clearTimeout(navigateTimerRef.current);
+      }
+    };
+  }, []);
 
   const updateInventoryRow = (rowId, key, value) => {
     setInventoryRows((prev) => prev.map((row) => (row.id === rowId ? { ...row, [key]: value } : row)));
@@ -268,27 +262,6 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
     ]);
   };
 
-  const resetForm = () => {
-    setFacilityName("");
-    setFacilityType("");
-    setCapacity("");
-    setSize("");
-    setLocation("");
-    setRules("");
-    setBannerImage(null);
-    setGalleryImages([]);
-    setGalleryUploadError("");
-    setEquipmentUploadError("");
-    setAmenities(AMENITY_PRESET.map((item) => ({ ...item })));
-    setInventoryRows([createInventoryRow("inv-1"), createInventoryRow("inv-2")]);
-    setEquipmentRows([createEquipmentRow("eq-1"), createEquipmentRow("eq-2")]);
-    setFacilityNameError("");
-    setBannerUploadError("");
-    setSubmitError("");
-    inventoryId.current = 3;
-    equipmentId.current = 3;
-  };
-
   const normalizeImageUrl = (value) => {
     if (!value) {
       return "";
@@ -315,16 +288,18 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
 
   useEffect(() => {
     const loadVenueForEdit = async () => {
-      if (!venueId) {
+      if (!id) {
         setIsVenueLoading(false);
+        setSubmitError("Facility not found.");
         return;
       }
 
       setIsVenueLoading(true);
       setSubmitError("");
+      setSubmitSuccess("");
 
       try {
-        const response = await fetch(`${API_BASE_URL}/api/venues/${venueId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/venues/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -400,7 +375,7 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
     };
 
     loadVenueForEdit();
-  }, [venueId]);
+  }, [id]);
 
   const mapInventoryCondition = (value) => {
     if (value === "Good" || value === "Fair" || value === "Poor") {
@@ -410,7 +385,7 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
     return "Good";
   };
 
-  const handlePublish = async () => {
+  const handleSaveChanges = async () => {
     if (isSubmitting) {
       return;
     }
@@ -425,8 +400,9 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
     setFacilityNameError("");
     setIsSubmitting(true);
     setSubmitError("");
+    setSubmitSuccess("");
 
-    const venueData = {
+    const updatedVenueData = {
       name: trimmedName,
       facilityType: facilityType || "",
       capacity: capacity ? Number(capacity) : undefined,
@@ -451,13 +427,13 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
     };
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/venues`, {
-        method: "POST",
+      const response = await fetch(`${API_BASE_URL}/api/venues/${id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(venueData),
+        body: JSON.stringify(updatedVenueData),
       });
 
       const rawText = await response.text();
@@ -470,26 +446,66 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
       })();
 
       if (!response.ok) {
-        throw new Error(payload?.message || `Failed to publish (HTTP ${response.status})`);
+        throw new Error(payload?.message || `Failed to update (HTTP ${response.status})`);
       }
 
-      setIsSuccessModalOpen(true);
-    } catch (error) {
-      setSubmitError(error.message || "Failed to publish facility. Try again.");
+      setSubmitSuccess("Facility updated successfully");
+      navigateTimerRef.current = window.setTimeout(() => {
+        navigate(`/facilities/venue/${id}`);
+      }, 1500);
+    } catch {
+      setSubmitError("Failed to save changes. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleAddAnotherFacility = () => {
-    resetForm();
-    setIsSuccessModalOpen(false);
+  const goToVenueDetail = () => {
+    navigate(`/facilities/venue/${id}`);
   };
 
-  const handleViewFacilities = () => {
-    setIsSuccessModalOpen(false);
-    navigate("/facilities");
-  };
+  if (isVenueLoading) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.mainContainer}>
+          <Sidebar activePage="facilities" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+
+          <div className={styles.mainContent}>
+            <PageHeader title="Facilities Management" setIsSidebarOpen={setIsSidebarOpen} />
+
+            <main className={styles.content}>
+              <header className={styles.topBar}>
+                <div className={styles.topLeft}>
+                  <div className={styles.topSkeletonButton} />
+                  <div className={styles.topSkeletonTextWrap}>
+                    <div className={styles.topSkeletonTitle} />
+                    <div className={styles.topSkeletonSubtitle} />
+                  </div>
+                </div>
+                <div className={styles.topSkeletonActions}>
+                  <div className={styles.topSkeletonAction} />
+                  <div className={styles.topSkeletonAction} />
+                </div>
+              </header>
+
+              <section className={styles.layout}>
+                <div className={styles.leftCol}>
+                  <div className={styles.cardSkeleton} />
+                  <div className={styles.cardSkeleton} />
+                  <div className={styles.cardSkeleton} />
+                </div>
+                <aside className={styles.rightCol}>
+                  <div className={styles.cardSkeleton} />
+                  <div className={styles.cardSkeleton} />
+                  <div className={styles.cardSkeleton} />
+                </aside>
+              </section>
+            </main>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -502,26 +518,20 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
           <main className={styles.content}>
             <header className={styles.topBar}>
               <div className={styles.topLeft}>
-                <button aria-label="Back to Facilities" className={styles.backBtn} onClick={() => navigate("/facilities")} type="button">
-                  <span className="material-icons">arrow_back</span>
+                <button className={styles.btnSecondary} onClick={goToVenueDetail} type="button">
+                  &larr; Back to Facility
                 </button>
                 <div>
-                  <h1 className={styles.pageTitle}>{venueId ? "Edit Facility" : "Add New Facility"}</h1>
-                  <p className={styles.pageSubtitle}>
-                    {isVenueLoading
-                      ? "Loading facility details..."
-                      : venueId
-                        ? "Update facility details fetched from database."
-                        : "Create a new space for students and staff to book."}
-                  </p>
+                  <h1 className={styles.pageTitle}>Edit Facility</h1>
+                  <p className={styles.pageSubtitle}>Update the details for this facility.</p>
                 </div>
               </div>
 
               <div className={styles.topActions}>
-                <button className={styles.btnSecondary} onClick={() => navigate("/facilities")} type="button">Cancel</button>
-                <button className={styles.btnPrimary} disabled={isSubmitting} onClick={handlePublish} type="button">
+                <button className={styles.btnSecondary} onClick={goToVenueDetail} type="button">Cancel</button>
+                <button className={styles.btnPrimary} disabled={isSubmitting} onClick={handleSaveChanges} type="button">
                   <span className={`material-icons ${isSubmitting ? styles.spinning : ""}`}>{isSubmitting ? "autorenew" : "check"}</span>
-                  {isSubmitting ? "Publishing..." : "Publish Facility"}
+                  {isSubmitting ? "Saving..." : "\u2713 Save Changes"}
                 </button>
               </div>
             </header>
@@ -733,7 +743,7 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
 
                   <div className={styles.thumbGrid}>
                     {galleryImages.slice(0, 3).map((src, index) => (
-                      <img alt={`Gallery ${index + 1}`} className={styles.thumb} key={src} src={src} />
+                      <img alt={`Gallery ${index + 1}`} className={styles.thumb} key={`${src}-${index}`} src={src} />
                     ))}
                     <button className={styles.thumbAdd} onClick={() => hiddenGalleryInput.current?.click()} type="button">+ Add</button>
                   </div>
@@ -775,28 +785,7 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
         </div>
       </div>
 
-      {isSuccessModalOpen ? (
-        <div className={styles.publishModalBackdrop} role="presentation">
-          <div aria-modal="true" className={styles.publishModalCard} role="dialog">
-            <>
-              <div className={styles.publishSuccessIconWrap}>
-                <span className={`material-icons ${styles.publishSuccessIcon}`}>check</span>
-              </div>
-              <h3 className={styles.publishModalTitle}>Facility Published!</h3>
-              <p className={styles.publishModalMessage}>Your new facility is now available for booking.</p>
-              <div className={styles.publishModalActions}>
-                <button className={styles.publishBtnSecondary} onClick={handleViewFacilities} type="button">
-                  View Facilities List
-                </button>
-                <button className={styles.publishBtnPrimary} onClick={handleAddAnotherFacility} type="button">
-                  Add Another Facility
-                </button>
-              </div>
-            </>
-          </div>
-        </div>
-      ) : null}
-
+      {submitSuccess ? <div className={styles.toastSuccess}>{submitSuccess}</div> : null}
       {submitError ? <div className={styles.toastError}>{submitError}</div> : null}
     </div>
   );
