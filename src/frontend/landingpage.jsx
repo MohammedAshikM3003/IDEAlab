@@ -255,7 +255,13 @@ function LandingPage() {
                  </div>
                </div>
 
-               <div className={styles.searchBar}>
+               <div
+                 className={styles.searchBar}
+                 style={{
+                   background: 'rgba(255,255,255,0.08)',
+                   border: '1px solid rgba(255,255,255,0.15)',
+                 }}
+               >
                  <div className={styles.searchField}>
                    <div className={styles.searchIconWrap}>
                      <span className="material-icons">search</span>

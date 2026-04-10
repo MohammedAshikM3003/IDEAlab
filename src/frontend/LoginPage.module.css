@@ -380,6 +380,9 @@
 
 .inputBox {
   position: relative;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
 }
 
 .inputIco {
@@ -406,18 +409,12 @@
   width: 100%;
   display: block;
   padding: 12px 12px 12px 40px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid transparent;
   border-radius: 12px;
-  background: #f8fafc;
-  color: #0f172a;
+  background: rgba(255, 255, 255, 0.02);
+  color: #ffffff;
   transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
   outline: none;
-}
-
-:global(.dark) .input {
-  border-color: #334155;
-  background: rgba(30, 41, 59, 0.5);
-  color: #ffffff;
 }
 
 .input::placeholder {

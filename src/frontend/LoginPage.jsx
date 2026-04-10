@@ -15,6 +15,11 @@ export default function LoginPage() {
   const [authError, setAuthError] = useState('');
   const authTimerRef = useRef(null);
   const navigate = useNavigate();
+  const inputContainerStyle = {
+    background: 'rgba(255,255,255,0.06)',
+    border: '1px solid rgba(255,255,255,0.12)',
+    borderRadius: '12px',
+  };
 
   useEffect(() => {
     return () => {
@@ -128,7 +133,7 @@ export default function LoginPage() {
                 <label className={styles.label} htmlFor="email">
                   Institutional Email
                 </label>
-                <div className={styles.inputBox}>
+                <div className={styles.inputBox} style={inputContainerStyle}>
                   <div className={styles.inputIco} aria-hidden="true">
                     <span className="material-symbols-outlined">mail</span>
                   </div>
@@ -148,7 +153,7 @@ export default function LoginPage() {
                 <label className={styles.label} htmlFor="password">
                   Secure Password
                 </label>
-                <div className={styles.inputBox}>
+                <div className={styles.inputBox} style={inputContainerStyle}>
                   <div className={styles.inputIco} aria-hidden="true">
                     <span className="material-symbols-outlined">lock</span>
                   </div>
