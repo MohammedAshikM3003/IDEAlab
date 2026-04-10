@@ -79,6 +79,9 @@ export default function FacilitiesAllPage({ isSidebarOpen, setIsSidebarOpen }) {
           <main className={styles.content}>
             <div className={styles.headerRow}>
               <div>
+                <button className={styles.backLink} onClick={() => navigate("/facilities")} type="button">
+                  &larr; Back to Facilities
+                </button>
                 <h1 className={styles.pageTitle}>All Facilities</h1>
                 <p className={styles.pageSubtitle}>Browse and manage all venues in one place.</p>
               </div>

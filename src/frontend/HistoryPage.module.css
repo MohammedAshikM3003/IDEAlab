@@ -207,8 +207,8 @@
 }
 
 .search:focus-within {
-  border-color: rgba(255, 148, 0, 0.75);
-  box-shadow: 0 0 0 3px rgba(255, 148, 0, 0.15);
+  border-color: #e2e8f0;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
 }
 
 .icon {
@@ -231,6 +231,13 @@
   width: 100%;
   font-size: 0.875rem;
   color: #0f172a;
+}
+
+.input:focus,
+.input:focus-visible {
+  outline: none !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06) !important;
 }
 
 .input::placeholder {

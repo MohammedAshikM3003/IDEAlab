@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import ImageCropModal from "../components/facilities/ImageCropModal";
 import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
 import styles from "./AddFacilityPage.module.css";
@@ -49,6 +50,12 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [isVenueLoading, setIsVenueLoading] = useState(false);
+  const [cropModal, setCropModal] = useState({
+    open: false,
+    imageSrc: null,
+    aspectRatio: 16 / 9,
+    onComplete: null,
+  });
 
   const [inventoryRows, setInventoryRows] = useState([createInventoryRow("inv-1"), createInventoryRow("inv-2")]);
   const [equipmentRows, setEquipmentRows] = useState([createEquipmentRow("eq-1"), createEquipmentRow("eq-2")]);
@@ -104,61 +111,6 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
     setEquipmentRows((prev) => (prev.length > 1 ? prev.filter((row) => row.id !== rowId) : prev));
   };
 
-  const onSelectBanner = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    if (!file.type.startsWith("image/")) {
-      setBannerUploadError("Only image files are allowed.");
-      event.target.value = "";
-      return;
-    }
-
-    if (file.size > MAX_BANNER_SIZE_BYTES) {
-      setBannerUploadError("Banner image is too large. Max size is 10MB.");
-      event.target.value = "";
-      return;
-    }
-
-    setBannerUploadError("");
-    setIsBannerUploading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("banner", file);
-
-      const response = await fetch(`${API_BASE_URL}/api/facilities/media/banner`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: formData,
-      });
-
-      const rawText = await response.text();
-      const payload = (() => {
-        try {
-          return rawText ? JSON.parse(rawText) : {};
-        } catch {
-          return { message: rawText };
-        }
-      })();
-
-      if (!response.ok) {
-        throw new Error(payload?.message || "Banner upload failed");
-      }
-
-      setBannerImage(`${API_BASE_URL}${payload.url}`);
-    } catch (error) {
-      setBannerUploadError(error.message || "Banner upload failed");
-    } finally {
-      setIsBannerUploading(false);
-      event.target.value = "";
-    }
-  };
-
   const uploadFacilityImage = async (endpoint, formField, file) => {
     const formData = new FormData();
     formData.append(formField, file);
@@ -187,69 +139,140 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
     return `${API_BASE_URL}${payload.url}`;
   };
 
-  const uploadGalleryFiles = async (files) => {
-    if (!files.length) {
-      return;
-    }
-
-    setGalleryUploadError("");
-    setIsGalleryUploading(true);
-
-    try {
-      const validFiles = files
-        .filter((file) => String(file.type || "").startsWith("image/"))
-        .slice(0, Math.max(0, 8 - galleryImages.length));
-
-      const uploadedUrls = [];
-      for (const file of validFiles) {
-        if (file.size > MAX_BANNER_SIZE_BYTES) {
-          throw new Error("Each gallery image must be 10MB or smaller.");
-        }
-        const imageUrl = await uploadFacilityImage("/api/facilities/media/gallery", "gallery", file);
-        uploadedUrls.push(imageUrl);
-      }
-
-      setGalleryImages((prev) => [...prev, ...uploadedUrls].slice(0, 8));
-    } catch (error) {
-      setGalleryUploadError(error.message || "Gallery upload failed");
-    } finally {
-      setIsGalleryUploading(false);
-    }
-  };
-
-  const onSelectGallery = async (event) => {
-    const files = Array.from(event.target.files || []);
-    await uploadGalleryFiles(files);
-    event.target.value = "";
-  };
-
-  const onDropGallery = async (event) => {
-    event.preventDefault();
-    const files = Array.from(event.dataTransfer.files || []);
-    await uploadGalleryFiles(files);
-  };
-
-  const onEquipmentImage = async (rowId, file) => {
+  const openCropModalFromFile = (file, aspectRatio, onComplete, setError) => {
     if (!file) {
       return;
     }
 
     if (!String(file.type || "").startsWith("image/")) {
+      if (setError) {
+        setError("Only image files are allowed.");
+      }
       return;
     }
 
     if (file.size > MAX_BANNER_SIZE_BYTES) {
-      setEquipmentUploadError("Each equipment image must be 10MB or smaller.");
+      if (setError) {
+        setError("Each image must be 10MB or smaller.");
+      }
       return;
     }
 
-    try {
-      setEquipmentUploadError("");
-      const imageUrl = await uploadFacilityImage("/api/facilities/media/equipment", "equipment", file);
-      updateEquipmentRow(rowId, "image", imageUrl);
-    } catch (error) {
-      setEquipmentUploadError(error.message || "Equipment image upload failed");
+    if (setError) {
+      setError("");
     }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setCropModal({
+        open: true,
+        imageSrc: event.target?.result,
+        aspectRatio,
+        onComplete,
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileSelect = (event, aspectRatio, onComplete, setError) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    event.target.value = "";
+    openCropModalFromFile(file, aspectRatio, onComplete, setError);
+  };
+
+  const onSelectBanner = (event) => {
+    handleFileSelect(
+      event,
+      16 / 9,
+      async (croppedBlob) => {
+        setIsBannerUploading(true);
+        setBannerUploadError("");
+
+        try {
+          const croppedFile = new File([croppedBlob], "banner.jpg", { type: croppedBlob.type || "image/jpeg" });
+          const imageUrl = await uploadFacilityImage("/api/facilities/media/banner", "banner", croppedFile);
+          setBannerImage(imageUrl);
+          setCropModal((prev) => ({ ...prev, open: false }));
+        } catch (error) {
+          setBannerUploadError(error.message || "Banner upload failed");
+        } finally {
+          setIsBannerUploading(false);
+        }
+      },
+      setBannerUploadError,
+    );
+  };
+
+  const onSelectGallery = (event) => {
+    handleFileSelect(
+      event,
+      4 / 3,
+      async (croppedBlob) => {
+        setIsGalleryUploading(true);
+        setGalleryUploadError("");
+
+        try {
+          const croppedFile = new File([croppedBlob], `gallery-${Date.now()}.jpg`, { type: croppedBlob.type || "image/jpeg" });
+          const imageUrl = await uploadFacilityImage("/api/facilities/media/gallery", "gallery", croppedFile);
+          setGalleryImages((prev) => [...prev, imageUrl].slice(0, 8));
+          setCropModal((prev) => ({ ...prev, open: false }));
+        } catch (error) {
+          setGalleryUploadError(error.message || "Gallery upload failed");
+        } finally {
+          setIsGalleryUploading(false);
+        }
+      },
+      setGalleryUploadError,
+    );
+  };
+
+  const onDropGallery = (event) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files?.[0];
+    openCropModalFromFile(
+      file,
+      4 / 3,
+      async (croppedBlob) => {
+        setIsGalleryUploading(true);
+        setGalleryUploadError("");
+
+        try {
+          const croppedFile = new File([croppedBlob], `gallery-${Date.now()}.jpg`, { type: croppedBlob.type || "image/jpeg" });
+          const imageUrl = await uploadFacilityImage("/api/facilities/media/gallery", "gallery", croppedFile);
+          setGalleryImages((prev) => [...prev, imageUrl].slice(0, 8));
+          setCropModal((prev) => ({ ...prev, open: false }));
+        } catch (error) {
+          setGalleryUploadError(error.message || "Gallery upload failed");
+        } finally {
+          setIsGalleryUploading(false);
+        }
+      },
+      setGalleryUploadError,
+    );
+  };
+
+  const onEquipmentImage = (event, rowId) => {
+    handleFileSelect(
+      event,
+      1 / 1,
+      async (croppedBlob) => {
+        setEquipmentUploadError("");
+
+        try {
+          const croppedFile = new File([croppedBlob], `equipment-${Date.now()}.jpg`, { type: croppedBlob.type || "image/jpeg" });
+          const imageUrl = await uploadFacilityImage("/api/facilities/media/equipment", "equipment", croppedFile);
+          updateEquipmentRow(rowId, "image", imageUrl);
+          setCropModal((prev) => ({ ...prev, open: false }));
+        } catch (error) {
+          setEquipmentUploadError(error.message || "Equipment image upload failed");
+        }
+      },
+      setEquipmentUploadError,
+    );
   };
 
   const toggleAmenity = (amenityId) => {
@@ -657,7 +680,7 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
                             <input
                               accept="image/*"
                               className={styles.hide}
-                              onChange={(event) => onEquipmentImage(row.id, event.target.files?.[0])}
+                              onChange={(event) => onEquipmentImage(event, row.id)}
                               type="file"
                             />
                           </label>
@@ -798,6 +821,19 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
       ) : null}
 
       {submitError ? <div className={styles.toastError}>{submitError}</div> : null}
+      {cropModal.open ? (
+        <ImageCropModal
+          imageSrc={cropModal.imageSrc}
+          aspectRatio={cropModal.aspectRatio}
+          onCropComplete={cropModal.onComplete}
+          onCancel={() =>
+            setCropModal((prev) => ({
+              ...prev,
+              open: false,
+            }))
+          }
+        />
+      ) : null}
     </div>
   );
 }
