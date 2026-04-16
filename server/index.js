@@ -9,6 +9,8 @@ import process from 'node:process'
 import path from 'node:path'
 
 import User from './models/User.js'
+
+// Existing routes
 import notificationRoutes from './routes/notifications.js'
 import userRoutes from './routes/users.js'
 import securityRoutes from './routes/securityActivity.js'
@@ -16,17 +18,41 @@ import settingsRoutes from './routes/settings.js'
 import facilityMediaRoutes from './routes/facilityMedia.js'
 import venueRoutes from './routes/venues.js'
 
+// Gmail booking system routes
+import webhookRoutes from './routes/webhookRoutes.js'
+import bookingRoutes from './routes/bookingRoutes.js'
+
+// Load environment variables (equivalent to require('dotenv').config() in CommonJS)
 dotenv.config()
+
+// Self-registering cron jobs
+// Loaded defensively so missing optional dependencies (e.g., node-cron) don't prevent server startup.
+import('./cron/renewGmailWatch.js').catch((error) => {
+  console.warn('[cron] renewGmailWatch not loaded:', error?.message || String(error))
+})
+import('./cron/processOutbox.js').catch((error) => {
+  console.warn('[cron] processOutbox not loaded:', error?.message || String(error))
+})
 
 const app = express()
 const PORT = Number(process.env.PORT || 5000)
 const MONGODB_URI = process.env.MONGODB_URI
 
 app.use(cors())
+
+// Webhook route needs raw body for Pub/Sub signature verification
+// IMPORTANT: mount this before express.json() so the body is not consumed/parsed first.
+app.use('/api/webhooks', express.raw({ type: 'application/json' }))
+
 app.use(express.json({ limit: '15mb' }))
 app.use(express.urlencoded({ extended: true, limit: '15mb' }))
 app.use('/uploads', express.static(path.resolve('server/uploads')))
 
+// Gmail booking system routes
+app.use('/api/webhooks', webhookRoutes)
+app.use('/api/bookings', bookingRoutes)
+
+// Existing routes
 app.use('/api/notifications', notificationRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/security-activity', securityRoutes)
@@ -48,9 +74,20 @@ app.get('/api/health', (_req, res) => {
 
   res.json({
     ok: true,
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    services: ['api', 'gmail-webhook', 'outbox-processor'],
     dbConnected,
     dbState,
     service: 'auth-api',
+  })
+})
+
+app.get('/health', (_req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    services: ['api', 'gmail-webhook', 'outbox-processor'],
   })
 })
 
