@@ -2,6 +2,10 @@ import process from 'node:process'
 import { Buffer } from 'node:buffer'
 
 import { gmail } from '../../config/gmail.js'
+import Setting from '../../models/Setting.js'
+
+let lastProcessedHistoryId = null
+const processedMessageIds = new Set()
 
 /**
  * Decode and parse Pub/Sub payload.
@@ -38,6 +42,10 @@ function parsePubsubData(pubsubData) {
 			emailAddress: parsed && parsed.emailAddress ? String(parsed.emailAddress) : null,
 		}
 	} catch (error) {
+		console.log('[GmailWebhookService] parsePubsubData error', {
+			message: error && error.message ? error.message : String(error),
+			stack: error && error.stack ? error.stack : null,
+		})
 		console.warn('[GmailWebhookService] Failed to parse Pub/Sub payload', {
 			message: error && error.message ? error.message : String(error),
 		})
@@ -86,6 +94,22 @@ function shortRequestId(bookingId) {
 }
 
 /**
+ * Detect Gmail historyId too old errors.
+ * @param {any} error - Error-like.
+ * @returns {boolean} True if historyId is too old.
+ */
+function isHistoryIdTooOldError(error) {
+	var status = error && (error.code || (error.response && error.response.status))
+	var message = error && (error.message || (error.response && error.response.data && error.response.data.error && error.response.data.error.message))
+
+	if (Number(status) !== 400) return false
+	if (!message) return false
+
+	var msg = String(message).toLowerCase()
+	return msg.indexOf('historyid') !== -1 && msg.indexOf('too old') !== -1
+}
+
+/**
  * Gmail webhook processing service.
  */
 class GmailWebhookService {
@@ -113,9 +137,108 @@ class GmailWebhookService {
 				return []
 			}
 
-			var history = await this.fetchHistory(historyId)
+			var startHistoryId = null
+			if (lastProcessedHistoryId) {
+				startHistoryId = String(lastProcessedHistoryId)
+			} else {
+				var incomingNumber = Number.parseInt(String(historyId || ''), 10)
+				if (Number.isFinite(incomingNumber)) {
+					startHistoryId = String(Math.max(1, incomingNumber - 1))
+				}
+			}
+
+			console.log('[GmailWebhookService] Using startHistoryId', {
+				incomingHistoryId: historyId,
+				startHistoryId: startHistoryId,
+				lastProcessedHistoryId: lastProcessedHistoryId,
+			})
+
+			var history = await this.fetchHistory(startHistoryId || historyId)
+			lastProcessedHistoryId = historyId
+			console.log('[GmailWebhookService] History items count', {
+				count: Array.isArray(history) ? history.length : 0,
+			})
 
 			var results = []
+
+			if (!history || history.length === 0) {
+				console.log('[GmailWebhookService] History empty, falling back to recent unread inbox messages')
+
+				var listRes = await gmail.users.messages.list({
+					userId: 'me',
+					maxResults: 5,
+					q: 'is:unread in:inbox',
+				})
+
+				var listData = (listRes && listRes.data) || {}
+				var listMessages = Array.isArray(listData.messages) ? listData.messages : []
+
+				console.log('[GmailWebhookService] Fallback list result', {
+					count: listMessages.length,
+				})
+
+				var nowMs = Date.now()
+				var cutoffMs = nowMs - 10 * 60 * 1000
+
+				for (var f = 0; f < listMessages.length; f += 1) {
+					var listMsg = listMessages[f]
+					if (!listMsg || !listMsg.id) {
+						continue
+					}
+
+					if (processedMessageIds.has(String(listMsg.id))) {
+						console.log('[GmailWebhookService] Fallback skipping already processed message', {
+							messageId: String(listMsg.id),
+						})
+						continue
+					}
+
+					console.log('[GmailWebhookService] Fallback fetching message', {
+						messageId: String(listMsg.id),
+					})
+
+					var fullRes = await gmail.users.messages.get({
+						userId: 'me',
+						id: String(listMsg.id),
+						format: 'full',
+					})
+
+					var fullMessage = fullRes && fullRes.data ? fullRes.data : null
+					if (!fullMessage) {
+						console.log('[GmailWebhookService] Fallback message missing data', {
+							messageId: String(listMsg.id),
+						})
+						continue
+					}
+
+					var internalDateMs = Number(fullMessage.internalDate)
+					var withinWindow = Number.isFinite(internalDateMs) ? internalDateMs >= cutoffMs : false
+
+					console.log('[GmailWebhookService] Fallback message timing', {
+						messageId: String(listMsg.id),
+						internalDate: fullMessage.internalDate,
+						withinLast10Minutes: withinWindow,
+					})
+
+					if (!withinWindow) {
+						continue
+					}
+
+					var isBooking = this.isBookingRequest(fullMessage)
+					console.log('[GmailWebhookService] Fallback booking check', {
+						messageId: String(listMsg.id),
+						isBookingRequest: isBooking,
+					})
+
+					if (isBooking) {
+						var fallbackResult = await this.processMessage(String(listMsg.id))
+						results.push(fallbackResult)
+						processedMessageIds.add(String(listMsg.id))
+					}
+				}
+
+				return results
+			}
 			for (var i = 0; i < history.length; i += 1) {
 				var item = history[i]
 				var added = item && Array.isArray(item.messagesAdded) ? item.messagesAdded : []
@@ -123,13 +246,22 @@ class GmailWebhookService {
 					var msg = added[j] && added[j].message ? added[j].message : null
 					if (!msg || !msg.id) continue
 
+					console.log('[GmailWebhookService] Processing message', {
+						messageId: String(msg.id),
+					})
+
 					var r = await this.processMessage(String(msg.id))
 					results.push(r)
+					processedMessageIds.add(String(msg.id))
 				}
 			}
 
 			return results
 		} catch (error) {
+			console.log('[GmailWebhookService] processNotification error', {
+				message: error && error.message ? error.message : String(error),
+				stack: error && error.stack ? error.stack : null,
+			})
 			console.error('[GmailWebhookService] processNotification failed', {
 				message: error && error.message ? error.message : String(error),
 			})
@@ -154,6 +286,7 @@ class GmailWebhookService {
 
 			var all = []
 			var pageToken = null
+			var latestHistoryId = null
 
 			do {
 				var res = await gmail.users.history.list({
@@ -163,14 +296,61 @@ class GmailWebhookService {
 					...(pageToken ? { pageToken: pageToken } : {}),
 				})
 
+				console.log('[GmailWebhookService] history.list raw response', {
+					data: res && res.data ? res.data : res,
+				})
+
 				var data = (res && res.data) || {}
+				if (data && data.historyId) {
+					latestHistoryId = String(data.historyId)
+				}
 				var history = Array.isArray(data.history) ? data.history : []
+				console.log('[GmailWebhookService] history.list history count', {
+					count: history.length,
+				})
 				all = all.concat(history)
 				pageToken = data.nextPageToken || null
 			} while (pageToken)
 
+			if (latestHistoryId) {
+				try {
+					await Setting.setLastGmailHistoryId(latestHistoryId)
+				} catch (error) {
+					console.warn('[GmailWebhookService] Failed to store historyId', {
+						message: error && error.message ? error.message : String(error),
+						historyId: latestHistoryId,
+					})
+				}
+			}
+
 			return all
 		} catch (error) {
+			console.log('[GmailWebhookService] fetchHistory error', {
+				message: error && error.message ? error.message : String(error),
+				stack: error && error.stack ? error.stack : null,
+			})
+			if (isHistoryIdTooOldError(error)) {
+				try {
+					var watchHistoryId = await Setting.getLastGmailWatchHistoryId()
+					if (watchHistoryId) {
+						await Setting.setLastGmailHistoryId(watchHistoryId)
+						console.warn('[GmailWebhookService] historyId too old, resetting to watch historyId', {
+							startHistoryId: startHistoryId,
+							watchHistoryId: watchHistoryId,
+						})
+						return []
+					}
+				} catch (secondaryError) {
+					console.log('[GmailWebhookService] reset historyId error', {
+						message: secondaryError && secondaryError.message ? secondaryError.message : String(secondaryError),
+						stack: secondaryError && secondaryError.stack ? secondaryError.stack : null,
+					})
+					console.warn('[GmailWebhookService] Failed to reset historyId after too-old error', {
+						message: secondaryError && secondaryError.message ? secondaryError.message : String(secondaryError),
+					})
+				}
+			}
+
 			console.error('[GmailWebhookService] fetchHistory failed', {
 				message: error && error.message ? error.message : String(error),
 				startHistoryId: startHistoryId,
@@ -197,6 +377,11 @@ class GmailWebhookService {
 
 			var existing = await BookingRequest.findOne({ emailMessageId: String(messageId) })
 			if (existing) {
+				console.log('[GmailWebhookService] Duplicate skipped', {
+					messageId: String(messageId),
+					bookingId: String(existing._id),
+				})
+				processedMessageIds.add(String(messageId))
 				return { messageId: String(messageId), status: 'duplicate', bookingId: String(existing._id) }
 			}
 
@@ -211,6 +396,12 @@ class GmailWebhookService {
 				return { messageId: String(messageId), status: 'skipped', reason: 'message_not_found' }
 			}
 
+			console.log('[GmailWebhookService] Full message fetched', {
+				messageId: String(messageId),
+				subject: getHeader(fullMessage, 'Subject'),
+				from: getHeader(fullMessage, 'From'),
+			})
+
 			if (!this.isBookingRequest(fullMessage)) {
 				return { messageId: String(messageId), status: 'skipped', reason: 'not_booking_request' }
 			}
@@ -218,6 +409,11 @@ class GmailWebhookService {
 			var EmailProcessor = (await import('../email/emailProcessor.js')).default
 			var processor = new EmailProcessor()
 			var parsed = await processor.parse(fullMessage)
+
+			console.log('[GmailWebhookService] Email parsed', {
+				requesterEmail: parsed && parsed.from ? String(parsed.from) : null,
+				requesterName: parsed && parsed.name ? String(parsed.name) : null,
+			})
 
 			var fromEmail = parsed && parsed.from ? String(parsed.from) : extractEmail(getHeader(fullMessage, 'From'))
 			var requesterName = parsed && parsed.name ? String(parsed.name) : ''
@@ -244,6 +440,10 @@ class GmailWebhookService {
 				receivedAt: receivedAt,
 			})
 
+			console.log('[GmailWebhookService] BookingRequest to save', {
+				booking: booking && typeof booking.toObject === 'function' ? booking.toObject() : booking,
+			})
+
 			await booking.save()
 
 			var EmailLog = (await import('../../models/EmailLog.js')).default
@@ -268,8 +468,13 @@ class GmailWebhookService {
 			await this.queueAutoResponse(booking)
 			await this.labelMessage(String(messageId), ['booking-request', 'pending'])
 
+			processedMessageIds.add(String(messageId))
 			return { messageId: String(messageId), status: 'processed', bookingId: String(booking._id) }
 		} catch (error) {
+			console.log('[GmailWebhookService] processMessage error', {
+				message: error && error.message ? error.message : String(error),
+				stack: error && error.stack ? error.stack : null,
+			})
 			console.error('[GmailWebhookService] processMessage failed', {
 				message: error && error.message ? error.message : String(error),
 				messageId: messageId,
@@ -288,6 +493,10 @@ class GmailWebhookService {
 			var subject = getHeader(emailData, 'Subject')
 			var from = getHeader(emailData, 'From')
 
+			console.log('[GmailWebhookService] isBookingRequest subject', {
+				subject: subject,
+			})
+
 			var sender = process.env.GOOGLE_SENDER_EMAIL
 			if (sender && from && String(from).toLowerCase().indexOf(String(sender).toLowerCase()) !== -1) {
 				return false
@@ -298,12 +507,24 @@ class GmailWebhookService {
 
 			for (var i = 0; i < keywords.length; i += 1) {
 				if (s.indexOf(keywords[i]) !== -1) {
+					console.log('[GmailWebhookService] isBookingRequest match', {
+						subject: subject,
+						matchedKeyword: keywords[i],
+					})
 					return true
 				}
 			}
 
+			console.log('[GmailWebhookService] isBookingRequest no match', {
+				subject: subject,
+			})
+
 			return false
-		} catch {
+		} catch (error) {
+			console.log('[GmailWebhookService] isBookingRequest error', {
+				message: error && error.message ? error.message : String(error),
+				stack: error && error.stack ? error.stack : null,
+			})
 			return false
 		}
 	}
@@ -341,6 +562,10 @@ class GmailWebhookService {
 			booking.status = 'form_sent'
 			await booking.save()
 		} catch (error) {
+			console.log('[GmailWebhookService] queueAutoResponse error', {
+				message: error && error.message ? error.message : String(error),
+				stack: error && error.stack ? error.stack : null,
+			})
 			console.error('[GmailWebhookService] queueAutoResponse failed', {
 				message: error && error.message ? error.message : String(error),
 				bookingId: booking && booking._id ? String(booking._id) : null,
@@ -397,6 +622,10 @@ class GmailWebhookService {
 
 			return url.toString()
 		} catch (error) {
+			console.log('[GmailWebhookService] generatePrefilledFormUrl error', {
+				message: error && error.message ? error.message : String(error),
+				stack: error && error.stack ? error.stack : null,
+			})
 			console.error('[GmailWebhookService] generatePrefilledFormUrl failed', {
 				message: error && error.message ? error.message : String(error),
 			})
@@ -483,6 +712,10 @@ class GmailWebhookService {
 
 			return { success: true, labelIds: deduped }
 		} catch (error) {
+			console.log('[GmailWebhookService] labelMessage error', {
+				message: error && error.message ? error.message : String(error),
+				stack: error && error.stack ? error.stack : null,
+			})
 			console.warn('[GmailWebhookService] labelMessage failed (non-critical)', {
 				message: error && error.message ? error.message : String(error),
 				messageId: messageId,

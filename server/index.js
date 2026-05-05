@@ -1,10 +1,9 @@
-/* eslint-env node */
+import 'dotenv/config'
 
 import express from 'express'
 import cors from 'cors'
 import mongoose from 'mongoose'
 import bcrypt from 'bcryptjs'
-import dotenv from 'dotenv'
 import process from 'node:process'
 import path from 'node:path'
 
@@ -21,9 +20,6 @@ import venueRoutes from './routes/venues.js'
 // Gmail booking system routes
 import webhookRoutes from './routes/webhookRoutes.js'
 import bookingRoutes from './routes/bookingRoutes.js'
-
-// Load environment variables (equivalent to require('dotenv').config() in CommonJS)
-dotenv.config()
 
 // Self-registering cron jobs
 // Loaded defensively so missing optional dependencies (e.g., node-cron) don't prevent server startup.
@@ -59,6 +55,48 @@ app.use('/api/security-activity', securityRoutes)
 app.use('/api/settings', settingsRoutes)
 app.use('/api/facilities/media', facilityMediaRoutes)
 app.use('/api/venues', venueRoutes)
+
+// OAuth callback for Gmail token refresh flow
+app.get('/auth/callback', (req, res) => {
+  const code = req.query.code
+  const error = req.query.error
+
+  if (error) {
+    return res.status(400).send(`
+      <html>
+        <body style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2>❌ Authorization Error</h2>
+          <p>Error: ${error}</p>
+          <p><a href="javascript:history.back()">Go back</a></p>
+        </body>
+      </html>
+    `)
+  }
+
+  if (!code) {
+    return res.status(400).send(`
+      <html>
+        <body style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2>❌ Missing Authorization Code</h2>
+          <p>No code was provided in the callback.</p>
+        </body>
+      </html>
+    `)
+  }
+
+  return res.send(`
+    <html>
+      <body style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2>✅ Authorization Successful</h2>
+        <p>Copy the code below and paste it into your terminal:</p>
+        <code style="background: #f0f0f0; padding: 10px; display: block; word-break: break-all; margin: 10px 0;">
+          ${code}
+        </code>
+        <p><small>The terminal is waiting for your input.</small></p>
+      </body>
+    </html>
+  `)
+})
 
 app.use((error, _req, res, next) => {
   if (error?.type === 'entity.too.large') {

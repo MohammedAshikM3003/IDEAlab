@@ -1,0 +1,50 @@
+{
+  "files": {
+    "code": [
+      "server\\index.js",
+      "server\\config\\gmail.js",
+      "server\\config\\pubsub.js",
+      "server\\controllers\\bookingController.js",
+      "server\\controllers\\webhookController.js",
+      "server\\cron\\processOutbox.js",
+      "server\\cron\\renewGmailWatch.js",
+      "server\\middleware\\auth.js",
+      "server\\models\\BookingRequest.js",
+      "server\\models\\EmailLog.js",
+      "server\\models\\Notification.js",
+      "server\\models\\Outbox.js",
+      "server\\models\\SecurityActivity.js",
+      "server\\models\\Setting.js",
+      "server\\models\\User.js",
+      "server\\models\\Venue.js",
+      "server\\routes\\bookingRoutes.js",
+      "server\\routes\\facilityMedia.js",
+      "server\\routes\\notifications.js",
+      "server\\routes\\securityActivity.js",
+      "server\\routes\\settings.js",
+      "server\\routes\\users.js",
+      "server\\routes\\venues.js",
+      "server\\routes\\webhookRoutes.js",
+      "server\\scripts\\seedSettings.js",
+      "server\\scripts\\testWebhook.js",
+      "server\\services\\email\\emailProcessor.js",
+      "server\\services\\email\\outboxService.js",
+      "server\\services\\email\\templateEngine.js",
+      "server\\services\\gmail\\gmailSenderService.js",
+      "server\\services\\gmail\\gmailWatchService.js",
+      "server\\services\\gmail\\gmailWebhookService.js"
+    ],
+    "document": [],
+    "paper": [],
+    "image": [],
+    "video": []
+  },
+  "total_files": 32,
+  "total_words": 12275,
+  "needs_graph": false,
+  "warning": "Corpus is ~12,275 words - fits in a single context window. You may not need a graph.",
+  "skipped_sensitive": [
+    "server\\scripts\\getRefreshToken.js"
+  ],
+  "graphifyignore_patterns": 0
+}

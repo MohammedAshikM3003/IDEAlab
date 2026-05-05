@@ -1,0 +1,2803 @@
+{
+  "nodes": [
+    {
+      "id": "server_index_js",
+      "label": "index.js",
+      "file_type": "code",
+      "source_file": "server\\index.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "index_ensuredefaultadmin",
+      "label": "ensureDefaultAdmin()",
+      "file_type": "code",
+      "source_file": "server\\index.js",
+      "source_location": "L131"
+    },
+    {
+      "id": "index_startserver",
+      "label": "startServer()",
+      "file_type": "code",
+      "source_file": "server\\index.js",
+      "source_location": "L154"
+    },
+    {
+      "id": "server_config_gmail_js",
+      "label": "gmail.js",
+      "file_type": "code",
+      "source_file": "server\\config\\gmail.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "gmail_checkrequiredenv",
+      "label": "checkRequiredEnv()",
+      "file_type": "code",
+      "source_file": "server\\config\\gmail.js",
+      "source_location": "L29"
+    },
+    {
+      "id": "gmail_init",
+      "label": "init()",
+      "file_type": "code",
+      "source_file": "server\\config\\gmail.js",
+      "source_location": "L50"
+    },
+    {
+      "id": "server_config_pubsub_js",
+      "label": "pubsub.js",
+      "file_type": "code",
+      "source_file": "server\\config\\pubsub.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "server_controllers_bookingcontroller_js",
+      "label": "bookingController.js",
+      "file_type": "code",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "bookingcontroller_parseintparam",
+      "label": "parseIntParam()",
+      "file_type": "code",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L15"
+    },
+    {
+      "id": "bookingcontroller_todate",
+      "label": "toDate()",
+      "file_type": "code",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L26"
+    },
+    {
+      "id": "bookingcontroller_geteventname",
+      "label": "getEventName()",
+      "file_type": "code",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L37"
+    },
+    {
+      "id": "bookingcontroller_bookingcontroller",
+      "label": "BookingController",
+      "file_type": "code",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L48"
+    },
+    {
+      "id": "bookingcontroller_bookingcontroller_list",
+      "label": ".list()",
+      "file_type": "code",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L55"
+    },
+    {
+      "id": "bookingcontroller_bookingcontroller_get",
+      "label": ".get()",
+      "file_type": "code",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L99"
+    },
+    {
+      "id": "bookingcontroller_bookingcontroller_approve",
+      "label": ".approve()",
+      "file_type": "code",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L123"
+    },
+    {
+      "id": "bookingcontroller_bookingcontroller_reject",
+      "label": ".reject()",
+      "file_type": "code",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L207"
+    },
+    {
+      "id": "bookingcontroller_bookingcontroller_requestclarification",
+      "label": ".requestClarification()",
+      "file_type": "code",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L258"
+    },
+    {
+      "id": "server_controllers_webhookcontroller_js",
+      "label": "webhookController.js",
+      "file_type": "code",
+      "source_file": "server\\controllers\\webhookController.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "webhookcontroller_webhookcontroller",
+      "label": "WebhookController",
+      "file_type": "code",
+      "source_file": "server\\controllers\\webhookController.js",
+      "source_location": "L10"
+    },
+    {
+      "id": "webhookcontroller_webhookcontroller_handlepubsubnotification",
+      "label": ".handlePubSubNotification()",
+      "file_type": "code",
+      "source_file": "server\\controllers\\webhookController.js",
+      "source_location": "L22"
+    },
+    {
+      "id": "webhookcontroller_webhookcontroller_healthcheck",
+      "label": ".healthCheck()",
+      "file_type": "code",
+      "source_file": "server\\controllers\\webhookController.js",
+      "source_location": "L80"
+    },
+    {
+      "id": "server_cron_processoutbox_js",
+      "label": "processOutbox.js",
+      "file_type": "code",
+      "source_file": "server\\cron\\processOutbox.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "processoutbox_processoutboxbatch",
+      "label": "processOutboxBatch()",
+      "file_type": "code",
+      "source_file": "server\\cron\\processOutbox.js",
+      "source_location": "L11"
+    },
+    {
+      "id": "server_cron_renewgmailwatch_js",
+      "label": "renewGmailWatch.js",
+      "file_type": "code",
+      "source_file": "server\\cron\\renewGmailWatch.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "renewgmailwatch_renewwatch",
+      "label": "renewWatch()",
+      "file_type": "code",
+      "source_file": "server\\cron\\renewGmailWatch.js",
+      "source_location": "L11"
+    },
+    {
+      "id": "server_middleware_auth_js",
+      "label": "auth.js",
+      "file_type": "code",
+      "source_file": "server\\middleware\\auth.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "auth_authmiddleware",
+      "label": "authMiddleware()",
+      "file_type": "code",
+      "source_file": "server\\middleware\\auth.js",
+      "source_location": "L6"
+    },
+    {
+      "id": "server_models_bookingrequest_js",
+      "label": "BookingRequest.js",
+      "file_type": "code",
+      "source_file": "server\\models\\BookingRequest.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "bookingrequest_createbookingrequestschema",
+      "label": "createBookingRequestSchema()",
+      "file_type": "code",
+      "source_file": "server\\models\\BookingRequest.js",
+      "source_location": "L10"
+    },
+    {
+      "id": "bookingrequest_getbookingrequestmodel",
+      "label": "getBookingRequestModel()",
+      "file_type": "code",
+      "source_file": "server\\models\\BookingRequest.js",
+      "source_location": "L127"
+    },
+    {
+      "id": "server_models_emaillog_js",
+      "label": "EmailLog.js",
+      "file_type": "code",
+      "source_file": "server\\models\\EmailLog.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "emaillog_createemaillogschema",
+      "label": "createEmailLogSchema()",
+      "file_type": "code",
+      "source_file": "server\\models\\EmailLog.js",
+      "source_location": "L10"
+    },
+    {
+      "id": "emaillog_getemaillogmodel",
+      "label": "getEmailLogModel()",
+      "file_type": "code",
+      "source_file": "server\\models\\EmailLog.js",
+      "source_location": "L59"
+    },
+    {
+      "id": "server_models_notification_js",
+      "label": "Notification.js",
+      "file_type": "code",
+      "source_file": "server\\models\\Notification.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "server_models_outbox_js",
+      "label": "Outbox.js",
+      "file_type": "code",
+      "source_file": "server\\models\\Outbox.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "outbox_createoutboxschema",
+      "label": "createOutboxSchema()",
+      "file_type": "code",
+      "source_file": "server\\models\\Outbox.js",
+      "source_location": "L10"
+    },
+    {
+      "id": "outbox_getoutboxmodel",
+      "label": "getOutboxModel()",
+      "file_type": "code",
+      "source_file": "server\\models\\Outbox.js",
+      "source_location": "L62"
+    },
+    {
+      "id": "server_models_securityactivity_js",
+      "label": "SecurityActivity.js",
+      "file_type": "code",
+      "source_file": "server\\models\\SecurityActivity.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "server_models_setting_js",
+      "label": "Setting.js",
+      "file_type": "code",
+      "source_file": "server\\models\\Setting.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "server_models_user_js",
+      "label": "User.js",
+      "file_type": "code",
+      "source_file": "server\\models\\User.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "server_models_venue_js",
+      "label": "Venue.js",
+      "file_type": "code",
+      "source_file": "server\\models\\Venue.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "server_routes_bookingroutes_js",
+      "label": "bookingRoutes.js",
+      "file_type": "code",
+      "source_file": "server\\routes\\bookingRoutes.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "server_routes_facilitymedia_js",
+      "label": "facilityMedia.js",
+      "file_type": "code",
+      "source_file": "server\\routes\\facilityMedia.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "facilitymedia_getbucket",
+      "label": "getBucket()",
+      "file_type": "code",
+      "source_file": "server\\routes\\facilityMedia.js",
+      "source_location": "L18"
+    },
+    {
+      "id": "facilitymedia_uploadimagefromrequest",
+      "label": "uploadImageFromRequest()",
+      "file_type": "code",
+      "source_file": "server\\routes\\facilityMedia.js",
+      "source_location": "L26"
+    },
+    {
+      "id": "server_routes_notifications_js",
+      "label": "notifications.js",
+      "file_type": "code",
+      "source_file": "server\\routes\\notifications.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "server_routes_securityactivity_js",
+      "label": "securityActivity.js",
+      "file_type": "code",
+      "source_file": "server\\routes\\securityActivity.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "server_routes_settings_js",
+      "label": "settings.js",
+      "file_type": "code",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "settings_getbucket",
+      "label": "getBucket()",
+      "file_type": "code",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L15"
+    },
+    {
+      "id": "settings_extractgridfsidfromavatarpath",
+      "label": "extractGridFsIdFromAvatarPath()",
+      "file_type": "code",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L23"
+    },
+    {
+      "id": "settings_toprofilefromuser",
+      "label": "toProfileFromUser()",
+      "file_type": "code",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L36"
+    },
+    {
+      "id": "settings_ensuresettings",
+      "label": "ensureSettings()",
+      "file_type": "code",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L49"
+    },
+    {
+      "id": "server_routes_users_js",
+      "label": "users.js",
+      "file_type": "code",
+      "source_file": "server\\routes\\users.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "users_tosafeuser",
+      "label": "toSafeUser()",
+      "file_type": "code",
+      "source_file": "server\\routes\\users.js",
+      "source_location": "L12"
+    },
+    {
+      "id": "server_routes_venues_js",
+      "label": "venues.js",
+      "file_type": "code",
+      "source_file": "server\\routes\\venues.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "server_routes_webhookroutes_js",
+      "label": "webhookRoutes.js",
+      "file_type": "code",
+      "source_file": "server\\routes\\webhookRoutes.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "server_scripts_seedsettings_js",
+      "label": "seedSettings.js",
+      "file_type": "code",
+      "source_file": "server\\scripts\\seedSettings.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "seedsettings_seed",
+      "label": "seed()",
+      "file_type": "code",
+      "source_file": "server\\scripts\\seedSettings.js",
+      "source_location": "L17"
+    },
+    {
+      "id": "server_scripts_testwebhook_js",
+      "label": "testWebhook.js",
+      "file_type": "code",
+      "source_file": "server\\scripts\\testWebhook.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "testwebhook_buildmockpubsubpayload",
+      "label": "buildMockPubsubPayload()",
+      "file_type": "code",
+      "source_file": "server\\scripts\\testWebhook.js",
+      "source_location": "L16"
+    },
+    {
+      "id": "testwebhook_testwebhook",
+      "label": "testWebhook()",
+      "file_type": "code",
+      "source_file": "server\\scripts\\testWebhook.js",
+      "source_location": "L39"
+    },
+    {
+      "id": "server_services_email_emailprocessor_js",
+      "label": "emailProcessor.js",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "emailprocessor_decodegmailbase64",
+      "label": "decodeGmailBase64()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L8"
+    },
+    {
+      "id": "emailprocessor_extractemailaddress",
+      "label": "extractEmailAddress()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L25"
+    },
+    {
+      "id": "emailprocessor_emailprocessor",
+      "label": "EmailProcessor",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L34"
+    },
+    {
+      "id": "emailprocessor_emailprocessor_parse",
+      "label": ".parse()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L40"
+    },
+    {
+      "id": "emailprocessor_emailprocessor_extractbody",
+      "label": ".extractBody()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L100"
+    },
+    {
+      "id": "emailprocessor_emailprocessor_buildrawemail",
+      "label": ".buildRawEmail()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L156"
+    },
+    {
+      "id": "emailprocessor_emailprocessor_extractname",
+      "label": ".extractName()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L182"
+    },
+    {
+      "id": "emailprocessor_emailprocessor_extractbookingdetails",
+      "label": ".extractBookingDetails()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L200"
+    },
+    {
+      "id": "server_services_email_outboxservice_js",
+      "label": "outboxService.js",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "outboxservice_getbackoffminutes",
+      "label": "getBackoffMinutes()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L11"
+    },
+    {
+      "id": "outboxservice_shouldretry",
+      "label": "shouldRetry()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L26"
+    },
+    {
+      "id": "outboxservice_normalizeerror",
+      "label": "normalizeError()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L37"
+    },
+    {
+      "id": "outboxservice_outboxservice",
+      "label": "OutboxService",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L46"
+    },
+    {
+      "id": "outboxservice_outboxservice_queueemail",
+      "label": ".queueEmail()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L61"
+    },
+    {
+      "id": "outboxservice_outboxservice_processoutbox",
+      "label": ".processOutbox()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L90"
+    },
+    {
+      "id": "outboxservice_outboxservice_sendemail",
+      "label": ".sendEmail()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L131"
+    },
+    {
+      "id": "server_services_email_templateengine_js",
+      "label": "templateEngine.js",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\templateEngine.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "templateengine_gethandlebars",
+      "label": "getHandlebars()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\templateEngine.js",
+      "source_location": "L8"
+    },
+    {
+      "id": "templateengine_templateengine",
+      "label": "TemplateEngine",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\templateEngine.js",
+      "source_location": "L27"
+    },
+    {
+      "id": "templateengine_templateengine_constructor",
+      "label": ".constructor()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\templateEngine.js",
+      "source_location": "L31"
+    },
+    {
+      "id": "templateengine_templateengine_render",
+      "label": ".render()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\templateEngine.js",
+      "source_location": "L42"
+    },
+    {
+      "id": "templateengine_templateengine_getinlinetemplate",
+      "label": ".getInlineTemplate()",
+      "file_type": "code",
+      "source_file": "server\\services\\email\\templateEngine.js",
+      "source_location": "L79"
+    },
+    {
+      "id": "server_services_gmail_gmailsenderservice_js",
+      "label": "gmailSenderService.js",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "gmailsenderservice_tobase64url",
+      "label": "toBase64Url()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L10"
+    },
+    {
+      "id": "gmailsenderservice_sanitizeheadervalue",
+      "label": "sanitizeHeaderValue()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L28"
+    },
+    {
+      "id": "gmailsenderservice_buildmimemessage",
+      "label": "buildMimeMessage()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L43"
+    },
+    {
+      "id": "gmailsenderservice_gmailsenderservice",
+      "label": "GmailSenderService",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L114"
+    },
+    {
+      "id": "gmailsenderservice_gmailsenderservice_sendemail",
+      "label": ".sendEmail()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L125"
+    },
+    {
+      "id": "gmailsenderservice_gmailsenderservice_applylabel",
+      "label": ".applyLabel()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L175"
+    },
+    {
+      "id": "server_services_gmail_gmailwatchservice_js",
+      "label": "gmailWatchService.js",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWatchService.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "gmailwatchservice_gmailwatchservice",
+      "label": "GmailWatchService",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWatchService.js",
+      "source_location": "L8"
+    },
+    {
+      "id": "gmailwatchservice_gmailwatchservice_startwatch",
+      "label": ".startWatch()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWatchService.js",
+      "source_location": "L14"
+    },
+    {
+      "id": "gmailwatchservice_gmailwatchservice_stopwatch",
+      "label": ".stopWatch()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWatchService.js",
+      "source_location": "L64"
+    },
+    {
+      "id": "gmailwatchservice_gmailwatchservice_getwatchstatus",
+      "label": ".getWatchStatus()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWatchService.js",
+      "source_location": "L88"
+    },
+    {
+      "id": "server_services_gmail_gmailwebhookservice_js",
+      "label": "gmailWebhookService.js",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L1"
+    },
+    {
+      "id": "gmailwebhookservice_parsepubsubdata",
+      "label": "parsePubsubData()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L13"
+    },
+    {
+      "id": "gmailwebhookservice_getheader",
+      "label": "getHeader()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L54"
+    },
+    {
+      "id": "gmailwebhookservice_extractemail",
+      "label": "extractEmail()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L71"
+    },
+    {
+      "id": "gmailwebhookservice_shortrequestid",
+      "label": "shortRequestId()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L82"
+    },
+    {
+      "id": "gmailwebhookservice_gmailwebhookservice",
+      "label": "GmailWebhookService",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L91"
+    },
+    {
+      "id": "gmailwebhookservice_gmailwebhookservice_processnotification",
+      "label": ".processNotification()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L97"
+    },
+    {
+      "id": "gmailwebhookservice_gmailwebhookservice_fetchhistory",
+      "label": ".fetchHistory()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L145"
+    },
+    {
+      "id": "gmailwebhookservice_gmailwebhookservice_processmessage",
+      "label": ".processMessage()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L187"
+    },
+    {
+      "id": "gmailwebhookservice_gmailwebhookservice_isbookingrequest",
+      "label": ".isBookingRequest()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L286"
+    },
+    {
+      "id": "gmailwebhookservice_gmailwebhookservice_queueautoresponse",
+      "label": ".queueAutoResponse()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L316"
+    },
+    {
+      "id": "gmailwebhookservice_gmailwebhookservice_generateprefilledformurl",
+      "label": ".generatePrefilledFormUrl()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L365"
+    },
+    {
+      "id": "gmailwebhookservice_gmailwebhookservice_labelmessage",
+      "label": ".labelMessage()",
+      "file_type": "code",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L417"
+    }
+  ],
+  "edges": [
+    {
+      "source": "server_index_js",
+      "target": "config",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "express",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "cors",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "mongoose",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "bcryptjs",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "node_process",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "node_path",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "server_models_user_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "server_routes_notifications_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "server_routes_users_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "server_routes_securityactivity_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "server_routes_settings_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "server_routes_facilitymedia_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "server_routes_venues_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "server_routes_webhookroutes_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "server_routes_bookingroutes_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "index_ensuredefaultadmin",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "server_index_js",
+      "target": "index_startserver",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L154",
+      "weight": 1.0
+    },
+    {
+      "source": "index_startserver",
+      "target": "index_ensuredefaultadmin",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\index.js",
+      "source_location": "L166",
+      "weight": 1.0
+    },
+    {
+      "source": "server_config_gmail_js",
+      "target": "node_process",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\config\\gmail.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_config_gmail_js",
+      "target": "gmail_checkrequiredenv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\config\\gmail.js",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "server_config_gmail_js",
+      "target": "gmail_init",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\config\\gmail.js",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "gmail_init",
+      "target": "gmail_checkrequiredenv",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\config\\gmail.js",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "server_controllers_bookingcontroller_js",
+      "target": "mongoose",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_controllers_bookingcontroller_js",
+      "target": "server_models_bookingrequest_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_controllers_bookingcontroller_js",
+      "target": "server_models_venue_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "server_controllers_bookingcontroller_js",
+      "target": "server_services_email_outboxservice_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "server_controllers_bookingcontroller_js",
+      "target": "bookingcontroller_parseintparam",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "server_controllers_bookingcontroller_js",
+      "target": "bookingcontroller_todate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "server_controllers_bookingcontroller_js",
+      "target": "bookingcontroller_geteventname",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "server_controllers_bookingcontroller_js",
+      "target": "bookingcontroller_bookingcontroller",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "bookingcontroller_bookingcontroller",
+      "target": "bookingcontroller_bookingcontroller_list",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "bookingcontroller_bookingcontroller",
+      "target": "bookingcontroller_bookingcontroller_get",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "bookingcontroller_bookingcontroller",
+      "target": "bookingcontroller_bookingcontroller_approve",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L123",
+      "weight": 1.0
+    },
+    {
+      "source": "bookingcontroller_bookingcontroller",
+      "target": "bookingcontroller_bookingcontroller_reject",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L207",
+      "weight": 1.0
+    },
+    {
+      "source": "bookingcontroller_bookingcontroller",
+      "target": "bookingcontroller_bookingcontroller_requestclarification",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L258",
+      "weight": 1.0
+    },
+    {
+      "source": "bookingcontroller_bookingcontroller_list",
+      "target": "bookingcontroller_parseintparam",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "bookingcontroller_bookingcontroller_approve",
+      "target": "bookingcontroller_todate",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L134",
+      "weight": 1.0
+    },
+    {
+      "source": "bookingcontroller_bookingcontroller_approve",
+      "target": "bookingcontroller_geteventname",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L182",
+      "weight": 1.0
+    },
+    {
+      "source": "server_controllers_webhookcontroller_js",
+      "target": "node_buffer",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\webhookController.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_controllers_webhookcontroller_js",
+      "target": "server_services_gmail_gmailwebhookservice_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\webhookController.js",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "server_controllers_webhookcontroller_js",
+      "target": "webhookcontroller_webhookcontroller",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\webhookController.js",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "webhookcontroller_webhookcontroller",
+      "target": "webhookcontroller_webhookcontroller_handlepubsubnotification",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\webhookController.js",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "webhookcontroller_webhookcontroller",
+      "target": "webhookcontroller_webhookcontroller_healthcheck",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\controllers\\webhookController.js",
+      "source_location": "L80",
+      "weight": 1.0
+    },
+    {
+      "source": "server_cron_processoutbox_js",
+      "target": "node_cron",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\cron\\processOutbox.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_cron_processoutbox_js",
+      "target": "server_services_email_outboxservice_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\cron\\processOutbox.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_cron_processoutbox_js",
+      "target": "processoutbox_processoutboxbatch",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\cron\\processOutbox.js",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "server_cron_renewgmailwatch_js",
+      "target": "node_cron",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\cron\\renewGmailWatch.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_cron_renewgmailwatch_js",
+      "target": "server_services_gmail_gmailwatchservice_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\cron\\renewGmailWatch.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_cron_renewgmailwatch_js",
+      "target": "renewgmailwatch_renewwatch",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\cron\\renewGmailWatch.js",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "server_middleware_auth_js",
+      "target": "mongoose",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\middleware\\auth.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_middleware_auth_js",
+      "target": "node_process",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\middleware\\auth.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "server_middleware_auth_js",
+      "target": "server_models_user_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\middleware\\auth.js",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "server_middleware_auth_js",
+      "target": "auth_authmiddleware",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\middleware\\auth.js",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "server_models_bookingrequest_js",
+      "target": "mongoose",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\BookingRequest.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_models_bookingrequest_js",
+      "target": "bookingrequest_createbookingrequestschema",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\BookingRequest.js",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "server_models_bookingrequest_js",
+      "target": "bookingrequest_getbookingrequestmodel",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\BookingRequest.js",
+      "source_location": "L127",
+      "weight": 1.0
+    },
+    {
+      "source": "bookingrequest_getbookingrequestmodel",
+      "target": "bookingrequest_createbookingrequestschema",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\BookingRequest.js",
+      "source_location": "L129",
+      "weight": 1.0
+    },
+    {
+      "source": "server_models_emaillog_js",
+      "target": "mongoose",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\EmailLog.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_models_emaillog_js",
+      "target": "emaillog_createemaillogschema",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\EmailLog.js",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "server_models_emaillog_js",
+      "target": "emaillog_getemaillogmodel",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\EmailLog.js",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "emaillog_getemaillogmodel",
+      "target": "emaillog_createemaillogschema",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\EmailLog.js",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "server_models_notification_js",
+      "target": "mongoose",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\Notification.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_models_outbox_js",
+      "target": "mongoose",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\Outbox.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_models_outbox_js",
+      "target": "outbox_createoutboxschema",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\Outbox.js",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "server_models_outbox_js",
+      "target": "outbox_getoutboxmodel",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\Outbox.js",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "outbox_getoutboxmodel",
+      "target": "outbox_createoutboxschema",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\Outbox.js",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "server_models_securityactivity_js",
+      "target": "mongoose",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\SecurityActivity.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_models_setting_js",
+      "target": "mongoose",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\Setting.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_models_user_js",
+      "target": "mongoose",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\User.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_models_user_js",
+      "target": "bcryptjs",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\User.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "server_models_venue_js",
+      "target": "mongoose",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\models\\Venue.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_bookingroutes_js",
+      "target": "express",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\bookingRoutes.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_bookingroutes_js",
+      "target": "server_controllers_bookingcontroller_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\bookingRoutes.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_bookingroutes_js",
+      "target": "server_middleware_auth_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\bookingRoutes.js",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_facilitymedia_js",
+      "target": "express",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\facilityMedia.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_facilitymedia_js",
+      "target": "multer",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\facilityMedia.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_facilitymedia_js",
+      "target": "mongoose",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\facilityMedia.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_facilitymedia_js",
+      "target": "mongodb",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\facilityMedia.js",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_facilitymedia_js",
+      "target": "node_stream",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\facilityMedia.js",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_facilitymedia_js",
+      "target": "server_middleware_auth_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\facilityMedia.js",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_facilitymedia_js",
+      "target": "facilitymedia_getbucket",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\facilityMedia.js",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_facilitymedia_js",
+      "target": "facilitymedia_uploadimagefromrequest",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\facilityMedia.js",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "facilitymedia_uploadimagefromrequest",
+      "target": "facilitymedia_getbucket",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\facilityMedia.js",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_notifications_js",
+      "target": "express",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\notifications.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_notifications_js",
+      "target": "server_models_notification_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\notifications.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_securityactivity_js",
+      "target": "express",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\securityActivity.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_securityactivity_js",
+      "target": "server_models_securityactivity_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\securityActivity.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_securityactivity_js",
+      "target": "server_middleware_auth_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\securityActivity.js",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_settings_js",
+      "target": "express",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_settings_js",
+      "target": "multer",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_settings_js",
+      "target": "mongoose",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_settings_js",
+      "target": "mongodb",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_settings_js",
+      "target": "node_stream",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_settings_js",
+      "target": "server_middleware_auth_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_settings_js",
+      "target": "server_models_setting_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_settings_js",
+      "target": "settings_getbucket",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_settings_js",
+      "target": "settings_extractgridfsidfromavatarpath",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_settings_js",
+      "target": "settings_toprofilefromuser",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_settings_js",
+      "target": "settings_ensuresettings",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "settings_ensuresettings",
+      "target": "settings_toprofilefromuser",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\settings.js",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_users_js",
+      "target": "express",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\users.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_users_js",
+      "target": "multer",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\users.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_users_js",
+      "target": "node_path",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\users.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_users_js",
+      "target": "node_fs",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\users.js",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_users_js",
+      "target": "server_models_user_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\users.js",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_users_js",
+      "target": "server_models_securityactivity_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\users.js",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_users_js",
+      "target": "server_middleware_auth_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\users.js",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_users_js",
+      "target": "users_tosafeuser",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\users.js",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_venues_js",
+      "target": "express",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\venues.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_venues_js",
+      "target": "mongoose",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\venues.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_venues_js",
+      "target": "server_models_venue_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\venues.js",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_venues_js",
+      "target": "server_middleware_auth_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\venues.js",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_webhookroutes_js",
+      "target": "express",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\webhookRoutes.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_routes_webhookroutes_js",
+      "target": "server_controllers_webhookcontroller_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\routes\\webhookRoutes.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_scripts_seedsettings_js",
+      "target": "dotenv",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\scripts\\seedSettings.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_scripts_seedsettings_js",
+      "target": "mongoose",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\scripts\\seedSettings.js",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "server_scripts_seedsettings_js",
+      "target": "node_process",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\scripts\\seedSettings.js",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "server_scripts_seedsettings_js",
+      "target": "bcryptjs",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\scripts\\seedSettings.js",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "server_scripts_seedsettings_js",
+      "target": "server_models_user_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\scripts\\seedSettings.js",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "server_scripts_seedsettings_js",
+      "target": "server_models_notification_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\scripts\\seedSettings.js",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "server_scripts_seedsettings_js",
+      "target": "server_models_securityactivity_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\scripts\\seedSettings.js",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "server_scripts_seedsettings_js",
+      "target": "server_models_setting_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\scripts\\seedSettings.js",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "server_scripts_seedsettings_js",
+      "target": "seedsettings_seed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\scripts\\seedSettings.js",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "server_scripts_testwebhook_js",
+      "target": "axios",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\scripts\\testWebhook.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_scripts_testwebhook_js",
+      "target": "node_buffer",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\scripts\\testWebhook.js",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "server_scripts_testwebhook_js",
+      "target": "node_process",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\scripts\\testWebhook.js",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "server_scripts_testwebhook_js",
+      "target": "testwebhook_buildmockpubsubpayload",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\scripts\\testWebhook.js",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "server_scripts_testwebhook_js",
+      "target": "testwebhook_testwebhook",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\scripts\\testWebhook.js",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "testwebhook_testwebhook",
+      "target": "testwebhook_buildmockpubsubpayload",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\scripts\\testWebhook.js",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_email_emailprocessor_js",
+      "target": "node_buffer",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_email_emailprocessor_js",
+      "target": "emailprocessor_decodegmailbase64",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_email_emailprocessor_js",
+      "target": "emailprocessor_extractemailaddress",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_email_emailprocessor_js",
+      "target": "emailprocessor_emailprocessor",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "emailprocessor_emailprocessor",
+      "target": "emailprocessor_emailprocessor_parse",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "emailprocessor_emailprocessor",
+      "target": "emailprocessor_emailprocessor_extractbody",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L100",
+      "weight": 1.0
+    },
+    {
+      "source": "emailprocessor_emailprocessor",
+      "target": "emailprocessor_emailprocessor_buildrawemail",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L156",
+      "weight": 1.0
+    },
+    {
+      "source": "emailprocessor_emailprocessor",
+      "target": "emailprocessor_emailprocessor_extractname",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L182",
+      "weight": 1.0
+    },
+    {
+      "source": "emailprocessor_emailprocessor",
+      "target": "emailprocessor_emailprocessor_extractbookingdetails",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L200",
+      "weight": 1.0
+    },
+    {
+      "source": "emailprocessor_emailprocessor_parse",
+      "target": "emailprocessor_emailprocessor_extractbody",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "emailprocessor_emailprocessor_parse",
+      "target": "emailprocessor_emailprocessor_buildrawemail",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "emailprocessor_emailprocessor_parse",
+      "target": "emailprocessor_emailprocessor_extractname",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "emailprocessor_emailprocessor_parse",
+      "target": "emailprocessor_extractemailaddress",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "emailprocessor_emailprocessor_parse",
+      "target": "emailprocessor_emailprocessor_extractbookingdetails",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "emailprocessor_emailprocessor_extractbody",
+      "target": "emailprocessor_decodegmailbase64",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\emailProcessor.js",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_email_outboxservice_js",
+      "target": "server_models_outbox_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_email_outboxservice_js",
+      "target": "server_services_email_templateengine_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_email_outboxservice_js",
+      "target": "server_services_gmail_gmailsenderservice_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_email_outboxservice_js",
+      "target": "outboxservice_getbackoffminutes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_email_outboxservice_js",
+      "target": "outboxservice_shouldretry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_email_outboxservice_js",
+      "target": "outboxservice_normalizeerror",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_email_outboxservice_js",
+      "target": "outboxservice_outboxservice",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "outboxservice_outboxservice",
+      "target": "outboxservice_outboxservice_queueemail",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "outboxservice_outboxservice",
+      "target": "outboxservice_outboxservice_processoutbox",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "outboxservice_outboxservice",
+      "target": "outboxservice_outboxservice_sendemail",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "outboxservice_outboxservice_processoutbox",
+      "target": "outboxservice_outboxservice_sendemail",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L115",
+      "weight": 1.0
+    },
+    {
+      "source": "outboxservice_outboxservice_sendemail",
+      "target": "outboxservice_normalizeerror",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L189",
+      "weight": 1.0
+    },
+    {
+      "source": "outboxservice_outboxservice_sendemail",
+      "target": "outboxservice_shouldretry",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L197",
+      "weight": 1.0
+    },
+    {
+      "source": "outboxservice_outboxservice_sendemail",
+      "target": "outboxservice_getbackoffminutes",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L198",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_email_templateengine_js",
+      "target": "templateengine_gethandlebars",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\templateEngine.js",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_email_templateengine_js",
+      "target": "templateengine_templateengine",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\templateEngine.js",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "templateengine_templateengine",
+      "target": "templateengine_templateengine_constructor",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\templateEngine.js",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "templateengine_templateengine",
+      "target": "templateengine_templateengine_render",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\templateEngine.js",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "templateengine_templateengine",
+      "target": "templateengine_templateengine_getinlinetemplate",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\templateEngine.js",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "templateengine_templateengine_render",
+      "target": "templateengine_gethandlebars",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\templateEngine.js",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "templateengine_templateengine_render",
+      "target": "templateengine_templateengine_getinlinetemplate",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\email\\templateEngine.js",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailsenderservice_js",
+      "target": "node_buffer",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailsenderservice_js",
+      "target": "server_config_gmail_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailsenderservice_js",
+      "target": "gmailsenderservice_tobase64url",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailsenderservice_js",
+      "target": "gmailsenderservice_sanitizeheadervalue",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailsenderservice_js",
+      "target": "gmailsenderservice_buildmimemessage",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailsenderservice_js",
+      "target": "gmailsenderservice_gmailsenderservice",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L114",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailsenderservice_gmailsenderservice",
+      "target": "gmailsenderservice_gmailsenderservice_sendemail",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L125",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailsenderservice_gmailsenderservice",
+      "target": "gmailsenderservice_gmailsenderservice_applylabel",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L175",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailsenderservice_buildmimemessage",
+      "target": "gmailsenderservice_sanitizeheadervalue",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailsenderservice_gmailsenderservice_sendemail",
+      "target": "gmailsenderservice_buildmimemessage",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailsenderservice_gmailsenderservice_sendemail",
+      "target": "gmailsenderservice_tobase64url",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L139",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailwatchservice_js",
+      "target": "node_process",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWatchService.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailwatchservice_js",
+      "target": "server_config_gmail_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWatchService.js",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailwatchservice_js",
+      "target": "gmailwatchservice_gmailwatchservice",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWatchService.js",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwatchservice_gmailwatchservice",
+      "target": "gmailwatchservice_gmailwatchservice_startwatch",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWatchService.js",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwatchservice_gmailwatchservice",
+      "target": "gmailwatchservice_gmailwatchservice_stopwatch",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWatchService.js",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwatchservice_gmailwatchservice",
+      "target": "gmailwatchservice_gmailwatchservice_getwatchstatus",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWatchService.js",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailwebhookservice_js",
+      "target": "node_process",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailwebhookservice_js",
+      "target": "node_buffer",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailwebhookservice_js",
+      "target": "server_config_gmail_ts",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailwebhookservice_js",
+      "target": "gmailwebhookservice_parsepubsubdata",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailwebhookservice_js",
+      "target": "gmailwebhookservice_getheader",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailwebhookservice_js",
+      "target": "gmailwebhookservice_extractemail",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailwebhookservice_js",
+      "target": "gmailwebhookservice_shortrequestid",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L82",
+      "weight": 1.0
+    },
+    {
+      "source": "server_services_gmail_gmailwebhookservice_js",
+      "target": "gmailwebhookservice_gmailwebhookservice",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice",
+      "target": "gmailwebhookservice_gmailwebhookservice_processnotification",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice",
+      "target": "gmailwebhookservice_gmailwebhookservice_fetchhistory",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L145",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice",
+      "target": "gmailwebhookservice_gmailwebhookservice_processmessage",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice",
+      "target": "gmailwebhookservice_gmailwebhookservice_isbookingrequest",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L286",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice",
+      "target": "gmailwebhookservice_gmailwebhookservice_queueautoresponse",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L316",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice",
+      "target": "gmailwebhookservice_gmailwebhookservice_generateprefilledformurl",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L365",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice",
+      "target": "gmailwebhookservice_gmailwebhookservice_labelmessage",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L417",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice_processnotification",
+      "target": "gmailwebhookservice_parsepubsubdata",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice_processnotification",
+      "target": "gmailwebhookservice_gmailwebhookservice_fetchhistory",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L116",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice_processnotification",
+      "target": "gmailwebhookservice_gmailwebhookservice_processmessage",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L126",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice_processmessage",
+      "target": "gmailwebhookservice_gmailwebhookservice_isbookingrequest",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L214",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice_processmessage",
+      "target": "gmailwebhookservice_extractemail",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L222",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice_processmessage",
+      "target": "gmailwebhookservice_getheader",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L222",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice_processmessage",
+      "target": "gmailwebhookservice_gmailwebhookservice_queueautoresponse",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L268",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice_processmessage",
+      "target": "gmailwebhookservice_gmailwebhookservice_labelmessage",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L269",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice_isbookingrequest",
+      "target": "gmailwebhookservice_getheader",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L288",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice_queueautoresponse",
+      "target": "gmailwebhookservice_gmailwebhookservice_generateprefilledformurl",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L320",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice_queueautoresponse",
+      "target": "gmailwebhookservice_shortrequestid",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L321",
+      "weight": 1.0
+    },
+    {
+      "source": "bookingcontroller_bookingcontroller_approve",
+      "target": "outboxservice_outboxservice_queueemail",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L186",
+      "weight": 1.0
+    },
+    {
+      "source": "bookingcontroller_bookingcontroller_reject",
+      "target": "outboxservice_outboxservice_queueemail",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L234",
+      "weight": 1.0
+    },
+    {
+      "source": "bookingcontroller_bookingcontroller_requestclarification",
+      "target": "outboxservice_outboxservice_queueemail",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "server\\controllers\\bookingController.js",
+      "source_location": "L285",
+      "weight": 1.0
+    },
+    {
+      "source": "webhookcontroller_webhookcontroller_handlepubsubnotification",
+      "target": "emailprocessor_emailprocessor_parse",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "server\\controllers\\webhookController.js",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "processoutbox_processoutboxbatch",
+      "target": "outboxservice_outboxservice_processoutbox",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "server\\cron\\processOutbox.js",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "renewgmailwatch_renewwatch",
+      "target": "gmailwatchservice_gmailwatchservice_startwatch",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "server\\cron\\renewGmailWatch.js",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "outboxservice_outboxservice_sendemail",
+      "target": "templateengine_templateengine_render",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "server\\services\\email\\outboxService.js",
+      "source_location": "L159",
+      "weight": 1.0
+    },
+    {
+      "source": "templateengine_templateengine_render",
+      "target": "bookingcontroller_bookingcontroller_get",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "server\\services\\email\\templateEngine.js",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailsenderservice_gmailsenderservice_applylabel",
+      "target": "bookingcontroller_bookingcontroller_list",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "server\\services\\gmail\\gmailSenderService.js",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_parsepubsubdata",
+      "target": "emailprocessor_emailprocessor_parse",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice_fetchhistory",
+      "target": "bookingcontroller_bookingcontroller_list",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L159",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice_processmessage",
+      "target": "bookingcontroller_bookingcontroller_get",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L203",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice_processmessage",
+      "target": "emailprocessor_emailprocessor_parse",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L220",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice_queueautoresponse",
+      "target": "outboxservice_outboxservice_queueemail",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L333",
+      "weight": 1.0
+    },
+    {
+      "source": "gmailwebhookservice_gmailwebhookservice_labelmessage",
+      "target": "bookingcontroller_bookingcontroller_list",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "server\\services\\gmail\\gmailWebhookService.js",
+      "source_location": "L426",
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

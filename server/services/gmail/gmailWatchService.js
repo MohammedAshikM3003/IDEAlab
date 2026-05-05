@@ -1,6 +1,7 @@
 import process from 'node:process'
 
 import { gmail } from '../../config/gmail.js'
+import Setting from '../../models/Setting.js'
 
 /**
  * Gmail watch service (Gmail push notifications -> Pub/Sub).
@@ -15,6 +16,15 @@ class GmailWatchService {
 		try {
 			if (!gmail) {
 				throw new Error('Gmail API client is not initialized. Check server/config/gmail.js')
+			}
+
+			let storedHistoryId = null
+			try {
+				storedHistoryId = await Setting.getLastGmailHistoryId()
+			} catch (error) {
+				console.warn('[GmailWatchService] Failed to read stored historyId', {
+					message: error && error.message ? error.message : String(error),
+				})
 			}
 
 			var name = topicName || 'gmail-booking-requests'
@@ -39,15 +49,27 @@ class GmailWatchService {
 			var expiration = data && data.expiration != null ? Number(data.expiration) : null
 			var expiresAt = expiration ? new Date(expiration).toISOString() : null
 
+			if (data && data.historyId) {
+				try {
+					await Setting.setLastGmailWatchHistoryId(String(data.historyId))
+				} catch (error) {
+					console.warn('[GmailWatchService] Failed to store watch historyId', {
+						message: error && error.message ? error.message : String(error),
+					})
+				}
+			}
+
 			console.info('[GmailWatchService] watch started', {
 				historyId: data.historyId,
 				expiration,
 				expiresAt,
+				startHistoryId: storedHistoryId || null,
 			})
 
 			return {
 				historyId: data.historyId,
 				expiration,
+				startHistoryId: storedHistoryId || null,
 			}
 		} catch (error) {
 			console.error('[GmailWatchService] startWatch failed', {

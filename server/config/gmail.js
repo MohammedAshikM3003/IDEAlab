@@ -52,6 +52,12 @@ async function init() {
     return
   }
 
+  const CLIENT_ID = process.env.GOOGLE_CLIENT_ID
+  const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
+  const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI
+  const REFRESH_TOKEN = process.env.GOOGLE_REFRESH_TOKEN
+  const ACCESS_TOKEN = process.env.GOOGLE_ACCESS_TOKEN
+
   try {
     const mod = await import('googleapis')
     google = mod.google
@@ -62,29 +68,30 @@ async function init() {
     return
   }
 
-  const envCheck = checkRequiredEnv([
-    'GOOGLE_CLIENT_ID',
-    'GOOGLE_CLIENT_SECRET',
-    'GOOGLE_REDIRECT_URI',
-    'GOOGLE_REFRESH_TOKEN',
-  ])
+  const envCheck = checkRequiredEnv(['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REDIRECT_URI', 'GOOGLE_REFRESH_TOKEN'])
 
   if (!envCheck.ok) {
     console.warn('[gmail config] Missing env vars for Gmail integration. Gmail features are disabled.', {
       missing: envCheck.missing,
+      hasClientId: Boolean(CLIENT_ID),
+      hasClientSecret: Boolean(CLIENT_SECRET),
+      hasRedirectUri: Boolean(REDIRECT_URI),
+      hasRefreshToken: Boolean(REFRESH_TOKEN),
+      hasAccessToken: Boolean(ACCESS_TOKEN),
     })
     return
   }
 
   try {
     oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      process.env.GOOGLE_REDIRECT_URI,
+      CLIENT_ID,
+      CLIENT_SECRET,
+      REDIRECT_URI,
     )
 
     oauth2Client.setCredentials({
-      refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
+      refresh_token: REFRESH_TOKEN,
+      access_token: ACCESS_TOKEN,
     })
 
     oauth2Client.on('tokens', (tokens) => {
@@ -114,6 +121,7 @@ async function init() {
 
     gmail = google.gmail({ version: 'v1', auth: oauth2Client })
     forms = google.forms({ version: 'v1', auth: oauth2Client })
+    console.info('[gmail config] Gmail integration enabled ✅')
   } catch (error) {
     console.error('[gmail config] Failed to initialize Gmail clients. Gmail features are disabled.', {
       message: error && error.message ? error.message : String(error),

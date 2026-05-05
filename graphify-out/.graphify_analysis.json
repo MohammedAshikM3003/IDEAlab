@@ -1,0 +1,225 @@
+{
+  "communities": {
+    "0": [
+      "bookingcontroller_bookingcontroller_list",
+      "bookingcontroller_parseintparam",
+      "gmailwebhookservice_extractemail",
+      "gmailwebhookservice_getheader",
+      "gmailwebhookservice_gmailwebhookservice",
+      "gmailwebhookservice_gmailwebhookservice_fetchhistory",
+      "gmailwebhookservice_gmailwebhookservice_generateprefilledformurl",
+      "gmailwebhookservice_gmailwebhookservice_isbookingrequest",
+      "gmailwebhookservice_gmailwebhookservice_labelmessage",
+      "gmailwebhookservice_gmailwebhookservice_processmessage",
+      "gmailwebhookservice_gmailwebhookservice_processnotification",
+      "gmailwebhookservice_gmailwebhookservice_queueautoresponse",
+      "gmailwebhookservice_parsepubsubdata",
+      "gmailwebhookservice_shortrequestid",
+      "server_services_gmail_gmailwebhookservice_js"
+    ],
+    "1": [
+      "emailprocessor_decodegmailbase64",
+      "emailprocessor_emailprocessor",
+      "emailprocessor_emailprocessor_buildrawemail",
+      "emailprocessor_emailprocessor_extractbody",
+      "emailprocessor_emailprocessor_extractbookingdetails",
+      "emailprocessor_emailprocessor_extractname",
+      "emailprocessor_emailprocessor_parse",
+      "emailprocessor_extractemailaddress",
+      "server_controllers_webhookcontroller_js",
+      "server_services_email_emailprocessor_js",
+      "webhookcontroller_webhookcontroller",
+      "webhookcontroller_webhookcontroller_handlepubsubnotification",
+      "webhookcontroller_webhookcontroller_healthcheck"
+    ],
+    "2": [
+      "outboxservice_getbackoffminutes",
+      "outboxservice_normalizeerror",
+      "outboxservice_outboxservice",
+      "outboxservice_outboxservice_processoutbox",
+      "outboxservice_outboxservice_sendemail",
+      "outboxservice_shouldretry",
+      "processoutbox_processoutboxbatch",
+      "server_cron_processoutbox_js",
+      "server_services_email_outboxservice_js"
+    ],
+    "3": [
+      "bookingcontroller_bookingcontroller",
+      "bookingcontroller_bookingcontroller_approve",
+      "bookingcontroller_bookingcontroller_reject",
+      "bookingcontroller_bookingcontroller_requestclarification",
+      "bookingcontroller_geteventname",
+      "bookingcontroller_todate",
+      "outboxservice_outboxservice_queueemail",
+      "server_controllers_bookingcontroller_js"
+    ],
+    "4": [
+      "gmailwatchservice_gmailwatchservice",
+      "gmailwatchservice_gmailwatchservice_getwatchstatus",
+      "gmailwatchservice_gmailwatchservice_startwatch",
+      "gmailwatchservice_gmailwatchservice_stopwatch",
+      "renewgmailwatch_renewwatch",
+      "server_cron_renewgmailwatch_js",
+      "server_services_gmail_gmailwatchservice_js"
+    ],
+    "5": [
+      "bookingcontroller_bookingcontroller_get",
+      "server_services_email_templateengine_js",
+      "templateengine_gethandlebars",
+      "templateengine_templateengine",
+      "templateengine_templateengine_constructor",
+      "templateengine_templateengine_getinlinetemplate",
+      "templateengine_templateengine_render"
+    ],
+    "6": [
+      "gmailsenderservice_buildmimemessage",
+      "gmailsenderservice_gmailsenderservice",
+      "gmailsenderservice_gmailsenderservice_applylabel",
+      "gmailsenderservice_gmailsenderservice_sendemail",
+      "gmailsenderservice_sanitizeheadervalue",
+      "gmailsenderservice_tobase64url",
+      "server_services_gmail_gmailsenderservice_js"
+    ],
+    "7": [
+      "server_routes_settings_js",
+      "settings_ensuresettings",
+      "settings_extractgridfsidfromavatarpath",
+      "settings_getbucket",
+      "settings_toprofilefromuser"
+    ],
+    "8": [
+      "index_ensuredefaultadmin",
+      "index_startserver",
+      "server_index_js"
+    ],
+    "9": [
+      "gmail_checkrequiredenv",
+      "gmail_init",
+      "server_config_gmail_js"
+    ],
+    "10": [
+      "bookingrequest_createbookingrequestschema",
+      "bookingrequest_getbookingrequestmodel",
+      "server_models_bookingrequest_js"
+    ],
+    "11": [
+      "emaillog_createemaillogschema",
+      "emaillog_getemaillogmodel",
+      "server_models_emaillog_js"
+    ],
+    "12": [
+      "outbox_createoutboxschema",
+      "outbox_getoutboxmodel",
+      "server_models_outbox_js"
+    ],
+    "13": [
+      "facilitymedia_getbucket",
+      "facilitymedia_uploadimagefromrequest",
+      "server_routes_facilitymedia_js"
+    ],
+    "14": [
+      "server_scripts_testwebhook_js",
+      "testwebhook_buildmockpubsubpayload",
+      "testwebhook_testwebhook"
+    ],
+    "15": [
+      "auth_authmiddleware",
+      "server_middleware_auth_js"
+    ],
+    "16": [
+      "server_routes_users_js",
+      "users_tosafeuser"
+    ],
+    "17": [
+      "seedsettings_seed",
+      "server_scripts_seedsettings_js"
+    ],
+    "18": [
+      "server_config_pubsub_js"
+    ],
+    "19": [
+      "server_models_notification_js"
+    ],
+    "20": [
+      "server_models_securityactivity_js"
+    ],
+    "21": [
+      "server_models_setting_js"
+    ],
+    "22": [
+      "server_models_user_js"
+    ],
+    "23": [
+      "server_models_venue_js"
+    ],
+    "24": [
+      "server_routes_bookingroutes_js"
+    ],
+    "25": [
+      "server_routes_notifications_js"
+    ],
+    "26": [
+      "server_routes_securityactivity_js"
+    ],
+    "27": [
+      "server_routes_venues_js"
+    ],
+    "28": [
+      "server_routes_webhookroutes_js"
+    ]
+  },
+  "cohesion": {},
+  "god_nodes": [
+    {
+      "id": "gmailwebhookservice_gmailwebhookservice",
+      "label": "GmailWebhookService",
+      "degree": 8
+    },
+    {
+      "id": "bookingcontroller_bookingcontroller",
+      "label": "BookingController",
+      "degree": 6
+    },
+    {
+      "id": "emailprocessor_emailprocessor",
+      "label": "EmailProcessor",
+      "degree": 6
+    },
+    {
+      "id": "outboxservice_outboxservice",
+      "label": "OutboxService",
+      "degree": 4
+    },
+    {
+      "id": "templateengine_templateengine",
+      "label": "TemplateEngine",
+      "degree": 4
+    },
+    {
+      "id": "gmailwatchservice_gmailwatchservice",
+      "label": "GmailWatchService",
+      "degree": 4
+    },
+    {
+      "id": "webhookcontroller_webhookcontroller",
+      "label": "WebhookController",
+      "degree": 3
+    },
+    {
+      "id": "gmailsenderservice_buildmimemessage",
+      "label": "buildMimeMessage()",
+      "degree": 3
+    },
+    {
+      "id": "gmailsenderservice_gmailsenderservice",
+      "label": "GmailSenderService",
+      "degree": 3
+    },
+    {
+      "id": "gmailwebhookservice_parsepubsubdata",
+      "label": "parsePubsubData()",
+      "degree": 3
+    }
+  ],
+  "surprises": []
+}
