@@ -5,6 +5,9 @@ import { authMiddleware } from '../middleware/auth.js'
 
 const router = express.Router()
 
+router.get('/by-token/:token', (req, res) => bookingController.getByToken(req, res))
+router.post('/form-response', (req, res) => bookingController.submitFormResponse(req, res))
+
 router.get('/', authMiddleware, (req, res) => bookingController.list(req, res))
 router.get('/:id', authMiddleware, (req, res) => bookingController.get(req, res))
 router.patch('/:id/approve', authMiddleware, (req, res) => bookingController.approve(req, res))

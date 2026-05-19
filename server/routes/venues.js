@@ -6,6 +6,17 @@ import { authMiddleware } from '../middleware/auth.js'
 
 const router = express.Router()
 
+router.get('/public', async (_req, res) => {
+  try {
+    const venues = await Venue.find({ status: 'active' })
+      .select('_id name')
+      .sort({ createdAt: -1 })
+    return res.json(venues)
+  } catch {
+    return res.status(500).json({ message: 'Failed to load venues' })
+  }
+})
+
 router.get('/', authMiddleware, async (_req, res) => {
   try {
     const venues = await Venue.find().sort({ createdAt: -1 })

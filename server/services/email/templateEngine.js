@@ -106,14 +106,13 @@ class TemplateEngine {
 					'<div style="margin-top:12px;font-size:14px;color:#374151;line-height:22px">Hello {{name}},</div>' +
 					'<div style="margin-top:10px;font-size:14px;color:#374151;line-height:22px">' +
 					'We received your booking request (Reference: <strong>{{requestId}}</strong>). ' +
-					'To proceed, please complete the booking form using the link below.' +
+					'Please complete your booking form using the link below.' +
 					'</div>' +
 					'<div style="margin-top:18px">' +
-					'<a href="{{formUrl}}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 16px;border-radius:8px;font-size:14px;font-weight:700">Open Booking Form</a>' +
+					'<a href="{{bookingUrl}}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 16px;border-radius:8px;font-size:14px;font-weight:700">Complete Booking Form</a>' +
 					'</div>' +
 					'<div style="margin-top:14px;font-size:12px;color:#6b7280;line-height:18px">' +
-					'If the button does not work, copy and paste this URL into your browser:<br />' +
-					'<span style="word-break:break-all">{{formUrl}}</span>' +
+					'If the button does not work, copy and paste this URL: {{bookingUrl}}' +
 					'</div>' +
 					footer +
 					baseEnd

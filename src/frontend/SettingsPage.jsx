@@ -7,6 +7,8 @@ import styles from './SettingsPage.module.css'
 import { useUserProfile } from './UserProfileContext.jsx'
 import { api } from './utils/api.js'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+
 function IconShield({ className }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -195,7 +197,7 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
       lastName: nextLastName,
       email: apiUser.email || previousProfile.email,
       role: apiUser.designation || apiUser.role || previousProfile.role,
-      avatarUrl: apiUser.avatar ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${apiUser.avatar}` : previousProfile.avatarUrl,
+      avatarUrl: apiUser.avatar ? `${API_URL}${apiUser.avatar}` : previousProfile.avatarUrl,
     }))
   }, [setUserProfile])
 
@@ -406,7 +408,7 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
       const formData = new FormData()
       formData.append('avatar', blob, `avatar-${Date.now()}.png`)
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/settings/avatar`, {
+      const response = await fetch(`${API_URL}/api/settings/avatar`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,

@@ -9,7 +9,7 @@ import styles from "./EditFacilityPage.module.css";
 const INVENTORY_CONDITIONS = ["Good", "Fair", "Poor"];
 const FACILITY_TYPES = ["Seminar Hall", "Conference Room", "Lab", "Auditorium", "Classroom", "Studio"];
 const MAX_BANNER_SIZE_BYTES = 10 * 1024 * 1024;
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const AMENITY_PRESET = [
   { id: "amenity-ac", name: "Air Conditioning", icon: "ac_unit", selected: true },
@@ -109,7 +109,7 @@ export default function EditFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
     const formData = new FormData();
     formData.append(formField, file);
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(`${API_URL}${endpoint}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,

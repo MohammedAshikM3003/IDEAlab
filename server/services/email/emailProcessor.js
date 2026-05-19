@@ -73,7 +73,8 @@ class EmailProcessor {
 
 			const text = parsed && parsed.text ? String(parsed.text) : ''
 			const html = parsed && parsed.html ? String(parsed.html) : null
-			const contentForExtraction = text || body || (html || '')
+			const plainText = text || (html ? html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() : '')
+			const contentForExtraction = plainText || body || (html || '')
 
 			return {
 				from: extractEmailAddress(fromHeader),
@@ -81,7 +82,7 @@ class EmailProcessor {
 				subject,
 				date,
 				name,
-				text,
+				text: plainText,
 				html,
 				extractedDetails: this.extractBookingDetails(contentForExtraction),
 			}

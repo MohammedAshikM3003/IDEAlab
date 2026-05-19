@@ -12,111 +12,9 @@ import PageHeader from './PageHeader'
 import Sidebar from './Sidebar'
 import styles from './RequestInboxPage.module.css'
 
-const cx = (...classes) => classes.filter(Boolean).join(' ')
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
-const REQUESTS = [
-  {
-    id: 'BK-2026-0001',
-    status: 'NEW REQUEST',
-    venue: 'Main Seminar Hall',
-    submittedAt: '2026-01-26T10:45:00',
-    name: 'Rahul Kumar',
-    title: 'Seminar Hall Booking for AICTE Workshop',
-    preview: 'Subject: Seminar Hall Booking for AICTE Workshop on 3D Printing',
-    time: '10:45 AM',
-    unread: true,
-    email: 'rahul.kumar@aicte-idealab.edu',
-    role: 'AICTE Idea Lab Coordinator',
-    subject: 'Seminar Hall Booking for AICTE Workshop on 3D Printing',
-    message:
-      'Respected Principal/Admin,\n\nWe would like to request the Main Seminar Hall for a 3-day workshop organized by the AICTE Idea Lab. The workshop will focus on advanced 3D printing techniques and rapid prototyping for second-year engineering students.\n\nWe require audiovisual support and high-speed internet connectivity during the sessions. Detailed schedule is attached in the form data below.',
-    tags: [
-      { label: 'New Request', tone: 'new' },
-      { label: 'AICTE IDEA LAB', tone: 'lab' },
-    ],
-    eventDate: 'Nov 12 - Nov 14, 2024',
-    timeSlot: '09:00 AM - 04:30 PM',
-  },
-  {
-    id: 'BK-2026-0002',
-    status: 'REJECTED',
-    venue: 'Idea Lab',
-    submittedAt: '2026-01-25T09:10:00',
-    name: 'Dr. S. Priya',
-    title: 'Placement Cell Internal Meeting',
-    preview: 'Need seminar hall for internal planning session.',
-    time: 'Yesterday',
-    unread: false,
-    email: 'priya@ksrce.ac.in',
-    role: 'Placement Cell',
-    subject: 'Placement Cell Internal Meeting',
-    message: 'Need the seminar hall for an internal planning session for the upcoming placement drive.',
-    tags: [
-      { label: 'Rejected', tone: 'rejected' },
-      { label: 'IT DEPT', tone: 'lab' },
-    ],
-    eventDate: 'Jan 27, 2026',
-    timeSlot: '10:00 AM - 12:00 PM',
-  },
-  {
-    id: 'BK-2026-0003',
-    status: 'PENDING',
-    venue: 'Board Room',
-    submittedAt: '2026-01-24T15:40:00',
-    name: 'Ganesh Murthy',
-    title: 'Annual Cultural Fest Stage Approval',
-    preview: 'Requesting board room approval for stage setup.',
-    time: 'Oct 24',
-    unread: false,
-    email: 'ganesh.murthy@ksrce.ac.in',
-    role: 'Cultural Committee',
-    subject: 'Annual Cultural Fest Stage Approval',
-    message: 'Requesting approval for stage setup and rehearsal slots for the annual cultural fest.',
-    tags: [{ label: 'Pending', tone: 'pending' }],
-    eventDate: 'Jan 30, 2026',
-    timeSlot: '03:00 PM - 06:00 PM',
-  },
-  {
-    id: 'BK-2026-0004',
-    status: 'APPROVED',
-    venue: 'Workshop A',
-    submittedAt: '2026-01-23T11:00:00',
-    name: 'Mechanical Admin',
-    title: 'Workshop A - Maintenance Window',
-    preview: 'Maintenance booking request for Workshop A.',
-    time: 'Oct 23',
-    unread: false,
-    email: 'mech.admin@ksrce.ac.in',
-    role: 'Mechanical Dept Admin',
-    subject: 'Workshop A - Maintenance Window',
-    message: 'Requesting a maintenance window booking for Workshop A.',
-    tags: [{ label: 'Approved', tone: 'ok' }],
-    eventDate: 'Jan 31, 2026',
-    timeSlot: '11:00 AM - 02:00 PM',
-  },
-  {
-    id: 'BK-2026-0005',
-    status: 'PENDING',
-    venue: 'Idea Lab',
-    submittedAt: '2026-01-26T11:20:00',
-    name: 'A. Nivetha',
-    title: 'Electrical Lab Evening Slot Request',
-    preview: 'Approval needed for additional practical session timing.',
-    time: '11:20 AM',
-    unread: true,
-    email: 'nivetha.eee@ksrce.ac.in',
-    role: 'EEE Department',
-    subject: 'Electrical Lab Evening Slot Request',
-    message:
-      'Requesting permission to reserve Electrical Lab 1 for an evening practical slot due to schedule overlap in the regular timetable.',
-    tags: [
-      { label: 'Pending', tone: 'pending' },
-      { label: 'EEE DEPT', tone: 'lab' },
-    ],
-    eventDate: 'Feb 02, 2026',
-    timeSlot: '05:30 PM - 07:30 PM',
-  },
-]
+const cx = (...classes) => classes.filter(Boolean).join(' ')
 
 export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
   const location = useLocation()
@@ -125,19 +23,15 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
   const requestItemRefs = useRef({})
   const hasHandledDeepLink = useRef(false)
 
-  const [requests, setRequests] = useState(REQUESTS)
-  const [selectedId, setSelectedId] = useState(() => {
-    const initialRequestId = new URLSearchParams(location.search).get('requestId')
-    if (!initialRequestId) {
-      return null
-    }
-
-    return REQUESTS.some((request) => request.id === initialRequestId) ? initialRequestId : null
-  })
+  const [requests, setRequests] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selectedId, setSelectedId] = useState(() => new URLSearchParams(location.search).get('requestId'))
   const [activeFilter, setActiveFilter] = useState(location.state?.initialTab || 'ALL')
   const [sortOrder, setSortOrder] = useState('desc')
   const [showFilterMenu, setShowFilterMenu] = useState(false)
   const [venueFilter, setVenueFilter] = useState('All')
+  const [venueOptions, setVenueOptions] = useState(['All'])
+  const [readIds, setReadIds] = useState(new Set())
   const [modalView, setModalView] = useState(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [deleteModalStep, setDeleteModalStep] = useState('confirm')
@@ -146,13 +40,130 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
   const [rejectionComments, setRejectionComments] = useState('')
   const [inquiryMessage, setInquiryMessage] = useState('')
 
+  const normalizeStatus = (value) => String(value || '').trim().toUpperCase()
+
+  const getStatusLabel = (value) => {
+    const normalized = normalizeStatus(value)
+    if (normalized === 'PENDING') return 'NEW REQUEST'
+    if (normalized === 'CLARIFICATION' || normalized === 'CLARIFICATION REQUESTED') {
+      return 'CLARIFICATION REQUESTED'
+    }
+    return normalized || 'NEW REQUEST'
+  }
+
+  const getStatusTone = (value) => {
+    const normalized = normalizeStatus(value)
+    switch (normalized) {
+      case 'APPROVED':
+        return 'ok'
+      case 'REJECTED':
+        return 'rejected'
+      case 'NEW REQUEST':
+      case 'NEW_REQUEST':
+        return 'new'
+      case 'CLARIFICATION':
+      case 'CLARIFICATION REQUESTED':
+      case 'CLARIFY':
+      case 'CLARIFY_REQUESTED':
+        return 'clarification'
+      case 'PENDING':
+        return 'pending'
+      default:
+        return 'read'
+    }
+  }
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/bookings`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const mapped = (data.bookings || data.data || data || []).map((b) => {
+          const statusLabel = getStatusLabel(b.status)
+          return {
+          id: b._id,
+          status: statusLabel,
+          venue: b.extractedDetails?.venue || 'Not specified',
+          venueId: b.extractedDetails?.venueId || b.extractedDetails?.venue || '',
+          submittedAt: b.receivedAt,
+          name: b.requesterName,
+          title: b.subject,
+          preview: b.rawEmailContent?.slice(0, 80) || '',
+          time: (() => {
+            const date = new Date(b.receivedAt)
+            const today = new Date()
+            const yesterday = new Date(today)
+            yesterday.setDate(yesterday.getDate() - 1)
+
+            if (date.toDateString() === today.toDateString()) {
+              return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }
+
+            if (date.toDateString() === yesterday.toDateString()) {
+              return 'Yesterday'
+            }
+
+            return date.toLocaleDateString([], { day: 'numeric', month: 'short' })
+          })(),
+          unread: false,
+          email: b.requesterEmail,
+          role: b.extractedDetails?.department || '',
+          subject: b.subject,
+          message: b.rawEmailContent || '',
+          tags: [{ label: statusLabel, tone: getStatusTone(statusLabel) }],
+          eventDate: b.extractedDetails?.requestedDate || 'TBD',
+          timeSlot: (() => {
+            const raw = b.extractedDetails?.timeSlot || 'TBD'
+            if (raw === 'TBD') return raw
+            return raw.replace(/(\d{2}):(\d{2})/g, (match, h, m) => {
+              const hour = parseInt(h, 10)
+              const period = hour >= 12 ? 'PM' : 'AM'
+              const hour12 = hour % 12 || 12
+              return `${hour12}:${m} ${period}`
+            })
+          })(),
+          department: b.extractedDetails?.department || 'Not specified',
+          attendance: b.extractedDetails?.attendance
+            ? `${String(b.extractedDetails.attendance)} Students`
+            : 'Not specified',
+          equipment: b.extractedDetails?.equipment || 'Not specified',
+          supervisor: b.extractedDetails?.supervisor || 'Not specified',
+        }
+        })
+        setRequests(mapped.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)))
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/venues`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const venues = (data.venues || data.data || data || [])
+          .map((venue) => (typeof venue === 'string' ? venue : venue.name || venue.venueName || ''))
+          .filter(Boolean)
+        setVenueOptions(['All', ...venues])
+      })
+      .catch(() => {})
+  }, [])
+
   const inquiryTemplates = ['Needs Equipment Details', 'Clarify Event Purpose', 'Confirm Guest Count']
 
   const displayedRequests = useMemo(() => {
     let next = [...requests]
 
     if (activeFilter === 'UNREAD') {
-      next = next.filter((req) => req.status === 'NEW REQUEST' || req.status === 'PENDING')
+      next = next.filter(
+        (req) =>
+          !readIds.has(req.id) &&
+          (req.status === 'NEW REQUEST' || req.status === 'PENDING' || req.status === 'FORM_SENT')
+      )
     }
 
     if (venueFilter !== 'All') {
@@ -166,7 +177,7 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
     })
 
     return next
-  }, [activeFilter, requests, sortOrder, venueFilter])
+  }, [activeFilter, readIds, requests, sortOrder, venueFilter])
 
   const selectedRequest = useMemo(() => {
     if (!selectedId) return null
@@ -178,14 +189,93 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
   const isRejectedRequest = selectedRequest?.status === 'REJECTED'
   const isProcessedRequest = isApprovedRequest || isRejectedRequest
 
+  const calendarInfo = useMemo(() => {
+    const rawValue = selectedRequest?.eventDate ?? ''
+    const trimmed = String(rawValue).trim()
+
+    if (!trimmed || trimmed.toLowerCase().includes('tbd')) {
+      return null
+    }
+
+    let parsed = null
+    const isoMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+
+    if (isoMatch) {
+      const [, year, month, day] = isoMatch
+      parsed = new Date(Number(year), Number(month) - 1, Number(day))
+    } else {
+      const namedMatch = trimmed.match(/^(\d{1,2})(?:st|nd|rd|th)?\s+([A-Za-z]+)\s+(\d{4})$/)
+      if (namedMatch) {
+        const [, dayText, monthText, yearText] = namedMatch
+        const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+        const monthIndex = months.findIndex((month) => monthText.toLowerCase().startsWith(month))
+        if (monthIndex >= 0) {
+          parsed = new Date(Number(yearText), monthIndex, Number(dayText))
+        }
+      }
+    }
+
+    if (!parsed || Number.isNaN(parsed.getTime())) {
+      const fallback = new Date(trimmed)
+      if (!Number.isNaN(fallback.getTime())) {
+        parsed = fallback
+      }
+    }
+
+    if (!parsed || Number.isNaN(parsed.getTime())) {
+      return null
+    }
+
+    const year = parsed.getFullYear()
+    const monthIndex = parsed.getMonth()
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate()
+    const startOffset = (new Date(year, monthIndex, 1).getDay() + 6) % 7
+    const days = [
+      ...Array.from({ length: startOffset }, () => null),
+      ...Array.from({ length: daysInMonth }, (_, index) => index + 1),
+    ]
+
+    return {
+      monthLabel: parsed.toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+      monthShort: parsed.toLocaleString('en-US', { month: 'short' }).toUpperCase(),
+      dayNumber: parsed.getDate(),
+      days,
+    }
+  }, [selectedRequest?.eventDate])
+
   const handleApproveRequest = () => {
     if (!selectedRequest) return
     setModalView('approveConfirm')
   }
 
-  const handleApproveAndSend = () => {
-    setModalView('approveSuccess')
-    // Optional: trigger booking approval API call here.
+  const handleApproveAndSend = async () => {
+    if (!selectedRequest) return
+    try {
+      const res = await fetch(`${API_URL}/api/bookings/${selectedRequest.id}/approve`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          venueId: selectedRequest.venueId || selectedRequest.venue,
+          date: selectedRequest.eventDate,
+          timeSlot: {
+            start: selectedRequest.timeSlot?.split(' - ')[0] || '09:00',
+            end: selectedRequest.timeSlot?.split(' - ')[1] || '17:00',
+          },
+          comments: '',
+        }),
+      })
+      if (!res.ok) throw new Error('Approval failed')
+      setRequests((prev) =>
+        prev.map((r) => (r.id === selectedRequest.id ? { ...r, status: 'APPROVED' } : r))
+      )
+      setModalView('approveSuccess')
+    } catch (err) {
+      console.error('Approve error:', err)
+      alert('Failed to approve request. Please try again.')
+    }
   }
 
   const handleOpenRejectModal = () => {
@@ -195,9 +285,29 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
     setModalView('rejectForm')
   }
 
-  const handleConfirmRejection = () => {
-    setModalView('rejectSuccess')
-    // Optional: trigger booking rejection API call here.
+  const handleConfirmRejection = async () => {
+    if (!selectedRequest) return
+    try {
+      const res = await fetch(`${API_URL}/api/bookings/${selectedRequest.id}/reject`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          reason: rejectionReason,
+          comments: rejectionComments,
+        }),
+      })
+      if (!res.ok) throw new Error('Rejection failed')
+      setRequests((prev) =>
+        prev.map((r) => (r.id === selectedRequest.id ? { ...r, status: 'REJECTED' } : r))
+      )
+      setModalView('rejectSuccess')
+    } catch (err) {
+      console.error('Reject error:', err)
+      alert('Failed to reject request. Please try again.')
+    }
   }
 
   const handleOpenRequestInfoModal = () => {
@@ -215,9 +325,30 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
     })
   }
 
-  const handleSendInquiry = () => {
-    setModalView('infoSuccess')
-    // Optional: trigger inquiry email API call here.
+  const handleSendInquiry = async () => {
+    if (!selectedRequest) return
+    try {
+      const res = await fetch(`${API_URL}/api/bookings/${selectedRequest.id}/clarify`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          clarificationRequest: inquiryMessage,
+        }),
+      })
+      if (!res.ok) throw new Error('Clarification failed')
+      setRequests((prev) =>
+        prev.map((r) =>
+          r.id === selectedRequest.id ? { ...r, status: 'CLARIFICATION_REQUESTED' } : r
+        )
+      )
+      setModalView('infoSuccess')
+    } catch (err) {
+      console.error('Clarify error:', err)
+      alert('Failed to send inquiry. Please try again.')
+    }
   }
 
   const handleOpenDeleteModal = () => {
@@ -275,6 +406,8 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
         return styles.tagOk
       case 'rejected':
         return styles.tagRejected
+      case 'clarification':
+        return styles.tagClarification
       default:
         return styles.tagRead
     }
@@ -339,6 +472,10 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
     navigate('/inbox', { replace: true })
   }, [navigate, requests, searchParams])
 
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
   return (
     <div className={styles.page}>
       <div className={styles.wrap}>
@@ -383,7 +520,7 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
 
                         {showFilterMenu ? (
                           <div className={styles.filterMenu}>
-                            {['All', 'Main Seminar Hall', 'Idea Lab'].map((venue) => (
+                            {venueOptions.map((venue) => (
                               <button
                                 className={cx(styles.filterItem, venueFilter === venue && styles.filterItemActive)}
                                 key={venue}
@@ -438,13 +575,19 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
                         req.id === selectedId ? styles.reqSel : styles.reqIdle,
                         req.id === selectedId && styles.reqSelIndicator
                       )}
-                      onClick={() => setSelectedId(req.id)}
+                      onClick={() => {
+                        setSelectedId(req.id)
+                        setReadIds((prev) => new Set([...prev, req.id]))
+                      }}
                     >
                       <div className={styles.reqTop}>
                         <div className={styles.reqMain}>
                           <div className={styles.reqNameRow}>
                             <p className={styles.reqName}>{req.name}</p>
-                            {req.unread ? <span className={cx(styles.reqDot, unreadDotClass(req))} /> : null}
+                            {!readIds.has(req.id) &&
+                            (req.status === 'NEW REQUEST' || req.status === 'FORM_SENT') ? (
+                              <span className={cx(styles.reqDot, unreadDotClass(req))} />
+                            ) : null}
                           </div>
                           <p className={styles.reqTitle}>{req.title}</p>
                           {showDetail && req.tags?.length ? (
@@ -503,7 +646,6 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
                         <div className={styles.senderMeta}>
                           <div className={styles.senderHead}>
                             <p className={styles.senderName}>{selectedRequest.name}</p>
-                            <span className={styles.senderRole}>{selectedRequest.role}</span>
                           </div>
                           <p className={styles.senderMail}>{selectedRequest.email}</p>
                         </div>
@@ -546,7 +688,7 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
                             <tbody className={styles.tblBody}>
                               <tr>
                                 <td className={styles.tdKey}>Department</td>
-                                <td className={styles.tdVal}>AICTE Idea Lab</td>
+                                <td className={styles.tdVal}>{selectedRequest.department}</td>
                               </tr>
                               <tr>
                                 <td className={styles.tdKey}>Venue Requested</td>
@@ -562,11 +704,15 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
                               </tr>
                               <tr>
                                 <td className={styles.tdKey}>Attendance</td>
-                                <td className={styles.tdVal}>120 Students</td>
+                                <td className={styles.tdVal}>{selectedRequest.attendance}</td>
                               </tr>
                               <tr>
                                 <td className={styles.tdKey}>Equipment</td>
-                                <td className={styles.tdVal}>Projector, MIC, LAN (10 nodes)</td>
+                                <td className={styles.tdVal}>{selectedRequest.equipment}</td>
+                              </tr>
+                              <tr>
+                                <td className={styles.tdKey}>Supervisor</td>
+                                <td className={styles.tdVal}>{selectedRequest.supervisor}</td>
                               </tr>
                             </tbody>
                           </table>
@@ -580,60 +726,71 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
                         </p>
 
                         <div className={styles.calCard}>
-                          <div className={styles.calHead}>
-                            <span className={styles.calTitle}>November 2024</span>
-                            <div className={styles.calNav}>
-                              <button
-                                className={styles.iconCoralSm}
-                                type="button"
-                              >
-                                <span className="material-icons text-xs text-white">chevron_left</span>
-                              </button>
-                              <button
-                                className={styles.iconCoralSm}
-                                type="button"
-                              >
-                                <span className="material-icons text-xs text-white">chevron_right</span>
-                              </button>
-                            </div>
-                          </div>
-
-                          <div className={styles.weekRow}>
-                            <div>M</div>
-                            <div>T</div>
-                            <div>W</div>
-                            <div>T</div>
-                            <div>F</div>
-                            <div>S</div>
-                            <div>S</div>
-                          </div>
-
-                          <div className={styles.daysGrid}>
-                            {Array.from({ length: 28 }).map((_, i) => {
-                              const day = i + 1
-                              const isMain = day === 12
-                              const isRange = day === 13 || day === 14
-                              return (
-                                <div
-                                  key={day}
-                                  className={cx(styles.day, isMain && styles.dayMain, isRange && styles.dayRange)}
-                                >
-                                  {day}
+                          {!calendarInfo ? (
+                            <p className={styles.calTitle}>No date specified yet</p>
+                          ) : (
+                            <>
+                              <div className={styles.calHead}>
+                                <span className={styles.calTitle}>{calendarInfo.monthLabel}</span>
+                                <div className={styles.calNav}>
+                                  <button className={styles.iconCoralSm} type="button">
+                                    <span className="material-icons text-xs text-white">chevron_left</span>
+                                  </button>
+                                  <button className={styles.iconCoralSm} type="button">
+                                    <span className="material-icons text-xs text-white">chevron_right</span>
+                                  </button>
                                 </div>
-                              )
-                            })}
-                          </div>
-
-                          <div className={styles.confWrap}>
-                            <p className={styles.confTitle}>Conflicts on Nov 12</p>
-                            <div className={styles.confCard}>
-                              <div className={styles.confBar} />
-                              <div className={styles.confTxt}>
-                                <p className={styles.confName}>All Clear</p>
-                                <p className={styles.confSub}>No bookings for Seminar Hall</p>
                               </div>
-                            </div>
-                          </div>
+
+                              <div className={styles.weekRow}>
+                                <div>M</div>
+                                <div>T</div>
+                                <div>W</div>
+                                <div>T</div>
+                                <div>F</div>
+                                <div>S</div>
+                                <div>S</div>
+                              </div>
+
+                              <div className={styles.daysGrid}>
+                                {calendarInfo.days.map((day, index) => {
+                                  if (!day) {
+                                    return (
+                                      <div
+                                        key={`empty-${index}`}
+                                        className={styles.day}
+                                        aria-hidden="true"
+                                      />
+                                    )
+                                  }
+
+                                  const isMain = day === calendarInfo.dayNumber
+
+                                  return (
+                                    <div
+                                      key={day}
+                                      className={cx(styles.day, isMain && styles.dayMain)}
+                                    >
+                                      {day}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+
+                              <div className={styles.confWrap}>
+                                <p className={styles.confTitle}>
+                                  {`CONFLICTS ON ${calendarInfo.monthShort} ${calendarInfo.dayNumber}`}
+                                </p>
+                                <div className={styles.confCard}>
+                                  <div className={styles.confBar} />
+                                  <div className={styles.confTxt}>
+                                    <p className={styles.confName}>All Clear</p>
+                                    <p className={styles.confSub}>No bookings for Seminar Hall</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>

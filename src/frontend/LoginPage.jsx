@@ -15,11 +15,8 @@ export default function LoginPage() {
   const [authError, setAuthError] = useState('');
   const authTimerRef = useRef(null);
   const navigate = useNavigate();
-  const inputContainerStyle = {
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: '12px',
-  };
+  const emailHasValue = email.trim().length > 0;
+  const passwordHasValue = password.length > 0;
 
   useEffect(() => {
     return () => {
@@ -129,11 +126,11 @@ export default function LoginPage() {
             </div>
 
             <form className={styles.formInner} action="#" onSubmit={handleSubmit}>
-              <div className={styles.field}>
+              <div className={`${styles.field} ${emailHasValue ? styles.fieldActive : ''}`}>
                 <label className={styles.label} htmlFor="email">
                   Institutional Email
                 </label>
-                <div className={styles.inputBox} style={inputContainerStyle}>
+                <div className={styles.inputBox}>
                   <div className={styles.inputIco} aria-hidden="true">
                     <span className="material-symbols-outlined">mail</span>
                   </div>
@@ -149,11 +146,11 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className={styles.field}>
+              <div className={`${styles.field} ${passwordHasValue ? styles.fieldActive : ''}`}>
                 <label className={styles.label} htmlFor="password">
                   Secure Password
                 </label>
-                <div className={styles.inputBox} style={inputContainerStyle}>
+                <div className={styles.inputBox}>
                   <div className={styles.inputIco} aria-hidden="true">
                     <span className="material-symbols-outlined">lock</span>
                   </div>

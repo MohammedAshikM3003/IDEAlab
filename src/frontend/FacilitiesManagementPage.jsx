@@ -6,7 +6,7 @@ import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
 import styles from "./FacilitiesManagementPage.module.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const FALLBACK_FACILITY_IMAGE = "https://placehold.co/800x450?text=Facility";
 
 function resolveVenueImageSrc(value) {
@@ -19,7 +19,7 @@ function resolveVenueImageSrc(value) {
   }
 
   if (String(value).startsWith("/")) {
-    return `${API_BASE}${value}`;
+    return `${API_URL}${value}`;
   }
 
   return value;

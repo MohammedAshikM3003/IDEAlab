@@ -1,8 +1,14 @@
 import process from 'node:process'
+import crypto from 'node:crypto'
 import { Buffer } from 'node:buffer'
 
 import { gmail } from '../../config/gmail.js'
 import Setting from '../../models/Setting.js'
+import BookingFormToken from '../../models/BookingFormToken.js'
+
+function getGmailClient() {
+	return gmail
+}
 
 let lastProcessedHistoryId = null
 const processedMessageIds = new Set()
@@ -381,6 +387,7 @@ class GmailWebhookService {
 					messageId: String(messageId),
 					bookingId: String(existing._id),
 				})
+				await this.markAsRead(String(messageId))
 				processedMessageIds.add(String(messageId))
 				return { messageId: String(messageId), status: 'duplicate', bookingId: String(existing._id) }
 			}
@@ -445,6 +452,24 @@ class GmailWebhookService {
 			})
 
 			await booking.save()
+			await this.markAsRead(String(messageId))
+
+			var requestId = shortRequestId(booking && booking._id)
+			var token = crypto.randomBytes(32).toString('hex')
+			var expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+
+			await new BookingFormToken({
+				token: token,
+				bookingRequestId: booking._id,
+				refCode: requestId,
+				status: 'active',
+				expiresAt: expiresAt,
+			}).save()
+
+			var bookingUrl =
+				(process.env.FRONTEND_URL || 'http://localhost:5173') +
+				'/booking-form?token=' +
+				token
 
 			var EmailLog = (await import('../../models/EmailLog.js')).default
 			await EmailLog.create({
@@ -465,7 +490,7 @@ class GmailWebhookService {
 				},
 			})
 
-			await this.queueAutoResponse(booking)
+			await this.queueAutoResponse(booking, bookingUrl)
 			await this.labelMessage(String(messageId), ['booking-request', 'pending'])
 
 			processedMessageIds.add(String(messageId))
@@ -492,15 +517,31 @@ class GmailWebhookService {
 		try {
 			var subject = getHeader(emailData, 'Subject')
 			var from = getHeader(emailData, 'From')
+			var sender = process.env.GOOGLE_SENDER_EMAIL
+			var senderLower = sender ? String(sender).toLowerCase() : ''
+			var fromLower = from ? String(from).toLowerCase() : ''
+			var subjectText = String(subject || '').trim()
+
+			if (subjectText && subjectText.toLowerCase().startsWith('re:')) {
+				console.log('[GmailWebhookService] Skipping reply email', { subject: subject })
+				return false
+			}
+
+			if (fromLower.indexOf('ksridealab@gmail.com') !== -1 || (senderLower && fromLower.indexOf(senderLower) !== -1)) {
+				if (subjectText.toLowerCase().startsWith('re:')) {
+					console.log('[GmailWebhookService] Skipping reply email from self', {
+						from: from,
+						subject: subject,
+					})
+				} else {
+					console.log('[GmailWebhookService] Skipping auto-response email from self', { from: from })
+				}
+				return false
+			}
 
 			console.log('[GmailWebhookService] isBookingRequest subject', {
 				subject: subject,
 			})
-
-			var sender = process.env.GOOGLE_SENDER_EMAIL
-			if (sender && from && String(from).toLowerCase().indexOf(String(sender).toLowerCase()) !== -1) {
-				return false
-			}
 
 			var s = String(subject || '').toLowerCase()
 			var keywords = ['booking', 'venue', 'hall', 'lab', 'reservation', 'request', 'event']
@@ -529,27 +570,42 @@ class GmailWebhookService {
 		}
 	}
 
+	async markAsRead(messageId) {
+		try {
+			const gmail = getGmailClient()
+			if (!gmail) return
+			await gmail.users.messages.modify({
+				userId: 'me',
+				id: messageId,
+				requestBody: {
+					removeLabelIds: ['UNREAD'],
+				},
+			})
+			console.log('[GmailWebhookService] Marked as read', { messageId })
+		} catch (err) {
+			console.warn('[GmailWebhookService] Failed to mark as read', { messageId, error: err.message })
+		}
+	}
+
 	/**
 	 * Queue an auto-response email and update booking status.
 	 * @param {any} booking - BookingRequest document.
 	 * @returns {Promise<void>} Nothing.
 	 */
-	async queueAutoResponse(booking) {
+	async queueAutoResponse(booking, bookingUrl) {
 		try {
 			var OutboxService = (await import('../email/outboxService.js')).default
-
-			var formUrl = this.generatePrefilledFormUrl(booking)
 			var requestId = shortRequestId(booking && booking._id)
 
 			var templateData = {
 				name: booking && booking.requesterName ? String(booking.requesterName) : 'Requester',
-				formUrl: formUrl,
 				requestId: requestId,
+				bookingUrl: bookingUrl,
 				threadId: booking && booking.emailThreadId ? String(booking.emailThreadId) : undefined,
 			}
 
 			var originalSubject = booking && booking.subject ? String(booking.subject) : 'Booking Request'
-			var subject = 'Re: ' + originalSubject + ' - Action Required: Complete Booking Form'
+			var subject = 'Re: ' + originalSubject + ' - Next steps coming soon'
 
 			await OutboxService.queueEmail({
 				to: booking.requesterEmail,
@@ -574,68 +630,6 @@ class GmailWebhookService {
 		}
 	}
 
-	/**
-	 * Generate a prefilled Google Form URL for the booking.
-	 *
-	 * Uses env mapping for entry field ids:
-	 * - GOOGLE_FORM_ENTRY_REQUESTER_EMAIL
-	 * - GOOGLE_FORM_ENTRY_REQUESTER_NAME
-	 * - GOOGLE_FORM_ENTRY_DEPARTMENT
-	 * - GOOGLE_FORM_ENTRY_BOOKING_ID
-	 * - GOOGLE_FORM_ENTRY_VENUE_REQUESTED
-	 *
-	 * @param {any} booking - BookingRequest.
-	 * @returns {string} URL.
-	 */
-	generatePrefilledFormUrl(booking) {
-		try {
-			var formId = process.env.GOOGLE_FORM_ID
-			if (!formId) {
-				throw new Error('Missing env var GOOGLE_FORM_ID')
-			}
-
-			var baseUrl = 'https://docs.google.com/forms/d/e/' + String(formId) + '/viewform'
-			var url = new URL(baseUrl)
-			url.searchParams.set('usp', 'pp_url')
-
-			var emailEntry = process.env.GOOGLE_FORM_ENTRY_REQUESTER_EMAIL
-			var nameEntry = process.env.GOOGLE_FORM_ENTRY_REQUESTER_NAME
-			var deptEntry = process.env.GOOGLE_FORM_ENTRY_DEPARTMENT
-			var bookingIdEntry = process.env.GOOGLE_FORM_ENTRY_BOOKING_ID
-			var venueEntry = process.env.GOOGLE_FORM_ENTRY_VENUE_REQUESTED
-
-			if (emailEntry) url.searchParams.set('entry.' + String(emailEntry), String(booking.requesterEmail || ''))
-			if (nameEntry) url.searchParams.set('entry.' + String(nameEntry), String(booking.requesterName || ''))
-			if (deptEntry) {
-				var dept = booking && booking.extractedDetails && booking.extractedDetails.department
-					? String(booking.extractedDetails.department)
-					: ''
-				url.searchParams.set('entry.' + String(deptEntry), dept)
-			}
-			if (bookingIdEntry) url.searchParams.set('entry.' + String(bookingIdEntry), String(booking._id || ''))
-			if (venueEntry) {
-				var venue = booking && booking.extractedDetails && booking.extractedDetails.venueRequested
-					? String(booking.extractedDetails.venueRequested)
-					: ''
-				url.searchParams.set('entry.' + String(venueEntry), venue)
-			}
-
-			return url.toString()
-		} catch (error) {
-			console.log('[GmailWebhookService] generatePrefilledFormUrl error', {
-				message: error && error.message ? error.message : String(error),
-				stack: error && error.stack ? error.stack : null,
-			})
-			console.error('[GmailWebhookService] generatePrefilledFormUrl failed', {
-				message: error && error.message ? error.message : String(error),
-			})
-			// Fall back to a non-prefilled form link if possible.
-			var fallbackFormId = process.env.GOOGLE_FORM_ID
-			return fallbackFormId
-				? 'https://docs.google.com/forms/d/e/' + String(fallbackFormId) + '/viewform'
-				: ''
-		}
-	}
 
 	/**
 	 * Apply labels to a message. Non-critical: errors are caught and not thrown.

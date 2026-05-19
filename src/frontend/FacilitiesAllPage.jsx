@@ -5,7 +5,7 @@ import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
 import styles from "./FacilitiesAllPage.module.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const FALLBACK_FACILITY_IMAGE = "https://placehold.co/800x450?text=Facility";
 
 function resolveVenueImageSrc(value) {
@@ -18,7 +18,7 @@ function resolveVenueImageSrc(value) {
   }
 
   if (String(value).startsWith("/")) {
-    return `${API_BASE}${value}`;
+    return `${API_URL}${value}`;
   }
 
   return value;
@@ -36,7 +36,7 @@ export default function FacilitiesAllPage({ isSidebarOpen, setIsSidebarOpen }) {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_BASE}/api/venues`, {
+      const response = await fetch(`${API_URL}/api/venues`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },

@@ -12,6 +12,7 @@ import EditFacilityPage from './frontend/EditFacilityPage.jsx'
 import HistoryPage from './frontend/HistoryPage.jsx'
 import SettingsPage from './frontend/SettingsPage.jsx'
 import FacilityVenueDetailPage from './frontend/FacilityVenueDetailPage.jsx'
+import BookingFormPage from './frontend/BookingFormPage.jsx'
 
 import { UserProfileProvider } from './frontend/UserProfileContext.jsx'
 
@@ -27,6 +28,7 @@ function App() {
         <Route path="/venue/:venueId" element={<VenueDetailPage />} />
         <Route path="/landing" element={<Navigate to="/" replace />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/booking-form" element={<BookingFormPage />} />
         <Route path="/dashboard" element={<DashboardPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="/inbox" element={<RequestInboxPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
         <Route path="/status" element={<StatusPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />

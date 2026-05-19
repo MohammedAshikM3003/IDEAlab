@@ -499,8 +499,8 @@
 }
 
 .tagNew {
-	background: #dbeafe;
-	color: #3b82f6;
+	background: #3b82f6;
+	color: #ffffff;
 }
 
 .tagLab {
@@ -514,18 +514,23 @@
 }
 
 .tagPending {
-	background: #f1f5f9;
-	color: #64748b;
+	background: #6b7280;
+	color: #ffffff;
 }
 
 .tagOk {
-	background: #dcfce7;
-	color: #22c55e;
+	background: #22c55e;
+	color: #ffffff;
 }
 
 .tagRejected {
-	background: #fee2e2;
-	color: #f87171;
+	background: #ef4444;
+	color: #ffffff;
+}
+
+.tagClarification {
+	background: #f59e0b;
+	color: #ffffff;
 }
 
 .detail {

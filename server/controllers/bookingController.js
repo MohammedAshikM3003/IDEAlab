@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 
 import BookingRequest from '../models/BookingRequest.js'
+import BookingFormToken from '../models/BookingFormToken.js'
 import Venue from '../models/Venue.js'
 import outboxService from '../services/email/outboxService.js'
 
@@ -127,7 +128,7 @@ class BookingController {
 		}
 
 		const { venueId, date, timeSlot, comments } = req.body || {}
-		if (!venueId || !mongoose.Types.ObjectId.isValid(String(venueId))) {
+		if (!venueId) {
 			return res.status(400).json({ message: 'venueId is required' })
 		}
 
@@ -150,7 +151,13 @@ class BookingController {
 				return res.status(404).json({ message: 'Booking request not found' })
 			}
 
-			const venue = await Venue.findById(venueId)
+			let venue = null
+			if (venueId && mongoose.Types.ObjectId.isValid(venueId)) {
+				venue = await Venue.findById(venueId)
+			}
+			if (!venue) {
+				venue = await Venue.findOne({ name: venueId })
+			}
 			if (!venue) {
 				return res.status(404).json({ message: 'Venue not found' })
 			}
@@ -297,6 +304,103 @@ class BookingController {
 			return res.json({ message: 'Clarification requested', booking })
 		} catch {
 			return res.status(500).json({ message: 'Failed to request clarification' })
+		}
+	}
+
+	/**
+	 * Get a booking by one-time token.
+	 * @param {import('express').Request} req - Request.
+	 * @param {import('express').Response} res - Response.
+	 * @returns {Promise<import('express').Response>} Response.
+	 */
+	async getByToken(req, res) {
+		const tokenValue = typeof req.params?.token === 'string' ? req.params.token.trim() : ''
+		if (!tokenValue) {
+			return res.status(404).json({ status: 'invalid', message: 'Invalid booking link' })
+		}
+
+		try {
+			const tokenDoc = await BookingFormToken.findOne({ token: tokenValue })
+			if (!tokenDoc) {
+				return res.status(404).json({ status: 'invalid', message: 'Invalid booking link' })
+			}
+
+			if (tokenDoc.status === 'used') {
+				return res.status(400).json({ status: 'used', message: 'This form has already been submitted.' })
+			}
+
+			if (tokenDoc.expiresAt && tokenDoc.expiresAt.getTime() < Date.now()) {
+				tokenDoc.status = 'expired'
+				await tokenDoc.save()
+				return res.status(400).json({ status: 'expired', message: 'This booking link has expired.' })
+			}
+
+			const booking = await BookingRequest.findById(tokenDoc.bookingRequestId)
+			if (!booking) {
+				return res.status(404).json({ status: 'invalid', message: 'Invalid booking link' })
+			}
+
+			return res.json({
+				status: 'active',
+				requesterName: booking.requesterName,
+				requesterEmail: booking.requesterEmail,
+				refCode: tokenDoc.refCode,
+			})
+		} catch {
+			return res.status(500).json({ status: 'invalid', message: 'Invalid booking link' })
+		}
+	}
+
+	/**
+	 * Submit booking form response using token.
+	 * @param {import('express').Request} req - Request.
+	 * @param {import('express').Response} res - Response.
+	 * @returns {Promise<import('express').Response>} Response.
+	 */
+	async submitFormResponse(req, res) {
+		const tokenValue = typeof req.body?.token === 'string' ? req.body.token.trim() : ''
+		if (!tokenValue) {
+			return res.status(404).json({ message: 'Invalid token' })
+		}
+
+		try {
+			const tokenDoc = await BookingFormToken.findOne({ token: tokenValue })
+			if (!tokenDoc) {
+				return res.status(404).json({ message: 'Invalid token' })
+			}
+
+			if (tokenDoc.status === 'used') {
+				return res.status(400).json({ message: 'Already submitted' })
+			}
+
+			if (tokenDoc.expiresAt && tokenDoc.expiresAt.getTime() < Date.now()) {
+				return res.status(400).json({ message: 'Link expired' })
+			}
+
+			const booking = await BookingRequest.findById(tokenDoc.bookingRequestId)
+			if (!booking) {
+				return res.status(404).json({ message: 'Booking request not found' })
+			}
+
+			booking.extractedDetails = booking.extractedDetails || {}
+			booking.extractedDetails.venue = req.body?.venue
+			booking.extractedDetails.department = req.body?.department
+			booking.extractedDetails.eventPurpose = req.body?.purpose
+			booking.extractedDetails.requestedDate = req.body?.eventDate
+			booking.extractedDetails.timeSlot = req.body?.timeSlot
+			booking.extractedDetails.attendance = req.body?.attendance
+			booking.extractedDetails.equipment = req.body?.equipment
+			booking.extractedDetails.supervisor = req.body?.supervisor
+			booking.requesterName = req.body?.name
+			booking.status = 'pending'
+
+			tokenDoc.status = 'used'
+			tokenDoc.usedAt = new Date()
+
+			await Promise.all([booking.save(), tokenDoc.save()])
+			return res.json({ message: 'Form submitted successfully' })
+		} catch {
+			return res.status(500).json({ message: 'Failed to submit form response' })
 		}
 	}
 }

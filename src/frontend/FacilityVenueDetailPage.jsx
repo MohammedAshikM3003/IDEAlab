@@ -4,12 +4,12 @@ import PageHeader from './PageHeader'
 import Sidebar from './Sidebar'
 import styles from './FacilityVenueDetailPage.module.css'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 const normalizeImageUrl = (value) => {
   if (!value) return ''
   if (String(value).startsWith('http://') || String(value).startsWith('https://')) return value
-  if (String(value).startsWith('/')) return `${API_BASE}${value}`
+  if (String(value).startsWith('/')) return `${API_URL}${value}`
   return value
 }
 
@@ -78,7 +78,7 @@ export default function FacilityVenueDetailPage() {
       }
 
       try {
-        const response = await fetch(`${API_BASE}/api/venues/${venueId}`, {
+        const response = await fetch(`${API_URL}/api/venues/${venueId}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
