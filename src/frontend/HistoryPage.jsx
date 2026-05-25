@@ -7,6 +7,8 @@ import Sidebar from "./Sidebar";
 import layoutStyles from "./DashboardPage.module.css";
 import styles from "./HistoryPage.module.css";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 function CalendarIcon(props) {
   return (
     <svg aria-hidden="true" fill="none" height="16" viewBox="0 0 24 24" width="16" {...props}>
@@ -155,148 +157,85 @@ function FilePdfIcon(props) {
   );
 }
 
-const INITIAL_BOOKINGS = [
-  {
-    id: "#BK-2026-0156",
-    dateISO: "2026-10-24",
-    date: "Oct 24, 2026",
-    time: "09:00 AM - 01:00 PM",
-    venue: "Main Auditorium",
-    event: "Annual Engineering Summit",
-    organizer: "Dept. of Mech • John Doe",
-    status: "Completed",
-    isFaded: false,
-    strike: false,
-    actions: ["view", "print", "duplicate"],
+function formatReadableDate(value, emptyLabel = "TBD") {
+  if (!value) {
+    return { dateISO: "", dateLabel: emptyLabel };
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return { dateISO: "", dateLabel: emptyLabel };
+  }
+
+  return {
+    dateISO: parsed.toISOString().slice(0, 10),
+    dateLabel: new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(parsed),
+  };
+}
+
+function mapStatusLabel(statusValue) {
+  const normalized = String(statusValue || "").trim().toLowerCase();
+  if (normalized === "approved") return "Completed";
+  if (normalized === "rejected") return "Rejected";
+  if (normalized === "pending" || normalized === "form_sent" || normalized === "clarification_requested") {
+    return "Pending";
+  }
+  return "Pending";
+}
+
+function buildBookingFromApi(item) {
+  const idRaw = item && item._id ? String(item._id) : "";
+  const bookingId = idRaw ? `#BK-${idRaw.slice(-6).toUpperCase()}` : "#BK-UNKNOWN";
+  const requesterName = item?.requesterName ? String(item.requesterName) : "Unknown";
+  const venue = item?.confirmedBooking?.venue?.name || item?.extractedDetails?.venue || "Venue TBD";
+  const eventTitle = item?.extractedDetails?.eventPurpose || item?.subject || "Booking Request";
+  const status = mapStatusLabel(item?.status);
+  const eventDate = item?.confirmedBooking?.date || item?.extractedDetails?.requestedDate || null;
+  const { dateISO, dateLabel } = formatReadableDate(eventDate, "Awaiting form");
+  const startTime =
+    item?.confirmedBooking?.timeSlot?.start || item?.extractedDetails?.timeSlot?.split("-")[0]?.trim() || null;
+  const endTime =
+    item?.confirmedBooking?.timeSlot?.end || item?.extractedDetails?.timeSlot?.split("-")[1]?.trim() || null;
+  const timeSlot = startTime && endTime ? `${startTime} - ${endTime}` : "TBD";
+  const submittedAt = item?.createdAt || "";
+  const submittedLabel = formatReadableDate(submittedAt).dateLabel;
+
+  const isRejected = status === "Rejected";
+  const isCompleted = status === "Completed";
+
+  return {
+    id: bookingId,
+    dateISO,
+    date: dateLabel,
+    time: timeSlot,
+    venue,
+    event: eventTitle,
+    organizer: requesterName,
+    status,
+    isFaded: isRejected,
+    strike: isRejected,
+    actions: isCompleted ? ["view", "print"] : isRejected ? ["view", "reason"] : ["view"],
+    submittedAt,
     details: {
-      department: "Mechanical Engineering",
-      organizerFullName: "John Doe",
-      organizerEmail: "john.doe@ksrce.ac.in",
-      organizerRole: "Faculty Coordinator",
-      purpose: "Annual summit to showcase department research projects and host keynote sessions.",
-      subject: "Annual Engineering Summit - Main Auditorium Booking",
-      message:
-        "We request the Main Auditorium for the Annual Engineering Summit with keynote talks, poster presentations, and student project demos.",
-      attendance: "350 participants",
-      equipmentNeeded: "Projector, PA System, 4 Wireless Mics, Live Streaming Setup",
-      technicalSupport: "AV Team + Electrical Standby",
-      requestedOn: "Oct 10, 2026",
-      eventType: "Academic Conference",
+      department: item?.department || "Not specified",
+      organizerFullName: requesterName,
+      organizerEmail: item?.requesterEmail || "Not specified",
+      organizerRole: item?.organizerRole || "Not specified",
+      purpose: item?.eventTitle || item?.subject || "Not specified",
+      subject: item?.subject || "",
+      message: item?.message || item?.rawEmailContent || "",
+      attendance: item?.attendance || "Not specified",
+      equipmentNeeded: item?.equipmentNeeded || item?.equipment || "Not specified",
+      technicalSupport: item?.technicalSupport || "Not specified",
+      requestedOn: submittedLabel,
+      eventType: item?.eventType || "Booking",
     },
-  },
-  {
-    id: "#BK-2026-0155",
-    dateISO: "2026-10-22",
-    date: "Oct 22, 2026",
-    time: "02:00 PM - 04:00 PM",
-    venue: "Seminar Hall B",
-    event: "Guest Lecture: AI Ethics",
-    organizer: "Dept. of CSE • Sarah Smith",
-    status: "Cancelled",
-    isFaded: true,
-    strike: true,
-    actions: ["view"],
-    details: {
-      department: "Computer Science and Engineering",
-      organizerFullName: "Sarah Smith",
-      organizerEmail: "sarah.smith@ksrce.ac.in",
-      organizerRole: "Associate Professor",
-      purpose: "Guest lecture focused on ethical AI systems and responsible model deployment.",
-      subject: "Guest Lecture Request - AI Ethics",
-      message:
-        "The CSE department invited an industry expert for an AI Ethics lecture and requested AV-enabled seminar seating for 180 attendees.",
-      attendance: "180 participants",
-      equipmentNeeded: "Projector, Podium Mic, Recording Camera",
-      technicalSupport: "Network Support for live demo",
-      requestedOn: "Oct 08, 2026",
-      eventType: "Guest Lecture",
-    },
-  },
-  {
-    id: "#BK-2026-0154",
-    dateISO: "2026-10-20",
-    date: "Oct 20, 2026",
-    time: "10:00 AM - 11:30 AM",
-    venue: "Open Air Theatre",
-    event: "Cultural Fest Rehearsal",
-    organizer: "Student Council • Mike R.",
-    status: "Rejected",
-    isFaded: false,
-    strike: false,
-    actions: ["view", "reason"],
-    details: {
-      department: "Student Council",
-      organizerFullName: "Mike Raj",
-      organizerEmail: "mike.raj@ksrce.ac.in",
-      organizerRole: "Cultural Secretary",
-      purpose: "Stage rehearsal for annual cultural event with dance and drama teams.",
-      subject: "Open Air Theatre Rehearsal Slot",
-      message:
-        "Student council requested a rehearsal window for 12 teams to prepare for the annual fest opening ceremony.",
-      attendance: "220 participants",
-      equipmentNeeded: "Stage Lights, 6 Cordless Mics, Sound Mixer",
-      technicalSupport: "Stage Team + Security Support",
-      requestedOn: "Oct 07, 2026",
-      eventType: "Cultural Event",
-    },
-  },
-  {
-    id: "#BK-2026-0153",
-    dateISO: "2026-10-18",
-    date: "Oct 18, 2026",
-    time: "09:00 AM - 05:00 PM",
-    venue: "AICTE Lab",
-    event: "Workshop on IoT",
-    organizer: "Dept. of EEE • Prof. Alan",
-    status: "Completed",
-    isFaded: false,
-    strike: false,
-    actions: ["view", "print", "duplicate"],
-    details: {
-      department: "Electrical and Electronics Engineering",
-      organizerFullName: "Prof. Alan Joseph",
-      organizerEmail: "alan.joseph@ksrce.ac.in",
-      organizerRole: "Workshop Lead",
-      purpose: "Hands-on IoT training program for second-year students.",
-      subject: "AICTE Lab Booking - IoT Workshop",
-      message:
-        "The EEE department requested AICTE Lab for practical IoT sessions including gateway setup, sensor integration, and cloud dashboards.",
-      attendance: "90 participants",
-      equipmentNeeded: "IoT Kits, LAN Ports (20), Soldering Station, Projector",
-      technicalSupport: "Lab Assistant + IT Network Team",
-      requestedOn: "Oct 04, 2026",
-      eventType: "Technical Workshop",
-    },
-  },
-  {
-    id: "#BK-2026-0152",
-    dateISO: "2026-10-15",
-    date: "Oct 15, 2026",
-    time: "02:00 PM - 03:00 PM",
-    venue: "Conference Room 1",
-    event: "Department Meeting",
-    organizer: "Dept. of Civil • HOD",
-    status: "Completed",
-    isFaded: false,
-    strike: false,
-    actions: ["view", "print", "duplicate"],
-    details: {
-      department: "Civil Engineering",
-      organizerFullName: "Dr. N. Kumar",
-      organizerEmail: "hod.civil@ksrce.ac.in",
-      organizerRole: "Head of Department",
-      purpose: "Monthly department review and syllabus planning.",
-      subject: "Civil Department Monthly Meeting",
-      message:
-        "Civil department requested Conference Room 1 for curriculum discussion and faculty planning review.",
-      attendance: "32 participants",
-      equipmentNeeded: "Smart Display, Conference Mic, Whiteboard",
-      technicalSupport: "Admin Support",
-      requestedOn: "Oct 02, 2026",
-      eventType: "Department Meeting",
-    },
-  },
-];
+  };
+}
 
 function getStatusClass(status) {
   switch (status) {
@@ -369,7 +308,9 @@ function buildPaginationItems(currentPage, totalPages) {
 }
 
 export default function HistoryPage({ isSidebarOpen, setIsSidebarOpen }) {
-  const [bookings] = useState(INITIAL_BOOKINGS);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedVenue, setSelectedVenue] = useState("All");
@@ -384,6 +325,41 @@ export default function HistoryPage({ isSidebarOpen, setIsSidebarOpen }) {
   const exportMenuRef = useRef(null);
   const datePickerRef = useRef(null);
 
+  useEffect(() => {
+    const controller = new AbortController();
+
+    setLoading(true);
+    setError("");
+
+    fetch(`${API_URL}/api/bookings`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      signal: controller.signal,
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to load booking history.");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        const items = data?.bookings || data?.data || data || [];
+        const mapped = Array.isArray(items) ? items.map((item) => buildBookingFromApi(item)) : [];
+        setBookings(mapped);
+      })
+      .catch((err) => {
+        if (err.name === "AbortError") return;
+        setError(err?.message || "Failed to load booking history.");
+        setBookings([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+
+    return () => controller.abort();
+  }, []);
+
   const statuses = useMemo(() => {
     return ["All", ...new Set(bookings.map((booking) => booking.status))];
   }, [bookings]);
@@ -395,7 +371,12 @@ export default function HistoryPage({ isSidebarOpen, setIsSidebarOpen }) {
   const years = useMemo(() => {
     return [
       "All",
-      ...new Set(bookings.map((booking) => new Date(`${booking.dateISO}T00:00:00`).getFullYear().toString())),
+      ...new Set(
+        bookings
+          .map((booking) => booking.dateISO)
+          .filter(Boolean)
+          .map((dateISO) => new Date(`${dateISO}T00:00:00`).getFullYear().toString()),
+      ),
     ];
   }, [bookings]);
 
@@ -432,6 +413,9 @@ export default function HistoryPage({ isSidebarOpen, setIsSidebarOpen }) {
         }
 
         if (selectedYear !== "All") {
+          if (!booking.dateISO) {
+            return false;
+          }
           const bookingYear = new Date(`${booking.dateISO}T00:00:00`).getFullYear().toString();
           if (bookingYear !== selectedYear) {
             return false;
@@ -924,6 +908,14 @@ export default function HistoryPage({ isSidebarOpen, setIsSidebarOpen }) {
             </section>
 
             <section className={`${styles.tblBox} ${styles.wm}`}>
+              {loading ? (
+                <div className={styles.loadingState}>
+                  <span className={styles.spinner} aria-hidden="true" />
+                  <span>Loading booking history...</span>
+                </div>
+              ) : error ? (
+                <div className={styles.errorState}>{error}</div>
+              ) : null}
               <div className={styles.tblWrap}>
                 <table className={styles.table}>
                   <thead className={styles.thead}>
@@ -995,7 +987,9 @@ export default function HistoryPage({ isSidebarOpen, setIsSidebarOpen }) {
                       ? "completed"
                       : booking.status === "Cancelled"
                         ? "cancelled"
-                        : "rejected";
+                        : booking.status === "Pending"
+                          ? "pending"
+                          : "rejected";
 
                   return (
                     <article className={`${styles.mobileCard} ${styles[`mobileCard${statusVariant[0].toUpperCase()}${statusVariant.slice(1)}`]}`} key={`mobile-${booking.id}`}>

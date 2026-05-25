@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Bar,
@@ -17,121 +17,34 @@ import {
 import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
 import styles from "./DashboardPage.module.css";
-import venuesData from "../data/venuesData";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const BOOKING_TIMEFRAMES = {
   last6Months: "last-6-months",
   thisYear: "this-year",
 };
 
-const bookingTrendsByTimeframe = {
-  [BOOKING_TIMEFRAMES.last6Months]: {
-    overTime: [
-      { month: "JAN", bookings: 42 },
-      { month: "FEB", bookings: 58 },
-      { month: "MAR", bookings: 54 },
-      { month: "APR", bookings: 73 },
-      { month: "MAY", bookings: 66 },
-      { month: "JUN", bookings: 82 },
-    ],
-    byDay: [
-      { day: "Mon", bookings: 21 },
-      { day: "Tue", bookings: 18 },
-      { day: "Wed", bookings: 24 },
-      { day: "Thu", bookings: 20 },
-      { day: "Fri", bookings: 27 },
-      { day: "Sat", bookings: 13 },
-      { day: "Sun", bookings: 9 },
-    ],
-  },
-  [BOOKING_TIMEFRAMES.thisYear]: {
-    overTime: [
-      { month: "JAN", bookings: 35 },
-      { month: "FEB", bookings: 41 },
-      { month: "MAR", bookings: 47 },
-      { month: "APR", bookings: 52 },
-      { month: "MAY", bookings: 49 },
-      { month: "JUN", bookings: 58 },
-      { month: "JUL", bookings: 61 },
-      { month: "AUG", bookings: 57 },
-      { month: "SEP", bookings: 66 },
-      { month: "OCT", bookings: 72 },
-      { month: "NOV", bookings: 69 },
-      { month: "DEC", bookings: 75 },
-    ],
-    byDay: [
-      { day: "Mon", bookings: 38 },
-      { day: "Tue", bookings: 34 },
-      { day: "Wed", bookings: 41 },
-      { day: "Thu", bookings: 36 },
-      { day: "Fri", bookings: 44 },
-      { day: "Sat", bookings: 22 },
-      { day: "Sun", bookings: 17 },
-    ],
-  },
+const bookingDayTrendsByTimeframe = {
+  [BOOKING_TIMEFRAMES.last6Months]: [
+    { day: "Mon", bookings: 21 },
+    { day: "Tue", bookings: 18 },
+    { day: "Wed", bookings: 24 },
+    { day: "Thu", bookings: 20 },
+    { day: "Fri", bookings: 27 },
+    { day: "Sat", bookings: 13 },
+    { day: "Sun", bookings: 9 },
+  ],
+  [BOOKING_TIMEFRAMES.thisYear]: [
+    { day: "Mon", bookings: 38 },
+    { day: "Tue", bookings: 34 },
+    { day: "Wed", bookings: 41 },
+    { day: "Thu", bookings: 36 },
+    { day: "Fri", bookings: 44 },
+    { day: "Sat", bookings: 22 },
+    { day: "Sun", bookings: 17 },
+  ],
 };
-
-const venueUsageData = venuesData.slice(0, 3).map(venue => ({
-  id: venue.id,
-  name: venue.name,
-  abbreviation: venue.name.split(' ').map(n => n[0]).join(''),
-  percentage: Math.floor(Math.random() * 50) + 20, // Placeholder
-  booked: Math.floor(Math.random() * 100) + 20, // Placeholder
-  totalCapacity: 120, // Placeholder
-}));
-
-const recentBookingRequests = [
-  {
-    id: "BK-2026-0001",
-    requesterInitials: "RJ",
-    requesterName: "Dr. Rajesh Jain",
-    venue: "Main Auditorium",
-    date: "Oct 24, 2023",
-    statusLabel: "Approved",
-    statusClassName: "badgeOk",
-    initialsClassName: "initBlue",
-  },
-  {
-    id: "BK-2026-0002",
-    requesterInitials: "ST",
-    requesterName: "Prof. S. Thara",
-    venue: "AICTE Idea Lab",
-    date: "Oct 25, 2023",
-    statusLabel: "Pending",
-    statusClassName: "badgeWarn",
-    initialsClassName: "initAmber",
-  },
-  {
-    id: "BK-2026-0003",
-    requesterInitials: "MA",
-    requesterName: "M. Arunagiri",
-    venue: "Board Room",
-    date: "Oct 26, 2023",
-    statusLabel: "Rejected",
-    statusClassName: "badgeErr",
-    initialsClassName: "initRose",
-  },
-  {
-    id: "BK-2026-0004",
-    requesterInitials: "PK",
-    requesterName: "Dr. Priya Kumaran",
-    venue: "Main Seminar Hall",
-    date: "Oct 27, 2023",
-    statusLabel: "Pending",
-    statusClassName: "badgeWarn",
-    initialsClassName: "initBlue",
-  },
-  {
-    id: "BK-2026-0005",
-    requesterInitials: "AN",
-    requesterName: "A. Nivetha",
-    venue: "AICTE Idea Lab",
-    date: "Oct 28, 2023",
-    statusLabel: "Approved",
-    statusClassName: "badgeOk",
-    initialsClassName: "initAmber",
-  },
-];
 
 const VENUE_COLORS = [
   "#ff9500",
@@ -144,17 +57,330 @@ const VENUE_COLORS = [
   "#0f172a",
 ];
 
+const STATUS_PENDING = new Set(["pending", "form_sent", "clarification_requested"]);
+
+function normalizeStatus(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function getStatusPresentation(statusValue) {
+  const normalized = normalizeStatus(statusValue);
+  if (normalized === "approved") {
+    return { label: "Approved", className: "badgeOk" };
+  }
+  if (normalized === "rejected") {
+    return { label: "Rejected", className: "badgeErr" };
+  }
+  return { label: "Pending", className: "badgeWarn" };
+}
+
+function getInitials(name) {
+  const parts = String(name || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!parts.length) return "NA";
+  return parts.slice(0, 2).map((part) => part[0].toUpperCase()).join("");
+}
+
+function formatShortDate(value) {
+  if (!value) return "--";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "--";
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(parsed);
+}
+
+function normalizeVenueName(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function getVenueAbbreviation(name) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "--";
+  return parts.slice(0, 2).map((part) => part[0].toUpperCase()).join("");
+}
+
+function buildMonthlyCounts(bookings, monthsBack) {
+  const now = new Date();
+  const months = [];
+  const monthKeys = [];
+
+  for (let offset = monthsBack - 1; offset >= 0; offset -= 1) {
+    const bucketDate = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+    const key = `${bucketDate.getFullYear()}-${bucketDate.getMonth()}`;
+    months.push(bucketDate);
+    monthKeys.push(key);
+  }
+
+  const counts = monthKeys.reduce((acc, key) => {
+    acc[key] = 0;
+    return acc;
+  }, {});
+
+  bookings.forEach((booking) => {
+    const createdAt = booking?.createdAt;
+    const date = createdAt ? new Date(createdAt) : null;
+    if (!date || Number.isNaN(date.getTime())) return;
+    const key = `${date.getFullYear()}-${date.getMonth()}`;
+    if (counts[key] !== undefined) {
+      counts[key] += 1;
+    }
+  });
+
+  return months.map((bucket, index) => ({
+    month: bucket.toLocaleString("en-US", { month: "short" }).toUpperCase(),
+    bookings: counts[monthKeys[index]] || 0,
+  }));
+}
+
+function buildYearMonthlyCounts(bookings) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const monthKeys = Array.from({ length: 12 }, (_, index) => `${year}-${index}`);
+  const counts = monthKeys.reduce((acc, key) => {
+    acc[key] = 0;
+    return acc;
+  }, {});
+
+  bookings.forEach((booking) => {
+    const createdAt = booking?.createdAt;
+    const date = createdAt ? new Date(createdAt) : null;
+    if (!date || Number.isNaN(date.getTime())) return;
+    if (date.getFullYear() !== year) return;
+    const key = `${year}-${date.getMonth()}`;
+    if (counts[key] !== undefined) {
+      counts[key] += 1;
+    }
+  });
+
+  return monthKeys.map((key, index) => {
+    const monthDate = new Date(year, index, 1);
+    return {
+      month: monthDate.toLocaleString("en-US", { month: "short" }).toUpperCase(),
+      bookings: counts[key] || 0,
+    };
+  });
+}
+
 export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
   const navigate = useNavigate();
+  const [bookings, setBookings] = useState([]);
+  const [venues, setVenues] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
   const [selectedTimeframe, setSelectedTimeframe] = useState(BOOKING_TIMEFRAMES.last6Months);
-  const currentBookingTrends = bookingTrendsByTimeframe[selectedTimeframe] || bookingTrendsByTimeframe[BOOKING_TIMEFRAMES.last6Months];
-  const rankedVenueData = [...venueUsageData]
-    .sort((a, b) => b.booked - a.booked)
-    .map((venue, index) => ({
-      ...venue,
-      colorHex: VENUE_COLORS[index % VENUE_COLORS.length],
-    }));
-  const totalBookings = rankedVenueData.reduce((sum, venue) => sum + venue.booked, 0);
+  const last6MonthsTrends = useMemo(() => buildMonthlyCounts(bookings, 6), [bookings]);
+  const thisYearTrends = useMemo(() => buildYearMonthlyCounts(bookings), [bookings]);
+  const bookingTrendsByTimeframe = useMemo(
+    () => ({
+      [BOOKING_TIMEFRAMES.last6Months]: {
+        overTime: last6MonthsTrends,
+        byDay: bookingDayTrendsByTimeframe[BOOKING_TIMEFRAMES.last6Months],
+      },
+      [BOOKING_TIMEFRAMES.thisYear]: {
+        overTime: thisYearTrends,
+        byDay: bookingDayTrendsByTimeframe[BOOKING_TIMEFRAMES.thisYear],
+      },
+    }),
+    [last6MonthsTrends, thisYearTrends],
+  );
+  const currentBookingTrends = bookingTrendsByTimeframe[selectedTimeframe]
+    || bookingTrendsByTimeframe[BOOKING_TIMEFRAMES.last6Months];
+
+  const totalBookingCount = bookings.length;
+  const pendingCount = useMemo(
+    () => bookings.filter((booking) => STATUS_PENDING.has(normalizeStatus(booking?.status))).length,
+    [bookings],
+  );
+  const approvedCount = useMemo(
+    () => bookings.filter((booking) => normalizeStatus(booking?.status) === "approved").length,
+    [bookings],
+  );
+  const rejectedCount = useMemo(
+    () => bookings.filter((booking) => normalizeStatus(booking?.status) === "rejected").length,
+    [bookings],
+  );
+  const approvalRate = approvedCount + rejectedCount > 0
+    ? Math.round((approvedCount / (approvedCount + rejectedCount)) * 100)
+    : 0;
+
+  const totalVenues = venues.length;
+  const activeVenueCount = useMemo(
+    () => venues.filter((venue) => venue?.status === "active").length,
+    [venues],
+  );
+  const availableUtilization = totalVenues > 0 ? Math.round((activeVenueCount / totalVenues) * 100) : 0;
+  const approvalDashOffset = Math.max(0, 100.5 - (approvalRate / 100) * 100.5);
+  const venueUsageData = useMemo(() => {
+    const venueList = Array.isArray(venues) ? venues : [];
+    const venueIdByName = new Map();
+    const venueIds = new Set();
+
+    venueList.forEach((venue) => {
+      const id = venue?._id ? String(venue._id) : "";
+      if (id) {
+        venueIds.add(id);
+      }
+      const name = String(venue?.name || "").trim();
+      if (name && id) {
+        venueIdByName.set(normalizeVenueName(name), id);
+      }
+    });
+
+    const counts = new Map();
+    venueIds.forEach((id) => counts.set(id, 0));
+    let unassignedCount = 0;
+
+    bookings.forEach((booking) => {
+      const confirmedVenue = booking?.confirmedBooking?.venue;
+      let resolvedId = null;
+
+      if (confirmedVenue) {
+        if (typeof confirmedVenue === "string") {
+          resolvedId = venueIds.has(confirmedVenue) ? confirmedVenue : null;
+        } else if (confirmedVenue?._id) {
+          const id = String(confirmedVenue._id);
+          resolvedId = venueIds.has(id) ? id : null;
+        } else if (confirmedVenue?.name) {
+          const key = normalizeVenueName(confirmedVenue.name);
+          resolvedId = venueIdByName.get(key) || null;
+        }
+      }
+
+      if (!resolvedId) {
+        const extractedVenue = booking?.extractedDetails?.venue;
+        if (extractedVenue) {
+          const key = normalizeVenueName(extractedVenue);
+          resolvedId = venueIdByName.get(key) || null;
+        }
+      }
+
+      if (resolvedId) {
+        counts.set(resolvedId, (counts.get(resolvedId) || 0) + 1);
+      } else if (booking) {
+        unassignedCount += 1;
+      }
+    });
+
+    const total = bookings.length;
+    const items = venueList.map((venue) => {
+      const id = venue?._id ? String(venue._id) : String(venue?.name || "");
+      const booked = counts.get(id) || 0;
+      const percentage = total > 0 ? Math.round((booked / total) * 100) : 0;
+      return {
+        id,
+        name: venue?.name || "Unknown",
+        abbreviation: getVenueAbbreviation(venue?.name),
+        percentage,
+        booked,
+        totalCapacity: venue?.capacity || 0,
+      };
+    });
+
+    if (unassignedCount > 0) {
+      items.push({
+        id: "unassigned",
+        name: "Unassigned",
+        abbreviation: "UA",
+        percentage: total > 0 ? Math.round((unassignedCount / total) * 100) : 0,
+        booked: unassignedCount,
+        totalCapacity: 0,
+        isUnassigned: true,
+      });
+    }
+
+    return items;
+  }, [bookings, venues]);
+
+  const rankedVenueData = useMemo(() => {
+    return [...venueUsageData]
+      .sort((a, b) => b.booked - a.booked)
+      .map((venue, index) => ({
+        ...venue,
+        colorHex: VENUE_COLORS[index % VENUE_COLORS.length],
+      }));
+  }, [venueUsageData]);
+
+  const totalVenueBookings = useMemo(
+    () => venueUsageData.reduce((sum, venue) => sum + venue.booked, 0),
+    [venueUsageData],
+  );
+
+  const recentBookingRequests = useMemo(() => {
+    const sorted = [...bookings].sort((a, b) => {
+      const timeA = new Date(a?.createdAt || 0).getTime();
+      const timeB = new Date(b?.createdAt || 0).getTime();
+      return timeB - timeA;
+    });
+
+    return sorted.slice(0, 5).map((booking, index) => {
+      const presenter = getStatusPresentation(booking?.status);
+      const requesterName = booking?.requesterName || "Unknown";
+      const subject = booking?.subject || "Booking Request";
+      const initialsClassName = ["initBlue", "initAmber", "initRose"][index % 3];
+      return {
+        id: String(booking?._id || index),
+        requesterInitials: getInitials(requesterName),
+        requesterName,
+        subject,
+        createdAt: booking?.createdAt || "",
+        dateLabel: formatShortDate(booking?.createdAt),
+        statusLabel: presenter.label,
+        statusClassName: presenter.className,
+        initialsClassName,
+      };
+    });
+  }, [bookings]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const token = localStorage.getItem("token");
+
+    setIsLoading(true);
+    setError("");
+
+    Promise.all([
+      fetch(`${API_URL}/api/bookings`, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
+      }),
+      fetch(`${API_URL}/api/venues`, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
+      }),
+    ])
+      .then(async ([bookingsResponse, venuesResponse]) => {
+        if (!bookingsResponse.ok) {
+          throw new Error("Failed to load bookings");
+        }
+        if (!venuesResponse.ok) {
+          throw new Error("Failed to load venues");
+        }
+
+        const bookingsPayload = await bookingsResponse.json();
+        const venuesPayload = await venuesResponse.json();
+        const bookingsData = bookingsPayload?.bookings || bookingsPayload?.data || bookingsPayload || [];
+        const venuesList = venuesPayload?.venues || venuesPayload?.data || venuesPayload || [];
+
+        setBookings(Array.isArray(bookingsData) ? bookingsData : []);
+        setVenues(Array.isArray(venuesList) ? venuesList : []);
+      })
+      .catch((err) => {
+        if (err.name === "AbortError") return;
+        setError(err?.message || "Failed to load dashboard data");
+        setBookings([]);
+        setVenues([]);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+
+    return () => controller.abort();
+  }, []);
 
   return (
     <div className={styles.page}>
@@ -174,31 +400,33 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
               <div className={styles.statCard}>
                 <div className={styles.statRow}>
                   <span className={`material-icons ${styles.iconPrimary}`}>event_note</span>
-                  <span className={styles.tagGreen}>+12%</span>
+                  <span className={styles.tagGreen}>{approvedCount} approved</span>
                 </div>
                 <h3 className={styles.statLabel}>Total Bookings</h3>
-                <p className={styles.statVal}>156</p>
+                <p className={styles.statVal}>{totalBookingCount}</p>
               </div>
 
               <div className={styles.statCard}>
                 <div className={styles.statRow}>
                   <span className={`material-icons ${styles.iconAmber}`}>pending_actions</span>
-                  <span className={styles.tagAmber}>Attention</span>
+                  <span className={styles.tagAmber}>{rejectedCount} rejected</span>
                 </div>
                 <h3 className={styles.statLabel}>Pending Requests</h3>
-                <p className={styles.statVal}>23</p>
+                <p className={styles.statVal}>{pendingCount}</p>
               </div>
 
               <div className={styles.statCard}>
                 <div className={styles.statRowSm}>
                   <span className={`material-icons ${styles.iconEmerald}`}>meeting_room</span>
-                  <span className="text-sm font-semibold text-emerald-600">8 / 15</span>
+                  <span className="text-sm font-semibold text-emerald-600">
+                    {activeVenueCount} / {totalVenues}
+                  </span>
                 </div>
-                <h3 className={styles.statLabel}>Available Venues</h3>
+                <h3 className={styles.statLabel}>Total Venues</h3>
                 <div className={styles.progressWrap}>
-                  <div className={styles.progressFill} style={{ width: "53.3%" }} />
+                  <div className={styles.progressFill} style={{ width: `${availableUtilization}%` }} />
                 </div>
-                <p className={styles.progressLabel}>53% Capacity Utilization</p>
+                <p className={styles.progressLabel}>{availableUtilization}% Capacity Utilization</p>
               </div>
 
               <div className={`${styles.statCard} ${styles.ovh}`}>
@@ -214,14 +442,14 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
                       <circle
                         className="text-blue-500"
                         cx="20" cy="20" fill="transparent" r="16"
-                        stroke="currentColor" strokeDasharray="100.5" strokeDashoffset="6"
+                        stroke="currentColor" strokeDasharray="100.5" strokeDashoffset={approvalDashOffset}
                         strokeWidth="4"
                       />
                     </svg>
                   </div>
                 </div>
                 <h3 className={styles.statLabel}>Approval Rate</h3>
-                <p className={styles.statVal}>94%</p>
+                <p className={styles.statVal}>{approvalRate}%</p>
               </div>
             </div>
 
@@ -303,12 +531,17 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
                             animationEasing="ease-out"
                           >
                             {rankedVenueData.map((venue) => (
-                              <Cell key={venue.name} fill={venue.colorHex} style={{cursor: 'pointer'}} onClick={() => navigate(`/facilities/venue/${venue.id}`)} />
+                              <Cell
+                                key={venue.id}
+                                fill={venue.colorHex}
+                                style={{ cursor: venue.isUnassigned ? "default" : "pointer" }}
+                                onClick={venue.isUnassigned ? undefined : () => navigate(`/facilities/venue/${venue.id}`)}
+                              />
                             ))}
                           </Pie>
                           <text x="50%" y="50%" textAnchor="middle" dominantBaseline="central">
                             <tspan fill="#1e293b" fontSize="24" fontWeight="700" dy="-5">
-                              {totalBookings}
+                              {totalVenueBookings}
                             </tspan>
                             <tspan x="50%" dy="20" fill="#64748b" fontSize="12">
                               Total
@@ -321,7 +554,12 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
 
                     <div className={styles.vuList}>
                       {rankedVenueData.map((venue) => (
-                        <div className={styles.vuRow} key={venue.name} onClick={() => navigate(`/facilities/venue/${venue.id}`)} style={{cursor: 'pointer'}}>
+                        <div
+                          className={styles.vuRow}
+                          key={venue.id}
+                          onClick={venue.isUnassigned ? undefined : () => navigate(`/facilities/venue/${venue.id}`)}
+                          style={{ cursor: venue.isUnassigned ? "default" : "pointer" }}
+                        >
                           <div className={styles.vuTop}>
                             <div className={styles.vuHead}>
                               <span className={styles.vuDot} style={{ backgroundColor: venue.colorHex }} />
@@ -358,31 +596,45 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
                     <thead className={styles.tHead}>
                       <tr>
                         <th className={styles.th}>Requester</th>
-                        <th className={styles.th}>Venue</th>
-                        <th className={styles.th}>Date</th>
+                        <th className={styles.th}>Subject</th>
+                        <th className={styles.th}>Created</th>
                         <th className={styles.th}>Status</th>
                       </tr>
                     </thead>
                     <tbody className={styles.tBody}>
-                      {recentBookingRequests.map((request) => (
-                        <tr
-                          className={styles.tRow}
-                          key={request.id}
-                          onClick={() => navigate(`/inbox?requestId=${request.id}`)}
-                        >
-                          <td className={styles.cell}>
-                            <div className={styles.cellInner}>
-                              <div className={styles[request.initialsClassName]}>{request.requesterInitials}</div>
-                              <span className={styles.cellText}>{request.requesterName}</span>
-                            </div>
-                          </td>
-                          <td className={`${styles.cellMuted} ${styles.cellVenue}`}>{request.venue}</td>
-                          <td className={`${styles.cellMuted} ${styles.cellDate}`}>{request.date}</td>
-                          <td className={`${styles.cell} ${styles.cellStatus}`}>
-                            <span className={styles[request.statusClassName]}>{request.statusLabel}</span>
-                          </td>
+                      {isLoading ? (
+                        <tr className={styles.tRow}>
+                          <td className={styles.cell} colSpan={4}>Loading recent requests...</td>
                         </tr>
-                      ))}
+                      ) : error ? (
+                        <tr className={styles.tRow}>
+                          <td className={styles.cell} colSpan={4}>{error}</td>
+                        </tr>
+                      ) : recentBookingRequests.length === 0 ? (
+                        <tr className={styles.tRow}>
+                          <td className={styles.cell} colSpan={4}>No recent booking requests.</td>
+                        </tr>
+                      ) : (
+                        recentBookingRequests.map((request) => (
+                          <tr
+                            className={styles.tRow}
+                            key={request.id}
+                            onClick={() => navigate(`/inbox?requestId=${request.id}`)}
+                          >
+                            <td className={styles.cell}>
+                              <div className={styles.cellInner}>
+                                <div className={styles[request.initialsClassName]}>{request.requesterInitials}</div>
+                                <span className={styles.cellText}>{request.requesterName}</span>
+                              </div>
+                            </td>
+                            <td className={`${styles.cellMuted} ${styles.cellVenue}`}>{request.subject}</td>
+                            <td className={`${styles.cellMuted} ${styles.cellDate}`}>{request.dateLabel}</td>
+                            <td className={`${styles.cell} ${styles.cellStatus}`}>
+                              <span className={styles[request.statusClassName]}>{request.statusLabel}</span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>

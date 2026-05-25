@@ -126,13 +126,19 @@ class GmailWebhookService {
 	 */
 	async processNotification(pubsubData) {
 		try {
-			if (!gmail) {
-				throw new Error('Gmail API client is not initialized. Check server/config/gmail.js')
-			}
-
 			var parsed = parsePubsubData(pubsubData)
 			var historyId = parsed.historyId
 			var emailAddress = parsed.emailAddress
+
+			console.log('[GmailWebhookService] processNotification called', {
+				historyId,
+				emailAddress,
+				timestamp: new Date().toISOString(),
+			})
+
+			if (!gmail) {
+				throw new Error('Gmail API client is not initialized. Check server/config/gmail.js')
+			}
 
 			console.info('[GmailWebhookService] Notification received', {
 				historyId: historyId,
@@ -183,8 +189,13 @@ class GmailWebhookService {
 					count: listMessages.length,
 				})
 
+				console.log('[GmailWebhookService] Fallback messages found', {
+					count: listMessages.length,
+					messageIds: listMessages.map((m) => m && m.id),
+				})
+
 				var nowMs = Date.now()
-				var cutoffMs = nowMs - 10 * 60 * 1000
+				var cutoffMs = nowMs - 30 * 60 * 1000
 
 				for (var f = 0; f < listMessages.length; f += 1) {
 					var listMsg = listMessages[f]
@@ -227,6 +238,13 @@ class GmailWebhookService {
 					})
 
 					if (!withinWindow) {
+						console.log('[GmailWebhookService] Fallback message too old', {
+							messageId: listMsg.id,
+							internalDate: Number.isFinite(internalDateMs)
+								? new Date(internalDateMs).toISOString()
+								: null,
+							cutoffTime: new Date(cutoffMs).toISOString(),
+						})
 						continue
 					}
 
@@ -521,46 +539,54 @@ class GmailWebhookService {
 			var senderLower = sender ? String(sender).toLowerCase() : ''
 			var fromLower = from ? String(from).toLowerCase() : ''
 			var subjectText = String(subject || '').trim()
+			var subjectLower = subjectText.toLowerCase()
+			var blockedSenderFragments = [
+				'mailer-daemon',
+				'noreply',
+				'no-reply',
+				'bounce',
+				'postmaster',
+				'notifications@',
+				'team.mongodb.com',
+				'mail.mongodb.com',
+			]
+			var blockedSubjectFragments = [
+				'delivery status notification',
+				'delivery failure',
+				'undeliverable',
+				'automatic reply',
+				'out of office',
+				'auto-reply',
+			]
 
-			if (subjectText && subjectText.toLowerCase().startsWith('re:')) {
+			if (fromLower.indexOf('ksridealab@gmail.com') !== -1 || (senderLower && fromLower.indexOf(senderLower) !== -1)) {
+				console.log('[GmailWebhookService] Skipping self-sent email', { from: from })
+				return false
+			}
+
+			if (subjectLower.startsWith('re:')) {
 				console.log('[GmailWebhookService] Skipping reply email', { subject: subject })
 				return false
 			}
 
-			if (fromLower.indexOf('ksridealab@gmail.com') !== -1 || (senderLower && fromLower.indexOf(senderLower) !== -1)) {
-				if (subjectText.toLowerCase().startsWith('re:')) {
-					console.log('[GmailWebhookService] Skipping reply email from self', {
-						from: from,
-						subject: subject,
-					})
-				} else {
-					console.log('[GmailWebhookService] Skipping auto-response email from self', { from: from })
-				}
-				return false
-			}
-
-			console.log('[GmailWebhookService] isBookingRequest subject', {
-				subject: subject,
-			})
-
-			var s = String(subject || '').toLowerCase()
-			var keywords = ['booking', 'venue', 'hall', 'lab', 'reservation', 'request', 'event']
-
-			for (var i = 0; i < keywords.length; i += 1) {
-				if (s.indexOf(keywords[i]) !== -1) {
-					console.log('[GmailWebhookService] isBookingRequest match', {
-						subject: subject,
-						matchedKeyword: keywords[i],
-					})
-					return true
+			for (var i = 0; i < blockedSenderFragments.length; i += 1) {
+				var fragment = blockedSenderFragments[i]
+				if (fragment && fromLower.indexOf(fragment) !== -1) {
+					console.log('[GmailWebhookService] Skipping automated sender', { from: from })
+					return false
 				}
 			}
 
-			console.log('[GmailWebhookService] isBookingRequest no match', {
-				subject: subject,
-			})
+			for (var j = 0; j < blockedSubjectFragments.length; j += 1) {
+				var subjectFragment = blockedSubjectFragments[j]
+				if (subjectFragment && subjectLower.indexOf(subjectFragment) !== -1) {
+					console.log('[GmailWebhookService] Skipping automated subject', { subject: subject })
+					return false
+				}
+			}
 
-			return false
+			console.log('[GmailWebhookService] Email accepted as booking request', { from: from, subject: subject })
+			return true
 		} catch (error) {
 			console.log('[GmailWebhookService] isBookingRequest error', {
 				message: error && error.message ? error.message : String(error),

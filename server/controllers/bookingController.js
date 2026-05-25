@@ -92,6 +92,47 @@ class BookingController {
 	}
 
 	/**
+	 * Get approved bookings for a given date to determine venue availability.
+	 * @param {import('express').Request} req - Request.
+	 * @param {import('express').Response} res - Response.
+	 * @returns {Promise<import('express').Response>} Response.
+	 */
+	async availability(req, res) {
+		const dateText = typeof req.query?.date === 'string' ? req.query.date.trim() : ''
+		if (!dateText) {
+			return res.status(400).json({ message: 'date query parameter is required (YYYY-MM-DD)' })
+		}
+		const match = dateText.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+		if (!match) {
+			return res.status(400).json({ message: 'Invalid date format' })
+		}
+		const year = Number(match[1])
+		const month = Number(match[2])
+		const day = Number(match[3])
+		if (!year || !month || !day) {
+			return res.status(400).json({ message: 'Invalid date format' })
+		}
+
+		const start = new Date(year, month - 1, day)
+		if (Number.isNaN(start.getTime())) {
+			return res.status(400).json({ message: 'Invalid date format' })
+		}
+		const end = new Date(year, month - 1, day + 1)
+
+		try {
+			const data = await BookingRequest.find({
+				status: 'approved',
+				'confirmedBooking.date': { $gte: start, $lt: end },
+			})
+				.populate('confirmedBooking.venue', 'name location')
+
+			return res.json({ data })
+		} catch {
+			return res.status(500).json({ message: 'Failed to load availability data' })
+		}
+	}
+
+	/**
 	 * Get a booking by id.
 	 * @param {import('express').Request} req - Request.
 	 * @param {import('express').Response} res - Response.

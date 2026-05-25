@@ -609,6 +609,46 @@
   border-color: #fecaca;
 }
 
+.loadingState {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0 0;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #0b2a55;
+  animation: spin 0.9s linear infinite;
+}
+
+.errorState {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0 0;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  color: #991b1b;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Table Hover Actions */
 .actions {
   display: flex;
@@ -1083,6 +1123,10 @@
     background: #a32d2d;
   }
 
+  .mobileCardPending .mobileAccent {
+    background: #0f5b7a;
+  }
+
   .mobileCardBody {
     flex: 1;
     padding: 0.6rem 0.7rem 0.55rem;
@@ -1129,6 +1173,12 @@
     color: #a32d2d;
     background: rgba(163, 45, 45, 0.12);
     border-color: rgba(163, 45, 45, 0.25);
+  }
+
+  .mobileStatusPending {
+    color: #0f5b7a;
+    background: rgba(15, 91, 122, 0.12);
+    border-color: rgba(15, 91, 122, 0.25);
   }
 
   .mobileSubText {

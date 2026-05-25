@@ -9,6 +9,7 @@
     "seed:settings": "node server/scripts/seedSettings.js",
     "build": "vite build",
     "lint": "eslint .",
+    "test": "node --test",
     "preview": "vite preview"
   },
   "dependencies": {

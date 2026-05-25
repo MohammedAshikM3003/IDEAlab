@@ -16,123 +16,11 @@ import Sidebar from './Sidebar'
 import layoutStyles from './DashboardPage.module.css'
 import statusStyles from './StatusPage.module.css'
 
-// TODO: Replace with API calls when backend ready
-const RIGHT_NOW_DATA = [
-  {
-    id: 'aicte-idea-lab',
-    type: 'inUse',
-    icon: 'science',
-    venue: 'AICTE Idea Lab',
-    badge: 'IN USE',
-    capacityText: 'Capacity: 60 • First Floor',
-    sessionText: 'Current Session: IoT Workshop',
-    requestedBy: 'Prof. Ramesh',
-    freeAt: '2:00 PM',
-  },
-  {
-    id: 'seminar-hall',
-    type: 'available',
-    icon: 'storefront',
-    venue: 'Seminar Hall',
-    badge: 'AVAILABLE',
-    capacityText: 'Capacity: 120 • Ground Floor',
-    vacancyText: 'Currently vacant.',
-    nextBookingText: 'Next booking starts at 3:00 PM.',
-  },
-  {
-    id: 'conference-room-a',
-    type: 'maintenance',
-    icon: 'meeting_room',
-    venue: 'Conference Room A',
-    badge: 'MAINTENANCE',
-    capacityText: 'Capacity: 15 • Admin Block',
-    maintenanceReason: 'PROJECTOR REPAIR',
-    etaText: 'Est. completion: 4:00 PM today',
-  },
-]
-
-const UPCOMING_DATA = [
-  {
-    id: 'cs-exam',
-    type: 'confirmed',
-    time12: '2:00 PM',
-    time24: '14:00',
-    title: 'CS Department Exam',
-    venue: 'Computer Lab 2',
-    statusText: 'CONFIRMED',
-    metaTwoIcon: 'schedule',
-    metaTwoText: '2h duration',
-    requesterName: 'Rahul Kumar',
-    requesterInitials: 'RK',
-  },
-  {
-    id: 'guest-lecture-future-ai',
-    type: 'confirmed',
-    time12: '3:00 PM',
-    time24: '15:00',
-    title: 'Guest Lecture: Future AI',
-    venue: 'Seminar Hall A',
-    statusText: 'CONFIRMED',
-    metaTwoIcon: 'groups',
-    metaTwoText: '110 Students',
-  },
-  {
-    id: 'cultural-club-practice',
-    type: 'pending',
-    time12: '5:00 PM',
-    time24: '17:00',
-    title: 'Cultural Club Practice',
-    venue: 'Main Auditorium',
-    statusText: 'PENDING APPROVAL',
-    requesterName: 'Meena Priya',
-    requesterInitials: 'MP',
-  },
-  {
-    id: 'double-booking-aicte-lab',
-    type: 'conflict',
-    time12: '6:00 PM',
-    time24: '18:00',
-    title: 'Double Booking: AICTE Lab',
-    venue: 'AICTE Lab',
-    statusText: 'CONFLICT WARNING',
-    conflictText: 'Two requests for same time slot: "Robotics Club" and "Staff Meeting".',
-    conflictRequests: [
-      {
-        id: 'robotics-club',
-        partyName: 'Robotics Club',
-        requesterName: 'Arun Kumar',
-        requesterInitials: 'AK',
-        eventName: 'Robotics Club Build Session',
-        time12: '6:00 PM',
-        time24: '18:00',
-        durationText: '2h duration',
-      },
-      {
-        id: 'staff-meeting',
-        partyName: 'Staff Meeting',
-        requesterName: 'Dr. Lakshmi',
-        requesterInitials: 'DL',
-        eventName: 'Staff Meeting',
-        time12: '6:00 PM',
-        time24: '18:00',
-        durationText: '1h duration',
-      },
-    ],
-  },
-]
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 const DEFAULT_REJECTION_MESSAGE =
   'We regret to inform you that your booking request for AICTE Lab at 6:00 PM has been declined due to a scheduling conflict. Please contact the admin to reschedule.'
 
-const VENUE_OPTIONS = [
-  'AICTE Idea Lab',
-  'Seminar Hall',
-  'Conference Room A',
-  'Computer Lab 2',
-  'Seminar Hall A',
-  'Main Auditorium',
-  'AICTE Lab',
-]
 
 function formatDisplayDate(date) {
   const today = new Date()
@@ -168,16 +56,79 @@ function formatTimeClock(date) {
   })
 }
 
-function getMockRightNowItemsForDate(date) {
-  const today = toInputDateValue(new Date())
-  const targetDate = toInputDateValue(date)
-  return targetDate === today ? RIGHT_NOW_DATA : []
+function formatTime12(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+  if (/\b(am|pm)\b/i.test(raw)) {
+    return raw.replace(/\s+/g, ' ').toUpperCase()
+  }
+  const match = raw.match(/^(\d{1,2}):(\d{2})$/)
+  if (!match) return raw
+  const hour24 = Number(match[1])
+  const minute = match[2]
+  const period = hour24 >= 12 ? 'PM' : 'AM'
+  const hour12 = hour24 % 12 || 12
+  return `${hour12}:${minute} ${period}`
 }
 
-function getMockUpcomingItemsForDate(date) {
-  const today = toInputDateValue(new Date())
-  const targetDate = toInputDateValue(date)
-  return targetDate === today ? UPCOMING_DATA : []
+function formatTime24(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+  const ampmMatch = raw.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i)
+  if (ampmMatch) {
+    let hour = Number(ampmMatch[1])
+    const minute = ampmMatch[2]
+    const period = ampmMatch[3].toLowerCase()
+    if (period === 'pm' && hour < 12) hour += 12
+    if (period === 'am' && hour === 12) hour = 0
+    return `${String(hour).padStart(2, '0')}:${minute}`
+  }
+  const match = raw.match(/^(\d{1,2}):(\d{2})$/)
+  if (!match) return ''
+  return `${String(match[1]).padStart(2, '0')}:${match[2]}`
+}
+
+function getTimeRangeFromSlot(slotValue) {
+  if (!slotValue) {
+    return { start: '', end: '' }
+  }
+  if (typeof slotValue === 'object') {
+    return {
+      start: slotValue?.start ? String(slotValue.start).trim() : '',
+      end: slotValue?.end ? String(slotValue.end).trim() : '',
+    }
+  }
+
+  const text = String(slotValue).replace(/\s+/g, ' ').trim()
+  const dashParts = text.split('-').map((part) => part.trim()).filter(Boolean)
+  if (dashParts.length >= 2) {
+    return { start: dashParts[0], end: dashParts[1] }
+  }
+  const toParts = text.split(/\bto\b/i).map((part) => part.trim()).filter(Boolean)
+  if (toParts.length >= 2) {
+    return { start: toParts[0], end: toParts[1] }
+  }
+  return { start: text, end: '' }
+}
+
+function formatCapacityText(venue) {
+  const capacityValue = venue?.capacity
+  const capacityLabel = Number.isFinite(capacityValue) ? capacityValue : capacityValue ? String(capacityValue) : 'N/A'
+  const locationLabel = venue?.location ? String(venue.location) : ''
+  const parts = [`Capacity: ${capacityLabel}`]
+  if (locationLabel) {
+    parts.push(locationLabel)
+  }
+  return parts.join(' • ')
+}
+
+function getTimeSlotLabel(timeSlot) {
+  const start = timeSlot?.start ? String(timeSlot.start).trim() : ''
+  const end = timeSlot?.end ? String(timeSlot.end).trim() : ''
+  if (!start || !end) {
+    return ''
+  }
+  return `${start} - ${end}`
 }
 
 export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
@@ -188,12 +139,7 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
   const [autoRefreshOn, setAutoRefreshOn] = useState(true)
   const [lastRefreshedAt, setLastRefreshedAt] = useState(() => new Date())
   const [upcomingView, setUpcomingView] = useState('timeline')
-  const [upcomingItemsByDate, setUpcomingItemsByDate] = useState(() => {
-    const initialDate = new Date()
-    return {
-      [toInputDateValue(initialDate)]: getMockUpcomingItemsForDate(initialDate),
-    }
-  })
+  const [upcomingItemsByDate, setUpcomingItemsByDate] = useState({})
   const [selectedBooking, setSelectedBooking] = useState(null)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -215,6 +161,14 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
   const [showMaintenanceForm, setShowMaintenanceForm] = useState(false)
   const [showMaintenanceSuccess, setShowMaintenanceSuccess] = useState(false)
   const [mobileTab, setMobileTab] = useState('rightNow')
+  const [venues, setVenues] = useState([])
+  const [venuesLoading, setVenuesLoading] = useState(true)
+  const [venuesError, setVenuesError] = useState('')
+  const [availabilityBookings, setAvailabilityBookings] = useState([])
+  const [availabilityLoading, setAvailabilityLoading] = useState(true)
+  const [availabilityError, setAvailabilityError] = useState('')
+  const [scheduleLoading, setScheduleLoading] = useState(true)
+  const [scheduleError, setScheduleError] = useState('')
 
   useEffect(() => {
     if (!autoRefreshOn) {
@@ -242,14 +196,254 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
 
   const selectedDateKey = useMemo(() => toInputDateValue(selectedDate), [selectedDate])
 
-  const rightNowItemsForSelectedDate = useMemo(
-    () => getMockRightNowItemsForDate(selectedDate),
-    [selectedDate],
+  useEffect(() => {
+    if (!selectedDateKey) {
+      return undefined
+    }
+
+    const controller = new AbortController()
+    const token = localStorage.getItem('token')
+
+    setScheduleLoading(true)
+    setScheduleError('')
+
+    fetch(`${API_URL}/api/bookings?limit=500`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('Failed to load bookings')
+        }
+        return res.json()
+      })
+      .then((payload) => {
+        const list = payload?.bookings || payload?.data || payload || []
+        const items = Array.isArray(list) ? list : []
+
+        const scheduleItems = items
+          .map((booking) => {
+            const status = String(booking?.status || '').toLowerCase()
+            const isApproved = status === 'approved'
+            const isPending = status === 'pending' || status === 'form_sent' || status === 'clarification_requested'
+            if (!isApproved && !isPending) {
+              return null
+            }
+
+            const bookingDate = booking?.confirmedBooking?.date || booking?.extractedDetails?.requestedDate
+            if (!bookingDate) {
+              return null
+            }
+
+            const bookingDateKey = toInputDateValue(new Date(bookingDate))
+            if (bookingDateKey !== selectedDateKey) {
+              return null
+            }
+
+            const timeSlotSource = isApproved
+              ? booking?.confirmedBooking?.timeSlot
+              : booking?.extractedDetails?.timeSlot
+            const { start, end } = getTimeRangeFromSlot(timeSlotSource)
+            const time24 = formatTime24(start)
+            const time12 = formatTime12(start) || 'TBD'
+            const title = booking?.extractedDetails?.eventPurpose || booking?.subject || 'Booking Request'
+            const venueName = booking?.confirmedBooking?.venue?.name || booking?.extractedDetails?.venue || 'Venue'
+            const attendance = booking?.extractedDetails?.attendance
+            const attendanceLabel = attendance ? `${attendance} Students` : ''
+
+            return {
+              id: String(booking?._id || ''),
+              type: isApproved ? 'confirmed' : 'pending',
+              time12,
+              time24: time24 || '--:--',
+              title,
+              venue: venueName,
+              statusText: isApproved ? 'CONFIRMED' : 'PENDING APPROVAL',
+              metaTwoIcon: attendanceLabel ? 'groups' : 'schedule',
+              metaTwoText: attendanceLabel,
+              requesterName: booking?.requesterName,
+              requesterInitials: booking?.requesterName
+                ? booking.requesterName
+                    .split(/\s+/)
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((part) => part[0].toUpperCase())
+                    .join('')
+                : '',
+              durationText: end ? `Ends ${end}` : '',
+            }
+          })
+          .filter(Boolean)
+          .sort((a, b) => a.time24.localeCompare(b.time24))
+
+        setUpcomingItemsByDate((prev) => ({
+          ...prev,
+          [selectedDateKey]: scheduleItems,
+        }))
+      })
+      .catch((err) => {
+        if (err.name === 'AbortError') return
+        setScheduleError(err?.message || 'Failed to load bookings')
+        setUpcomingItemsByDate((prev) => ({
+          ...prev,
+          [selectedDateKey]: [],
+        }))
+      })
+      .finally(() => {
+        setScheduleLoading(false)
+      })
+
+    return () => controller.abort()
+  }, [selectedDateKey])
+
+  const venueOptions = useMemo(
+    () => venues.map((venue) => venue?.name).filter(Boolean),
+    [venues],
   )
 
+  useEffect(() => {
+    if (selectedVenue === 'ALL') {
+      return
+    }
+    if (!venueOptions.includes(selectedVenue)) {
+      setSelectedVenue('ALL')
+    }
+  }, [selectedVenue, venueOptions])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const token = localStorage.getItem('token')
+
+    setVenuesLoading(true)
+    setVenuesError('')
+
+    fetch(`${API_URL}/api/venues`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('Failed to load venues')
+        }
+        return res.json()
+      })
+      .then((payload) => {
+        const list = payload?.venues || payload?.data || payload || []
+        setVenues(Array.isArray(list) ? list : [])
+      })
+      .catch((err) => {
+        if (err.name === 'AbortError') return
+        setVenuesError(err?.message || 'Failed to load venues')
+        setVenues([])
+      })
+      .finally(() => {
+        setVenuesLoading(false)
+      })
+
+    return () => controller.abort()
+  }, [])
+
+  useEffect(() => {
+    if (!selectedDateKey) {
+      return undefined
+    }
+
+    const controller = new AbortController()
+    const token = localStorage.getItem('token')
+
+    setAvailabilityLoading(true)
+    setAvailabilityError('')
+
+    fetch(`${API_URL}/api/bookings/availability?date=${encodeURIComponent(selectedDateKey)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('Failed to load availability')
+        }
+        return res.json()
+      })
+      .then((payload) => {
+        const list = payload?.data || payload || []
+        setAvailabilityBookings(Array.isArray(list) ? list : [])
+      })
+      .catch((err) => {
+        if (err.name === 'AbortError') return
+        setAvailabilityError(err?.message || 'Failed to load availability')
+        setAvailabilityBookings([])
+      })
+      .finally(() => {
+        setAvailabilityLoading(false)
+      })
+
+    return () => controller.abort()
+  }, [selectedDateKey])
+
+  const availabilityByVenueId = useMemo(() => {
+    const map = new Map()
+    availabilityBookings.forEach((booking) => {
+      const venue = booking?.confirmedBooking?.venue
+      let venueId = null
+
+      if (typeof venue === 'string') {
+        venueId = venue
+      } else if (venue?._id) {
+        venueId = String(venue._id)
+      }
+
+      if (!venueId) {
+        return
+      }
+
+      if (!map.has(venueId)) {
+        map.set(venueId, booking)
+      }
+    })
+    return map
+  }, [availabilityBookings])
+
+  const rightNowItemsForSelectedDate = useMemo(() => {
+    const list = Array.isArray(venues) ? venues : []
+
+    return list.map((venue) => {
+      const venueId = venue?._id ? String(venue._id) : String(venue?.id || venue?.name || '')
+      const booking = venueId ? availabilityByVenueId.get(venueId) : null
+      const timeSlotLabel = getTimeSlotLabel(booking?.confirmedBooking?.timeSlot)
+      const endTime = booking?.confirmedBooking?.timeSlot?.end
+        ? String(booking.confirmedBooking.timeSlot.end)
+        : ''
+
+      if (booking) {
+        return {
+          id: venueId,
+          type: 'inUse',
+          icon: 'event_busy',
+          venue: venue?.name || 'Venue',
+          badge: 'IN USE',
+          capacityText: formatCapacityText(venue),
+          sessionText: timeSlotLabel ? `Current Session: ${timeSlotLabel}` : 'Current Session: Approved booking',
+          requestedBy: booking?.requesterName || booking?.subject || 'Requester',
+          freeAt: endTime || 'TBD',
+        }
+      }
+
+      return {
+        id: venueId,
+        type: 'available',
+        icon: 'event_available',
+        venue: venue?.name || 'Venue',
+        badge: 'AVAILABLE',
+        capacityText: formatCapacityText(venue),
+        vacancyText: 'Currently available.',
+        nextBookingText: 'No approved bookings on this date.',
+      }
+    })
+  }, [availabilityByVenueId, venues])
+
   const upcomingItemsForSelectedDate = useMemo(
-    () => upcomingItemsByDate[selectedDateKey] || getMockUpcomingItemsForDate(selectedDate),
-    [selectedDate, selectedDateKey, upcomingItemsByDate],
+    () => upcomingItemsByDate[selectedDateKey] || [],
+    [selectedDateKey, upcomingItemsByDate],
   )
 
   const filteredRightNowItems = useMemo(() => {
@@ -258,6 +452,16 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
     }
     return rightNowItemsForSelectedDate.filter((item) => item.venue === selectedVenue)
   }, [selectedVenue, rightNowItemsForSelectedDate])
+
+  const rightNowStatusMessage = useMemo(() => {
+    if (venuesLoading || availabilityLoading) {
+      return 'Loading availability...'
+    }
+    if (venuesError || availabilityError) {
+      return venuesError || availabilityError || 'Failed to load availability.'
+    }
+    return ''
+  }, [availabilityError, availabilityLoading, venuesError, venuesLoading])
 
   const filteredUpcomingItems = useMemo(() => {
     if (selectedVenue === 'ALL') {
@@ -276,6 +480,16 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
       filteredUpcomingItems.filter((item) => item.type === 'pending' || item.type === 'conflict').length,
     [filteredUpcomingItems],
   )
+
+  const scheduleStatusMessage = useMemo(() => {
+    if (scheduleLoading) {
+      return 'Loading schedule...'
+    }
+    if (scheduleError) {
+      return scheduleError
+    }
+    return ''
+  }, [scheduleError, scheduleLoading])
 
   const closeBookingFlow = () => {
     setIsDetailsOpen(false)
@@ -588,8 +802,8 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
                   onChange={(event) => setSelectedVenue(event.target.value)}
                   value={selectedVenue}
                 >
-                  <option value="ALL">All Venues (7)</option>
-                  {VENUE_OPTIONS.map((venue) => (
+                  <option value="ALL">All Venues ({venues.length})</option>
+                  {venueOptions.map((venue) => (
                     <option key={venue} value={venue}>
                       {venue}
                     </option>
@@ -670,7 +884,9 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
               </header>
 
               <div className={statusStyles.panelBody}>
-                {filteredRightNowItems.length > 0 ? (
+                {rightNowStatusMessage ? (
+                  <p className={statusStyles.emptyStateMessage}>{rightNowStatusMessage}</p>
+                ) : filteredRightNowItems.length > 0 ? (
                   filteredRightNowItems.map((item) => (
                     <article
                       className={
@@ -788,7 +1004,9 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
 
               {upcomingView === 'timeline' ? (
                 <div className={statusStyles.timeline}>
-                  {filteredUpcomingItems.length > 0 ? (
+                  {scheduleStatusMessage ? (
+                    <p className={statusStyles.emptyStateMessage}>{scheduleStatusMessage}</p>
+                  ) : filteredUpcomingItems.length > 0 ? (
                     filteredUpcomingItems.map((item, index) => {
                       const showConnector = index < filteredUpcomingItems.length - 1
 
@@ -920,7 +1138,9 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
                     <span>Actions</span>
                   </div>
 
-                  {filteredUpcomingItems.length > 0 ? (
+                  {scheduleStatusMessage ? (
+                    <p className={statusStyles.emptyStateMessage}>{scheduleStatusMessage}</p>
+                  ) : filteredUpcomingItems.length > 0 ? (
                     filteredUpcomingItems.map((item) => (
                       <article className={statusStyles.listRow} key={item.id}>
                         <span className={statusStyles.listTime}>{item.time12}</span>
@@ -1035,7 +1255,7 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
           organizerHint={selectedBooking.requesterName || ''}
           prefilledVenue={selectedBooking.venue}
           subtitle={selectedBooking.venue}
-          venues={VENUE_OPTIONS.map((venueOption) => ({
+          venues={venueOptions.map((venueOption) => ({
             value: venueOption.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
             label: venueOption,
           }))}

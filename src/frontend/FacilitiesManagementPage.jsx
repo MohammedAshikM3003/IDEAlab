@@ -27,7 +27,6 @@ function resolveVenueImageSrc(value) {
 
 const DONUT_RADIUS = 70;
 const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
-const TOTAL_EQUIPMENT_ITEMS = 47;
 const TOOLTIP_ESTIMATED_WIDTH = 180;
 const TOOLTIP_ESTIMATED_HEIGHT = 64;
 
@@ -148,6 +147,21 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
   const equipmentSectionRef = useRef(null);
   const updatesMenuRef = useRef(null);
 
+  const activeVenueCount = useMemo(
+    () => venues.filter((venue) => venue?.status === "active").length,
+    [venues],
+  );
+  const utilizationRate = venues.length > 0 ? Math.round((activeVenueCount / venues.length) * 100) : 0;
+  const equipmentItemCount = useMemo(() => {
+    return venues.reduce((total, venue) => {
+      const inventory = Array.isArray(venue?.inventory) ? venue.inventory : [];
+      const equipment = Array.isArray(venue?.equipment) ? venue.equipment : [];
+      const inventoryCount = inventory.reduce((sum, item) => sum + (Number(item?.quantity) || 0), 0);
+      const equipmentCount = equipment.reduce((sum, item) => sum + (Number(item?.quantity) || 0), 0);
+      return total + inventoryCount + equipmentCount;
+    }, 0);
+  }, [venues]);
+
   const chartSegments = useMemo(() => {
     return EQUIPMENT_SEGMENTS.reduce(
       (acc, segment, index) => {
@@ -159,7 +173,7 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
             segmentLength,
             segmentOffset: -acc.totalLength,
             delay: index * 0.14,
-            itemCount: Math.round((TOTAL_EQUIPMENT_ITEMS * segment.percentage) / 100),
+            itemCount: Math.round((equipmentItemCount * segment.percentage) / 100),
             centerAngle,
           };
 
@@ -171,7 +185,7 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
         },
       { totalLength: 0, totalPercentage: 0, items: [] },
     ).items;
-  }, []);
+  }, [equipmentItemCount]);
 
   const activeSegment = useMemo(
     () => chartSegments.find((segment) => segment.id === activeSegmentId) || null,
@@ -233,9 +247,10 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
       setIsVenuesLoading(true);
       setVenuesError("");
 
-      const response = await fetch(`${API_BASE}/api/venues`, {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_URL}/api/venues`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -460,7 +475,7 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
                 <div className={styles.cardContent}>
                   <p className={styles.cardLabel}>Total Facilities</p>
                   <div className={styles.cardMetricGroup}>
-                    <h3 className={styles.cardValue}>15</h3>
+                    <h3 className={styles.cardValue}>{venues.length}</h3>
                   </div>
                 </div>
               </div>
@@ -475,7 +490,7 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
                 <div className={styles.cardContent}>
                   <p className={styles.cardLabel}>Active Now</p>
                   <div className={styles.cardMetricGroup}>
-                    <h3 className={styles.cardValue}>12</h3>
+                    <h3 className={styles.cardValue}>{activeVenueCount}</h3>
                   </div>
                 </div>
               </div>
@@ -485,14 +500,16 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
                   <div className={`${styles.cardIcon} ${styles.cardIconGreen}`}>
                     <span className={`${styles.cardIconGlyph} material-icons`}>door_sliding</span>
                   </div>
-                  <span className={`${styles.cardBadge} ${styles.badgeGray}`}>12/15</span>
+                  <span className={`${styles.cardBadge} ${styles.badgeGray}`}>
+                    {activeVenueCount}/{venues.length}
+                  </span>
                 </div>
                 <div className={styles.cardContent}>
                   <p className={styles.cardLabel}>Capacity Utilization</p>
                   <div className={styles.cardMetricGroup}>
-                    <h3 className={styles.cardValue}>78%</h3>
+                    <h3 className={styles.cardValue}>{utilizationRate}%</h3>
                     <div className={styles.progressBar}>
-                      <div className={styles.progressFill} style={{ width: "78%" }} />
+                      <div className={styles.progressFill} style={{ width: `${utilizationRate}%` }} />
                     </div>
                     <p className={styles.cardUnit}>Occupancy Rate</p>
                   </div>
@@ -510,7 +527,7 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
                   <p className={styles.cardLabel}>Equipment Status</p>
                   <div className={styles.cardMetricGroup}>
                     <div className={styles.cardInlineMetric}>
-                      <span className={styles.cardValue}>47</span>
+                      <span className={styles.cardValue}>{equipmentItemCount}</span>
                       <span className={styles.cardUnit}>Items</span>
                     </div>
                   </div>
@@ -645,7 +662,7 @@ export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOp
                       ))}
                     </svg>
                     <div className={styles.chartCenter}>
-                      <h2 className={styles.chartTotal}>{TOTAL_EQUIPMENT_ITEMS}</h2>
+                      <h2 className={styles.chartTotal}>{equipmentItemCount}</h2>
                       <p className={styles.chartLabel}>Total Items</p>
                     </div>
                   </div>
