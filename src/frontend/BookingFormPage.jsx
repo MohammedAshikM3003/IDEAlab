@@ -13,8 +13,8 @@ const initialForm = {
   venue: '',
   purpose: '',
   eventDate: '',
-  timeSlotStart: { hour: '10', minute: '00', period: 'AM' },
-  timeSlotEnd: { hour: '12', minute: '00', period: 'PM' },
+  timeSlotStart: { hour: '', minute: '', period: 'AM' },
+  timeSlotEnd: { hour: '', minute: '', period: 'PM' },
   attendance: '',
   equipment: '',
   supervisor: '',
@@ -155,27 +155,127 @@ function TimeSpinnerPicker({ id, value, onChange, hasError }) {
         </button>
       </div>
 
-      {/* AM/PM toggle */}
-      <div className={styles.spinnerPeriod}>
-        <button
-          type="button"
-          className={`${styles.periodBtn}${safePeriod === 'AM' ? ' ' + styles.periodBtnActive : ''}`}
-          onClick={() => onChange({ ...value, hour: safeHour, minute: safeMinute, period: 'AM' })}
-          aria-pressed={safePeriod === 'AM'}
-        >
-          AM
-        </button>
-        <button
-          type="button"
-          className={`${styles.periodBtn}${safePeriod === 'PM' ? ' ' + styles.periodBtnActive : ''}`}
-          onClick={() => onChange({ ...value, hour: safeHour, minute: safeMinute, period: 'PM' })}
-          aria-pressed={safePeriod === 'PM'}
-        >
-          PM
-        </button>
-      </div>
     </div>
   )
+}
+
+function TimePickerField({ id, label, value, onChange, errorMsg }) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const formatTime = (h, m) => {
+    if (!h && !m) return '';
+    return `${h || '10'}:${m || '00'}`;
+  };
+
+  const [inputValue, setInputValue] = useState(formatTime(value.hour, value.minute));
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    setInputValue(formatTime(value.hour, value.minute));
+  }, [value.hour, value.minute]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (event) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  const handleInputChange = (e) => {
+    let val = e.target.value.replace(/[^\d:]/g, '');
+    
+    if (val === '') {
+      setInputValue('');
+      onChange({ ...value, hour: '', minute: '' });
+      return;
+    }
+
+    if (val.length === 2 && inputValue.length < 2 && !val.includes(':')) {
+      val += ':';
+    } else if (val.length > 2 && !val.includes(':')) {
+      val = val.slice(0, 2) + ':' + val.slice(2);
+    }
+    if (val.length > 5) val = val.slice(0, 5);
+
+    setInputValue(val);
+
+    const match = val.match(/^(\d{1,2}):(\d{2})$/);
+    if (match) {
+      let h = parseInt(match[1], 10);
+      let m = parseInt(match[2], 10);
+      if (h > 0 && h <= 12 && m >= 0 && m < 60) {
+        onChange({ ...value, hour: String(h).padStart(2, '0'), minute: String(m).padStart(2, '0') });
+      }
+    }
+  };
+
+  const handleInputBlur = () => {
+    setInputValue(formatTime(value.hour, value.minute));
+  };
+
+  return (
+    <div className={styles.field} ref={wrapperRef}>
+      <label htmlFor={id} className={styles.fieldLabel}>
+        {label}
+      </label>
+      
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div className={`${styles.control} ${styles.pointerCursor}`} style={{ flex: 1 }} onClick={() => setIsOpen(true)}>
+          <input
+            type="text"
+            id={id}
+            value={inputValue}
+            onChange={handleInputChange}
+            onBlur={handleInputBlur}
+            className={`${styles.input} ${styles.hasIcon} ${styles.pointerCursor}`}
+            aria-invalid={Boolean(errorMsg)}
+            placeholder="HH:MM"
+          />
+          <div className={styles.inputIcon} onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+        </div>
+
+        <div className={styles.inlinePeriodToggle}>
+          <button
+            type="button"
+            className={`${styles.periodBtn}${value.period === 'AM' ? ' ' + styles.periodBtnActive : ''}`}
+            onClick={() => onChange({ ...value, period: 'AM' })}
+            aria-pressed={value.period === 'AM'}
+          >
+            AM
+          </button>
+          <button
+            type="button"
+            className={`${styles.periodBtn}${value.period === 'PM' ? ' ' + styles.periodBtnActive : ''}`}
+            onClick={() => onChange({ ...value, period: 'PM' })}
+            aria-pressed={value.period === 'PM'}
+          >
+            PM
+          </button>
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className={styles.timePickerPopup}>
+          <TimeSpinnerPicker
+            id={`${id}-spinner`}
+            value={value}
+            onChange={onChange}
+            hasError={Boolean(errorMsg)}
+          />
+        </div>
+      )}
+      {errorMsg ? <div className={styles.error}>{errorMsg}</div> : null}
+    </div>
+  );
 }
 
 function normalizeVenues(data) {
@@ -761,14 +861,14 @@ function BookingFormPage() {
                 <label htmlFor="eventDate" className={styles.fieldLabel}>
                   Date of Event
                 </label>
-                <div className={styles.control} onClick={() => setIsCalendarOpen(true)}>
+                <div className={`${styles.control} ${styles.pointerCursor}`} onClick={() => setIsCalendarOpen(true)}>
                   <input
                     type="text"
                     id="eventDate"
                     name="eventDate"
                     value={displayDate}
                     readOnly
-                    className={`${styles.input} ${styles.hasIcon}`}
+                    className={`${styles.input} ${styles.hasIcon} ${styles.pointerCursor}`}
                     placeholder="Select a date"
                   />
                   <div className={styles.inputIcon} onClick={() => setIsCalendarOpen(true)}>
@@ -797,35 +897,21 @@ function BookingFormPage() {
                 {errors.eventDate && <p className={styles.error}>{errors.eventDate}</p>}
               </div>
 
-              <div className={styles.field}>
-                <label htmlFor="timeSlotStart" className={styles.fieldLabel}>
-                  Time Slot Start
-                </label>
-                <TimeSpinnerPicker
-                  id="timeSlotStart"
-                  value={form.timeSlotStart}
-                  onChange={(next) => handleTimeChange('timeSlotStart', next)}
-                  hasError={Boolean(errors.timeSlotStart)}
-                />
-                {errors.timeSlotStart ? (
-                  <div className={styles.error}>{errors.timeSlotStart}</div>
-                ) : null}
-              </div>
+              <TimePickerField
+                id="timeSlotStart"
+                label="Time Slot Start"
+                value={form.timeSlotStart}
+                onChange={(next) => handleTimeChange('timeSlotStart', next)}
+                errorMsg={errors.timeSlotStart}
+              />
 
-              <div className={styles.field}>
-                <label htmlFor="timeSlotEnd" className={styles.fieldLabel}>
-                  Time Slot End
-                </label>
-                <TimeSpinnerPicker
-                  id="timeSlotEnd"
-                  value={form.timeSlotEnd}
-                  onChange={(next) => handleTimeChange('timeSlotEnd', next)}
-                  hasError={Boolean(errors.timeSlotEnd)}
-                />
-                {errors.timeSlotEnd ? (
-                  <div className={styles.error}>{errors.timeSlotEnd}</div>
-                ) : null}
-              </div>
+              <TimePickerField
+                id="timeSlotEnd"
+                label="Time Slot End"
+                value={form.timeSlotEnd}
+                onChange={(next) => handleTimeChange('timeSlotEnd', next)}
+                errorMsg={errors.timeSlotEnd}
+              />
             </div>
           </section>
 

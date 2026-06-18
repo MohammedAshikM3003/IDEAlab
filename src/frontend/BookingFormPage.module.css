@@ -462,6 +462,16 @@
   border-color: #e85a28;
 }
 
+.inlinePeriodToggle {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pointerCursor {
+  cursor: pointer;
+}
+
 @media (max-width: 480px) {
   .timeSpinnerWrapper {
     flex-wrap: wrap;
@@ -615,6 +625,16 @@
   margin-top: 4px;
   width: 100%;
   max-width: 360px;
+}
+
+.timePickerPopup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+  margin-top: 4px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 @keyframes spin {
