@@ -1,5 +1,5 @@
 .page {
-	font-family: "Inter", sans-serif;
+	font-family: "Poppins", sans-serif;
 	font-size: 14px;
 	height: 100vh;
 	overflow: hidden;
@@ -1226,7 +1226,7 @@
 		max-width: none !important;
 		margin: 0 !important;
 		padding: 0 !important;
-		font-family: Arial, Inter, sans-serif !important;
+		font-family: Arial, Poppins, sans-serif !important;
 		color: #111827 !important;
 	}
 
