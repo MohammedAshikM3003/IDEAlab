@@ -130,7 +130,7 @@ export default function EditFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
       throw new Error(payload?.message || "Image upload failed");
     }
 
-    return `${API_BASE_URL}${payload.url}`;
+    return `${API_URL}${payload.url}`;
   };
 
   const openCropModalFromFile = (file, aspectRatio, onComplete, setError) => {
@@ -295,7 +295,7 @@ export default function EditFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
     }
 
     if (String(value).startsWith("/")) {
-      return `${API_BASE_URL}${value}`;
+      return `${API_URL}${value}`;
     }
 
     return value;
@@ -322,7 +322,7 @@ export default function EditFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
       setSubmitSuccess("");
 
       try {
-        const response = await fetch(`${API_BASE_URL}/api/venues/${id}`, {
+        const response = await fetch(`${API_URL}/api/venues/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -450,7 +450,7 @@ export default function EditFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
     };
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/venues/${id}`, {
+      const response = await fetch(`${API_URL}/api/venues/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
