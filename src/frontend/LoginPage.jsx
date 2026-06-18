@@ -7,6 +7,8 @@ import ksrceLogo from '../assets/collegelogo.jpg'
 import ksrceImage from "../assets/KSR college image.jpg"
 import nbaLogo from '../assets/NBA_logo.svg'
 import naacLogo from '../assets/NAAC_LOGO.svg'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -41,7 +43,7 @@ export default function LoginPage() {
     setAuthError('');
     setIsAuthenticating(true);
 
-    fetch('/api/auth/login', {
+    fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
