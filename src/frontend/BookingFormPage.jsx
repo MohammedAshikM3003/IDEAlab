@@ -88,6 +88,7 @@ function TimeSpinnerPicker({ id, value, onChange, hasError }) {
     >
       {/* HH spinner */}
       <div className={styles.spinnerUnit}>
+        <div className={styles.spinnerLabel}>HH</div>
         <button
           type="button"
           className={styles.spinnerBtn}
@@ -123,6 +124,7 @@ function TimeSpinnerPicker({ id, value, onChange, hasError }) {
 
       {/* MM spinner */}
       <div className={styles.spinnerUnit}>
+        <div className={styles.spinnerLabel}>MM</div>
         <button
           type="button"
           className={styles.spinnerBtn}
