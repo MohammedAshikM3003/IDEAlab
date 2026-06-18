@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Bar,
@@ -25,26 +25,23 @@ const BOOKING_TIMEFRAMES = {
   thisYear: "this-year",
 };
 
-const bookingDayTrendsByTimeframe = {
-  [BOOKING_TIMEFRAMES.last6Months]: [
-    { day: "Mon", bookings: 21 },
-    { day: "Tue", bookings: 18 },
-    { day: "Wed", bookings: 24 },
-    { day: "Thu", bookings: 20 },
-    { day: "Fri", bookings: 27 },
-    { day: "Sat", bookings: 13 },
-    { day: "Sun", bookings: 9 },
-  ],
-  [BOOKING_TIMEFRAMES.thisYear]: [
-    { day: "Mon", bookings: 38 },
-    { day: "Tue", bookings: 34 },
-    { day: "Wed", bookings: 41 },
-    { day: "Thu", bookings: 36 },
-    { day: "Fri", bookings: 44 },
-    { day: "Sat", bookings: 22 },
-    { day: "Sun", bookings: 17 },
-  ],
-};
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function buildDayOfWeekCounts(bookings, filterFn) {
+  const counts = [0, 0, 0, 0, 0, 0, 0]; // Sun=0 … Sat=6
+  bookings.forEach((booking) => {
+    const createdAt = booking?.createdAt;
+    const date = createdAt ? new Date(createdAt) : null;
+    if (!date || Number.isNaN(date.getTime())) return;
+    if (filterFn && !filterFn(date)) return;
+    counts[date.getDay()] += 1;
+  });
+  // Reorder to Mon–Sun for display
+  return [1, 2, 3, 4, 5, 6, 0].map((dayIndex) => ({
+    day: DAY_LABELS[dayIndex],
+    bookings: counts[dayIndex],
+  }));
+}
 
 const VENUE_COLORS = [
   "#ff9500",
@@ -175,18 +172,30 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
   const [selectedTimeframe, setSelectedTimeframe] = useState(BOOKING_TIMEFRAMES.last6Months);
   const last6MonthsTrends = useMemo(() => buildMonthlyCounts(bookings, 6), [bookings]);
   const thisYearTrends = useMemo(() => buildYearMonthlyCounts(bookings), [bookings]);
+
+  const last6MonthsDayTrends = useMemo(() => {
+    const now = new Date();
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+    return buildDayOfWeekCounts(bookings, (date) => date >= sixMonthsAgo);
+  }, [bookings]);
+
+  const thisYearDayTrends = useMemo(() => {
+    const year = new Date().getFullYear();
+    return buildDayOfWeekCounts(bookings, (date) => date.getFullYear() === year);
+  }, [bookings]);
+
   const bookingTrendsByTimeframe = useMemo(
     () => ({
       [BOOKING_TIMEFRAMES.last6Months]: {
         overTime: last6MonthsTrends,
-        byDay: bookingDayTrendsByTimeframe[BOOKING_TIMEFRAMES.last6Months],
+        byDay: last6MonthsDayTrends,
       },
       [BOOKING_TIMEFRAMES.thisYear]: {
         overTime: thisYearTrends,
-        byDay: bookingDayTrendsByTimeframe[BOOKING_TIMEFRAMES.thisYear],
+        byDay: thisYearDayTrends,
       },
     }),
-    [last6MonthsTrends, thisYearTrends],
+    [last6MonthsTrends, thisYearTrends, last6MonthsDayTrends, thisYearDayTrends],
   );
   const currentBookingTrends = bookingTrendsByTimeframe[selectedTimeframe]
     || bookingTrendsByTimeframe[BOOKING_TIMEFRAMES.last6Months];
@@ -336,6 +345,73 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
     });
   }, [bookings]);
 
+  const upcomingEvents = useMemo(() => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const nextWeek = new Date(now);
+    nextWeek.setDate(now.getDate() + 7);
+
+    const events = [];
+    bookings.forEach(booking => {
+      if (normalizeStatus(booking?.status) !== 'approved') return;
+      const dateStr = booking?.confirmedBooking?.date || booking?.extractedDetails?.requestedDate;
+      if (!dateStr) return;
+      
+      const eventDate = new Date(dateStr);
+      if (Number.isNaN(eventDate.getTime())) return;
+      
+      if (eventDate >= now && eventDate <= nextWeek) {
+        const timeSlotSource = booking?.confirmedBooking?.timeSlot || booking?.extractedDetails?.timeSlot;
+        let timeStr = "";
+        if (typeof timeSlotSource === 'object') {
+          timeStr = `${timeSlotSource.start || ''} - ${timeSlotSource.end || ''}`;
+        } else if (timeSlotSource) {
+          timeStr = String(timeSlotSource);
+        }
+        
+        const venueName = booking?.confirmedBooking?.venue?.name || booking?.extractedDetails?.venue || 'Venue';
+        const title = booking?.extractedDetails?.eventPurpose || booking?.subject || 'Booking';
+        
+        let tagText = formatShortDate(eventDate);
+        let tagClass = styles.tagDate;
+        let evtDotClass = styles.evtDotIdle;
+        
+        const daysDiff = Math.floor((eventDate - now) / (1000 * 60 * 60 * 24));
+        if (daysDiff === 0) {
+          tagText = "Today";
+          tagClass = styles.tagSoon;
+          evtDotClass = styles.evtDot;
+        } else if (daysDiff === 1) {
+          tagText = "Tomorrow";
+          tagClass = styles.tagSoon;
+          evtDotClass = styles.evtDot;
+        }
+
+        events.push({
+          id: booking._id || Math.random().toString(36).substr(2, 9),
+          title,
+          venueName,
+          timeStr,
+          eventDate,
+          tagText,
+          tagClass,
+          evtDotClass
+        });
+      }
+    });
+    
+    events.sort((a, b) => a.eventDate - b.eventDate);
+    return events.slice(0, 4);
+  }, [bookings]);
+
+  const upcomingDateRangeStr = useMemo(() => {
+    const now = new Date();
+    const nextWeek = new Date(now);
+    nextWeek.setDate(now.getDate() + 7);
+    const options = { month: 'short', day: 'numeric' };
+    return `${now.toLocaleDateString('en-US', options)} - ${nextWeek.toLocaleDateString('en-US', options)}`;
+  }, []);
+
   useEffect(() => {
     const controller = new AbortController();
     const token = localStorage.getItem("token");
@@ -396,6 +472,7 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
 
           <main className={styles.body}>
             {/* â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+              {/* -- Stats --------------------------------------------------- */}
             <div className={styles.statsGrid}>
               <div className={styles.statCard}>
                 <div className={styles.statRow}>
@@ -454,6 +531,7 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
             </div>
 
             {/* â”€â”€ Charts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+              {/* -- Charts -------------------------------------------------- */}
             <div className={styles.chartsGrid}>
               <div className={styles.chartCard}>
                 <div className={styles.chartHead}>
@@ -585,6 +663,7 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
             </div>
 
             {/* â”€â”€ Bottom â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+              {/* -- Bottom -------------------------------------------------- */}
             <div className={styles.bottomGrid}>
               <div className={styles.tableCard}>
                 <div className={styles.tableHead}>
@@ -643,47 +722,32 @@ export default function DashboardPage({ isSidebarOpen, setIsSidebarOpen }) {
               <div className={styles.timelineCard}>
                 <div className={styles.chartHead}>
                   <h3 className={styles.sectionTitle}>Upcoming - Next 7 Days</h3>
-                  <span className={styles.dateBadge}>Oct 24 - Oct 31</span>
+                  <span className={styles.dateBadge}>{upcomingDateRangeStr}</span>
                 </div>
 
                 <div className={styles.timeline}>
-                  <div className={styles.event}>
-                    <div className={styles.evtDot} />
-                    <div className={styles.eventBox}>
-                      <div className={styles.eventHead}>
-                        <p className={styles.eventName}>IEEE Regional Meeting</p>
-                        <span className={styles.tagSoon}>Tomorrow</span>
+                  {upcomingEvents.length === 0 ? (
+                    <p className="text-sm text-slate-500 italic mt-4">No upcoming bookings in the next 7 days.</p>
+                  ) : (
+                    upcomingEvents.map((event, idx) => (
+                      <div className={styles.event} key={event.id || idx}>
+                        <div className={event.evtDotClass} />
+                        <div className={styles.eventBox}>
+                          <div className={styles.eventHead}>
+                            <p className={styles.eventName}>{event.title}</p>
+                            <span className={event.tagClass}>{event.tagText}</span>
+                          </div>
+                          <p className={styles.eventDetail}>{event.venueName} &bull; {event.timeStr || 'All Day'}</p>
+                        </div>
                       </div>
-                      <p className={styles.eventDetail}>Conference Hall B â€¢ 09:00 AM - 01:00 PM</p>
-                    </div>
-                  </div>
-
-                  <div className={styles.event}>
-                    <div className={styles.evtDotIdle} />
-                    <div className={styles.eventBox}>
-                      <div className={styles.eventHead}>
-                        <p className={styles.eventName}>Hackathon 2023 Prelims</p>
-                        <span className={styles.tagDate}>Oct 26</span>
-                      </div>
-                      <p className={styles.eventDetail}>IT Seminar Hall â€¢ 10:00 AM onwards</p>
-                    </div>
-                  </div>
-
-                  <div className={styles.event}>
-                    <div className={styles.evtDotIdle} />
-                    <div className={styles.eventBox}>
-                      <div className={styles.eventHead}>
-                        <p className={styles.eventName}>Alumni Guest Lecture</p>
-                        <span className={styles.tagDate}>Oct 28</span>
-                      </div>
-                      <p className={styles.eventDetail}>Main Seminar Hall â€¢ 02:30 PM - 04:30 PM</p>
-                    </div>
-                  </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
 
             {/* â”€â”€ Quick Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+              {/* -- Quick Actions ------------------------------------------ */}
             <div className={styles.quickBar}>
               <div className={styles.quickInfo}>
                 <div className={styles.quickText}>

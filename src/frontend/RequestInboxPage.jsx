@@ -473,7 +473,49 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
   }, [navigate, requests, searchParams])
 
   if (loading) {
-    return <div>Loading...</div>
+    return (
+      <div className={styles.page}>
+        <div className={styles.wrap}>
+          <Sidebar activePage="inbox" isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />
+          <div className={styles.main}>
+            <PageHeader title="Request Inbox" setIsSidebarOpen={setIsSidebarOpen} />
+            <main className={styles.body}>
+              <div className={styles.split}>
+                <aside className={cx(styles.listPane, styles.listNarrow, styles.listBorder)}>
+                  <div className={styles.listHead}>
+                    <div className={styles.headRow}>
+                      <div className={styles.tabRow}>
+                        <div className={cx(styles.skeleton, styles.skeletonTag)} style={{ width: 40 }} />
+                        <div className={cx(styles.skeleton, styles.skeletonTag)} style={{ width: 60 }} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className={styles.reqList}>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className={styles.skeletonCard}>
+                        <div className={cx(styles.skeleton, styles.skeletonName)} />
+                        <div className={cx(styles.skeleton, styles.skeletonSubject)} />
+                        <div className={cx(styles.skeleton, styles.skeletonTag)} />
+                      </div>
+                    ))}
+                  </div>
+                </aside>
+                <section className={styles.detail}>
+                  <div className={styles.detailWrap}>
+                    <div className={cx(styles.skeleton, styles.skeletonDetailTitle)} />
+                    <div className={cx(styles.skeleton, styles.skeletonDetailBody)} />
+                    <div className={cx(styles.skeleton, styles.skeletonRow)} />
+                    <div className={cx(styles.skeleton, styles.skeletonRow)} />
+                    <div className={cx(styles.skeleton, styles.skeletonRow)} />
+                    <div className={cx(styles.skeleton, styles.skeletonRow)} />
+                  </div>
+                </section>
+              </div>
+            </main>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -1,30 +1,162 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import Calendar from "./Calendar";
 import s from "./VenueDetailPage.module.css";
 import lp from "./landingpage.module.css";
 import ksrceLogo from '../assets/collegelogo.jpg';
-import venuesData from '../data/venuesData.js';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function VenueDetailPage() {
   const navigate = useNavigate();
   const { venueId } = useParams();
-  const venue = venuesData.find(v => v.id === venueId);
 
-  const [selectedPreviewDate, setSelectedPreviewDate] = useState(() => new Date(2023, 9, 7));
+  const [venue, setVenue] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (!venue) {
+  useEffect(() => {
+    const fetchVenue = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const res = await fetch(`${API_URL}/api/venues/public/${venueId}`);
+
+        if (!res.ok) {
+          if (res.status === 404) {
+            setError('not_found');
+          } else {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return;
+        }
+
+        const data = await res.json();
+        console.log('Venue detail response:', data);
+        setVenue(data);
+      } catch (err) {
+        console.error('Failed to fetch venue:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVenue();
+  }, [venueId]);
+
+  /** Get the hero / banner image with fallback */
+  const getHeroImage = () => {
+    if (venue.bannerImage) return venue.bannerImage;
+    if (venue.gallery?.length > 0) return venue.gallery[0];
+    return '/placeholder-venue.jpg';
+  };
+
+  /** Get gallery thumbnails (up to 4) */
+  const getThumbnails = () => {
+    const thumbs = [];
+    if (venue.bannerImage) thumbs.push(venue.bannerImage);
+    if (venue.gallery) {
+      venue.gallery.forEach(img => {
+        if (!thumbs.includes(img)) thumbs.push(img);
+      });
+    }
+    return thumbs.slice(0, 4);
+  };
+
+  // ─── Loading state ───────────────────────────────────
+  if (loading) {
     return (
       <div className={s.page}>
-        <div className={`${s.container} text-center py-20`}>
-          <h1 className="text-2xl font-bold mb-4">Venue not found</h1>
-          <button onClick={() => navigate(-1)} className={s.ctaBtn}>
-            Go Back
-          </button>
-        </div>
+        <header className={s.header}>
+          <div className={s.container}>
+            <div className={s.headerWrap}>
+              <Link className={s.brand} to="/" style={{ textDecoration: 'none' }}>
+                <div className={s.logo}>
+                  <img alt="KSRCE Logo" className={s.logoImg} src={ksrceLogo} />
+                </div>
+                <div className={s.brandText}>
+                  <span className={s.brandTitle}>KSR College of Engineering</span>
+                  <span className={s.portalPill}>Booking Portal</span>
+                </div>
+              </Link>
+            </div>
+          </div>
+        </header>
+        <main className={s.main}>
+          <div className={`${s.container}`} style={{ padding: '80px 1rem', textAlign: 'center' }}>
+            <div className={s.loadingSpinner}></div>
+            <p style={{ color: '#6b7280', marginTop: 16 }}>Loading venue details...</p>
+          </div>
+        </main>
       </div>
     );
   }
+
+  // ─── Not found / error state ─────────────────────────
+  if (error || !venue) {
+    return (
+      <div className={s.page}>
+        <header className={s.header}>
+          <div className={s.container}>
+            <div className={s.headerWrap}>
+              <Link className={s.brand} to="/" style={{ textDecoration: 'none' }}>
+                <div className={s.logo}>
+                  <img alt="KSRCE Logo" className={s.logoImg} src={ksrceLogo} />
+                </div>
+                <div className={s.brandText}>
+                  <span className={s.brandTitle}>KSR College of Engineering</span>
+                  <span className={s.portalPill}>Booking Portal</span>
+                </div>
+              </Link>
+            </div>
+          </div>
+        </header>
+        <main className={s.main}>
+          <div className={`${s.container}`} style={{ padding: '80px 1rem', textAlign: 'center' }}>
+            <span className="material-icons" style={{ fontSize: '3.5rem', color: error === 'not_found' ? '#9ca3af' : '#ef4444', marginBottom: 16 }}>
+              {error === 'not_found' ? 'meeting_room' : 'error_outline'}
+            </span>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1E3A5F', marginBottom: 8 }}>
+              {error === 'not_found' ? 'Venue Not Found' : 'Failed to Load Venue'}
+            </h1>
+            <p style={{ color: '#6b7280', marginBottom: 24 }}>
+              {error === 'not_found'
+                ? 'This venue may have been removed or is no longer available.'
+                : 'Something went wrong while fetching venue details. Please try again.'}
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => navigate(-1)} className={s.ctaBtn}>
+                ← Go Back
+              </button>
+              <Link to="/venues" className={s.ctaBtn} style={{ textDecoration: 'none' }}>
+                Browse All Venues
+              </Link>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // ─── Main detail view ────────────────────────────────
+  const thumbnails = getThumbnails();
+  const amenities = venue.amenities || [];
+  const equipment = venue.equipment || [];
+  const bookingSteps = [
+    {
+      name: 'Check Availability',
+      description: 'Use the calendar to find an open date for your event. You can see which dates are booked, open, or closed for maintenance.',
+    },
+    {
+      name: 'Submit Request',
+      description: 'Fill out the booking form with your event details. Our team will review your request and get back to you within 24 hours.',
+    },
+    {
+      name: 'Confirmation',
+      description: 'Once approved, you will receive a confirmation email with all the details for your scheduled event. You are all set!',
+    },
+  ];
 
   return (
     <div className={s.page}>
@@ -41,7 +173,7 @@ export default function VenueDetailPage() {
       <header className={s.header}>
         <div className={s.container}>
           <div className={s.headerWrap}>
-            <div className={s.brand}>
+            <Link className={s.brand} to="/" style={{ textDecoration: 'none' }}>
               <div className={s.logo}>
                 <img alt="KSRCE Logo" className={s.logoImg} src={ksrceLogo} />
               </div>
@@ -49,7 +181,7 @@ export default function VenueDetailPage() {
                 <span className={s.brandTitle}>KSR College of Engineering</span>
                 <span className={s.portalPill}>Booking Portal</span>
               </div>
-            </div>
+            </Link>
 
             <nav className={s.nav}>
               <a
@@ -102,9 +234,9 @@ export default function VenueDetailPage() {
                 <span className={s.crumbSep}>/</span>
               </li>
               <li>
-                <a className={s.crumbAnchor} href="#">
+                <Link className={s.crumbAnchor} to="/venues">
                   Venues
-                </a>
+                </Link>
               </li>
               <li>
                 <span className={s.crumbSep}>/</span>
@@ -117,24 +249,27 @@ export default function VenueDetailPage() {
             <div className="lg:col-span-7 space-y-4">
               <div className={s.hero}>
                 <img
-                  alt="Modern lab interior with equipment"
+                  alt={venue.name}
                   className={s.heroImg}
-                  data-alt="Modern spacious laboratory interior with equipment"
-                  src={venue.images.hero}
+                  src={getHeroImage()}
+                  onError={(e) => { e.target.src = '/placeholder-venue.jpg'; }}
                 />
               </div>
 
-              <div className={s.thumbRow}>
-                {venue.images.thumbnails.map((thumb, index) => (
-                  <div className={index === 0 ? s.thumbOn : s.thumb} key={index}>
-                    <img
-                      alt={`Thumbnail ${index + 1}`}
-                      className={s.thumbImg}
-                      src={thumb}
-                    />
-                  </div>
-                ))}
-              </div>
+              {thumbnails.length > 1 && (
+                <div className={s.thumbRow}>
+                  {thumbnails.map((thumb, index) => (
+                    <div className={index === 0 ? s.thumbOn : s.thumb} key={index}>
+                      <img
+                        alt={`Thumbnail ${index + 1}`}
+                        className={s.thumbImg}
+                        src={thumb}
+                        onError={(e) => { e.target.src = '/placeholder-venue.jpg'; }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className={`lg:col-span-5 ${s.sidebar}`}>
@@ -146,53 +281,92 @@ export default function VenueDetailPage() {
                   </span>
                 </div>
                 <h1 className={s.title}>{venue.name}</h1>
-                <p className={s.secSubtitle}>{venue.location}</p>
+                {venue.location && (
+                  <p className={s.secSubtitle}>
+                    <span className="material-icons" style={{ fontSize: '1.125rem', verticalAlign: 'middle', marginRight: 4 }}>location_on</span>
+                    {venue.location}
+                  </p>
+                )}
               </div>
 
               <div className={s.stats}>
-                <div className={s.statCard}>
-                  <div className={s.statRow}>
-                    <div className={s.statIcon}>
-                      <span className="material-icons">groups</span>
-                    </div>
-                    <div>
-                      <p className={s.statLbl}>Capacity</p>
-                      <p className={s.statVal}>{venue.capacity} Students</p>
+                {venue.capacity && (
+                  <div className={s.statCard}>
+                    <div className={s.statRow}>
+                      <div className={s.statIcon}>
+                        <span className="material-icons">groups</span>
+                      </div>
+                      <div>
+                        <p className={s.statLbl}>Capacity</p>
+                        <p className={s.statVal}>{venue.capacity} Seats</p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                <div className={s.statCard}>
-                  <div className={s.statRow}>
-                    <div className={s.statIcon}>
-                      <span className="material-icons">straighten</span>
-                    </div>
-                    <div>
-                      <p className={s.statLbl}>Size</p>
-                      <p className={s.statVal}>{venue.size}</p>
+                {venue.size && (
+                  <div className={s.statCard}>
+                    <div className={s.statRow}>
+                      <div className={s.statIcon}>
+                        <span className="material-icons">straighten</span>
+                      </div>
+                      <div>
+                        <p className={s.statLbl}>Size</p>
+                        <p className={s.statVal}>{venue.size}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
+
+                {venue.facilityType && (
+                  <div className={s.statCard}>
+                    <div className={s.statRow}>
+                      <div className={s.statIcon}>
+                        <span className="material-icons">category</span>
+                      </div>
+                      <div>
+                        <p className={s.statLbl}>Type</p>
+                        <p className={s.statVal}>{venue.facilityType}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {venue.wifiStatus && venue.wifiStatus !== 'None' && (
+                  <div className={s.statCard}>
+                    <div className={s.statRow}>
+                      <div className={s.statIcon}>
+                        <span className="material-icons">wifi</span>
+                      </div>
+                      <div>
+                        <p className={s.statLbl}>Wi-Fi</p>
+                        <p className={s.statVal}>{venue.wifiStatus}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className={s.desc}>
                 <p>
-                  {venue.description}
+                  {venue.description || 'A premium venue available for booking. Contact administration for more details.'}
                 </p>
-                <ul className={s.features}>
-                  {venue.amenities.map((amenity, index) => (
-                    <li className={s.feature} key={index}>
-                      <span className={`material-icons ${s.checkIcon}`}>check_circle</span>
-                      {amenity}
-                    </li>
-                  ))}
-                </ul>
+                {amenities.length > 0 && (
+                  <ul className={s.features}>
+                    {amenities.map((amenity, index) => (
+                      <li className={s.feature} key={index}>
+                        <span className={`material-icons ${s.checkIcon}`}>check_circle</span>
+                        {amenity}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
           </div>
         </div>
 
-        {venue.equipment.length > 0 && (
+        {equipment.length > 0 && (
           <section className={s.equipWrap}>
             <div className={s.container}>
               <h2 className={s.secTitle}>
@@ -201,24 +375,31 @@ export default function VenueDetailPage() {
               </h2>
 
               <div className={s.equipRow}>
-                {venue.equipment.map((item, index) => (
+                {equipment.map((item, index) => (
                   <div className={s.eCard} key={index}>
-                    <div className={s.eImgWrap}>
-                      <img
-                        alt={item.name}
-                        className={s.eImg}
-                        src={item.image}
-                      />
-                    </div>
+                    {item.image && (
+                      <div className={s.eImgWrap}>
+                        <img
+                          alt={item.itemDetails || `Equipment ${index + 1}`}
+                          className={s.eImg}
+                          src={item.image}
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      </div>
+                    )}
                     <div className={s.eBody}>
                       <div className={s.eHead}>
-                        <h3 className={s.eTitle}>{item.name}</h3>
-                        <span className={s.tagGreen}>{item.quantity} Unit{item.quantity > 1 ? 's' : ''}</span>
+                        <h3 className={s.eTitle}>{item.itemDetails || `Equipment ${index + 1}`}</h3>
+                        {item.quantity && (
+                          <span className={s.tagGreen}>{item.quantity} Unit{item.quantity > 1 ? 's' : ''}</span>
+                        )}
                       </div>
-                      <p className={s.eSub}>{item.specs}</p>
-                      <p className={s.eText}>
-                        {item.description}
-                      </p>
+                      {item.condition && <p className={s.eSub}>Condition: {item.condition}</p>}
+                      {item.description && (
+                        <p className={s.eText}>
+                          {item.description}
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -237,7 +418,7 @@ export default function VenueDetailPage() {
 
               <div className={s.steps}>
                 <div className={s.stepLine} />
-                {venue.bookingProcess.map((step, index) => (
+                {bookingSteps.map((step, index) => (
                   <div className={s.step} key={index}>
                     <div className={s.stepRing}>
                       <span className={`material-icons ${s.stepIcon}`}>
@@ -258,57 +439,6 @@ export default function VenueDetailPage() {
                 </button>
               </div>
             </div>
-          </div>
-        </section>
-
-        <section className={`${s.container} ${s.preview}`}>
-          <div className={s.previewRow}>
-            <div>
-              <h3 className={s.secSubtitle}>
-                <span className="material-icons text-primary">calendar_month</span>
-                Availability Preview
-              </h3>
-
-              <div className={s.previewCalendar}>
-                <Calendar
-                  availabilityData={venue.availability}
-                  onDateSelect={setSelectedPreviewDate}
-                  selectedDate={selectedPreviewDate}
-                />
-              </div>
-            </div>
-
-            {venue.reviews.length > 0 && (
-              <div>
-                <h3 className={s.secSubtitle}>
-                  <span className="material-icons text-primary">forum</span>
-                  What Users Say
-                </h3>
-
-                <div className="space-y-4">
-                  {venue.reviews.map((review, index) => (
-                    <div className={s.review} key={index}>
-                      <span className={`material-icons ${s.quoteIco}`}>format_quote</span>
-                      <p className={s.quoteText}>
-                        "{review.review}"
-                      </p>
-                      <div className={s.author}>
-                        <div className={s.avatar}>
-                          <img
-                            alt="User avatar"
-                            src={review.avatar}
-                          />
-                        </div>
-                        <div>
-                          <p className={s.authorTitle}>{review.name}</p>
-                          <p className={s.authorSub}>{review.department}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </section>
       </main>
@@ -333,7 +463,7 @@ export default function VenueDetailPage() {
               <ul className={lp.footerLinks}>
                 <li><a className={lp.footerLink} href="#" onClick={(e) => { e.preventDefault(); navigate('/', { state: { scrollTo: 'hero' } }) }}>Home</a></li>
                 <li><a className={lp.footerLink} href="#" onClick={(e) => { e.preventDefault(); navigate('/', { state: { scrollTo: 'hero' } }) }}>About Us</a></li>
-                <li><a className={lp.footerLink} href="#" onClick={(e) => { e.preventDefault(); navigate('/', { state: { scrollTo: 'venues' } }) }}>All Venues</a></li>
+                <li><Link className={lp.footerLink} to="/venues">All Venues</Link></li>
                 <li><a className={lp.footerLink} href="#" onClick={(e) => { e.preventDefault(); navigate('/', { state: { scrollTo: 'venues' } }) }}>Check Availability</a></li>
               </ul>
             </div>

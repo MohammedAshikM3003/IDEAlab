@@ -2,7 +2,8 @@ import styles from './landingpage.module.css'
 import ksrceLogo from '../assets/collegelogo.jpg'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useEffect, useState, useRef } from 'react'
-import venuesData from '../data/venuesData.js'
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function LandingPage() {
   const navigate = useNavigate()
@@ -10,6 +11,46 @@ function LandingPage() {
   const [activeNav, setActiveNav] = useState('home')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const scrollLockRef = useRef(null)
+
+  // Live venue data from API
+  const [venues, setVenues] = useState([])
+  const [venuesLoading, setVenuesLoading] = useState(true)
+  const [venuesError, setVenuesError] = useState(null)
+
+  useEffect(() => {
+    const fetchVenues = async () => {
+      try {
+        setVenuesLoading(true)
+        setVenuesError(null)
+
+        const res = await fetch(`${API_URL}/api/venues/public`)
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`)
+        }
+
+        const data = await res.json()
+        console.log('Venues API response:', data)
+
+        // Handle both response formats: {venues: [...]} or [...]
+        const venueList = Array.isArray(data) ? data : (data.venues || [])
+
+        // Filter active and take first 3
+        const activeVenues = venueList
+          .filter(v => v.status === 'active')
+          .slice(0, 3)
+
+        setVenues(activeVenues)
+      } catch (err) {
+        console.error('Failed to fetch venues:', err)
+        setVenuesError(err.message)
+      } finally {
+        setVenuesLoading(false)
+      }
+    }
+
+    fetchVenues()
+  }, [])
 
   const navigateToSection = (sectionId) => {
     setActiveNav(sectionId)
@@ -83,485 +124,562 @@ function LandingPage() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-   return (
-     <div lang="en">
-       {/* Announcement Bar */}
-       <div className={styles.announcementBar}>
-         <div className={styles.announcementInner}>
-           <span className="material-icons">campaign</span>
-           <p>
-             New: AICTE Idea Lab now open for booking!
-             <a className={styles.announcementLink} href="#">Learn more</a>
-           </p>
-         </div>
-       </div>
+  /**
+   * Resolve the best available image URL for a venue.
+   * Priorities: bannerImage → first gallery image → placeholder.
+   */
+  const getVenueImage = (venue) => {
+    if (venue.bannerImage) return venue.bannerImage
+    if (venue.gallery && venue.gallery.length > 0) return venue.gallery[0]
+    return '/placeholder-venue.jpg'
+  }
 
-       {/* Header */}
-       <header className={styles.header}>
-         <div className={styles.headerInner}>
-           <div className={styles.headerRow}>
-             <div className={styles.headerBrand}>
-               <div className={styles.headerLogoWrap}>
-                 <img alt="KSRCE Logo" className={styles.headerLogo} src={ksrceLogo} />
-               </div>
-               <div className={styles.headerBrandText}>
-                 <span className={styles.brandName}>KSR College of Engineering</span>
-                 <span className={styles.brandBadge}>Booking Portal</span>
-               </div>
-             </div>
+  return (
+    <div lang="en">
+      {/* Announcement Bar */}
+      <div className={styles.announcementBar}>
+        <div className={styles.announcementInner}>
+          <span className="material-icons">campaign</span>
+          <p>
+            New: AICTE Idea Lab now open for booking!
+            <a className={styles.announcementLink} href="#">Learn more</a>
+          </p>
+        </div>
+      </div>
 
-             <nav className={styles.nav}>
-               <a
-                 className={activeNav === 'home' ? styles.navLinkActive : styles.navLink}
-                 href="#"
-                 onClick={(e) => {
-                   e.preventDefault()
-                   navigateToSection('home')
-                 }}
-               >
-                 Home
-               </a>
-               <a
-                 className={activeNav === 'how-it-works' ? styles.navLinkActive : styles.navLink}
-                 href="#how-it-works"
-                 onClick={(e) => {
-                   e.preventDefault()
-                   navigateToSection('how-it-works')
-                 }}
-               >
-                 How to Book
-               </a>
-               <a
-                 className={activeNav === 'venues' ? styles.navLinkActive : styles.navLink}
-                 href="#venues"
-                 onClick={(e) => {
-                   e.preventDefault()
-                   navigateToSection('venues')
-                 }}
-               >
-                 Venues
-               </a>
-               <a
-                 className={activeNav === 'contact' ? styles.navLinkActive : styles.navLink}
-                 href="#contact"
-                 onClick={(e) => {
-                   e.preventDefault()
-                   navigateToSection('contact')
-                 }}
-               >
-                 Contact
-               </a>
-             </nav>
+      {/* Header */}
+      <header className={styles.header}>
+        <div className={styles.headerInner}>
+          <div className={styles.headerRow}>
+            <div className={styles.headerBrand}>
+              <div className={styles.headerLogoWrap}>
+                <img alt="KSRCE Logo" className={styles.headerLogo} src={ksrceLogo} />
+              </div>
+              <div className={styles.headerBrandText}>
+                <span className={styles.brandName}>KSR College of Engineering</span>
+                <span className={styles.brandBadge}>Booking Portal</span>
+              </div>
+            </div>
 
-             <div className={styles.headerRight}>
-               <Link className={styles.adminBtn} to="/login">
-                 <span className="material-icons">lock</span>
-                 Admin Login
-               </Link>
-               <button
-                 aria-expanded={isMobileMenuOpen}
-                 aria-label="Toggle navigation menu"
-                 className={styles.menuBtn}
-                 onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-                 type="button"
-               >
-                 <span className="material-icons">{isMobileMenuOpen ? 'close' : 'menu'}</span>
-               </button>
-             </div>
-           </div>
+            <nav className={styles.nav}>
+              <a
+                className={activeNav === 'home' ? styles.navLinkActive : styles.navLink}
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault()
+                  navigateToSection('home')
+                }}
+              >
+                Home
+              </a>
+              <a
+                className={activeNav === 'how-it-works' ? styles.navLinkActive : styles.navLink}
+                href="#how-it-works"
+                onClick={(e) => {
+                  e.preventDefault()
+                  navigateToSection('how-it-works')
+                }}
+              >
+                How to Book
+              </a>
+              <a
+                className={activeNav === 'venues' ? styles.navLinkActive : styles.navLink}
+                href="#venues"
+                onClick={(e) => {
+                  e.preventDefault()
+                  navigateToSection('venues')
+                }}
+              >
+                Venues
+              </a>
+              <a
+                className={activeNav === 'contact' ? styles.navLinkActive : styles.navLink}
+                href="#contact"
+                onClick={(e) => {
+                  e.preventDefault()
+                  navigateToSection('contact')
+                }}
+              >
+                Contact
+              </a>
+            </nav>
 
-           {isMobileMenuOpen && (
-             <nav className={styles.mobileNav}>
-               <a
-                 className={activeNav === 'home' ? styles.mobileNavLinkActive : styles.mobileNavLink}
-                 href="#"
-                 onClick={(e) => {
-                   e.preventDefault()
-                   navigateToSection('home')
-                   setIsMobileMenuOpen(false)
-                 }}
-               >
-                 Home
-               </a>
-               <a
-                 className={activeNav === 'how-it-works' ? styles.mobileNavLinkActive : styles.mobileNavLink}
-                 href="#how-it-works"
-                 onClick={(e) => {
-                   e.preventDefault()
-                   navigateToSection('how-it-works')
-                   setIsMobileMenuOpen(false)
-                 }}
-               >
-                 How to Book
-               </a>
-               <a
-                 className={activeNav === 'venues' ? styles.mobileNavLinkActive : styles.mobileNavLink}
-                 href="#venues"
-                 onClick={(e) => {
-                   e.preventDefault()
-                   navigateToSection('venues')
-                   setIsMobileMenuOpen(false)
-                 }}
-               >
-                 Venues
-               </a>
-               <a
-                 className={activeNav === 'contact' ? styles.mobileNavLinkActive : styles.mobileNavLink}
-                 href="#contact"
-                 onClick={(e) => {
-                   e.preventDefault()
-                   navigateToSection('contact')
-                   setIsMobileMenuOpen(false)
-                 }}
-               >
-                 Contact
-               </a>
-               <Link className={styles.mobileAdminBtn} onClick={() => setIsMobileMenuOpen(false)} to="/login">
-                 <span className="material-icons">lock</span>
-                 Admin Login
-               </Link>
-             </nav>
-           )}
-         </div>
-       </header>
+            <div className={styles.headerRight}>
+              <Link className={styles.adminBtn} to="/login">
+                <span className="material-icons">lock</span>
+                Admin Login
+              </Link>
+              <button
+                aria-expanded={isMobileMenuOpen}
+                aria-label="Toggle navigation menu"
+                className={styles.menuBtn}
+                onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                type="button"
+              >
+                <span className="material-icons">{isMobileMenuOpen ? 'close' : 'menu'}</span>
+              </button>
+            </div>
+          </div>
 
-       {/* Hero Section */}
-       <section className={styles.heroSection}>
-         <div className={styles.heroBg}>
-           <div className={styles.heroBgGrid} />
-           <div className={styles.heroGlow1} />
-           <div className={styles.heroGlow2} />
-         </div>
+          {isMobileMenuOpen && (
+            <nav className={styles.mobileNav}>
+              <a
+                className={activeNav === 'home' ? styles.mobileNavLinkActive : styles.mobileNavLink}
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault()
+                  navigateToSection('home')
+                  setIsMobileMenuOpen(false)
+                }}
+              >
+                Home
+              </a>
+              <a
+                className={activeNav === 'how-it-works' ? styles.mobileNavLinkActive : styles.mobileNavLink}
+                href="#how-it-works"
+                onClick={(e) => {
+                  e.preventDefault()
+                  navigateToSection('how-it-works')
+                  setIsMobileMenuOpen(false)
+                }}
+              >
+                How to Book
+              </a>
+              <a
+                className={activeNav === 'venues' ? styles.mobileNavLinkActive : styles.mobileNavLink}
+                href="#venues"
+                onClick={(e) => {
+                  e.preventDefault()
+                  navigateToSection('venues')
+                  setIsMobileMenuOpen(false)
+                }}
+              >
+                Venues
+              </a>
+              <a
+                className={activeNav === 'contact' ? styles.mobileNavLinkActive : styles.mobileNavLink}
+                href="#contact"
+                onClick={(e) => {
+                  e.preventDefault()
+                  navigateToSection('contact')
+                  setIsMobileMenuOpen(false)
+                }}
+              >
+                Contact
+              </a>
+              <Link className={styles.mobileAdminBtn} onClick={() => setIsMobileMenuOpen(false)} to="/login">
+                <span className="material-icons">lock</span>
+                Admin Login
+              </Link>
+            </nav>
+          )}
+        </div>
+      </header>
 
-         <div className={styles.heroInner}>
-           <div className={styles.heroLayout}>
-             <div className={styles.heroLeft}>
-               <div className={styles.heroTitleGroup}>
-                 <h1 className={styles.heroTitle}>
-                   Venue &amp; Lab <br />
-                   <span className={styles.heroAccent}>Booking Portal</span>
-                 </h1>
+      {/* Hero Section */}
+      <section className={styles.heroSection}>
+        <div className={styles.heroBg}>
+          <div className={styles.heroBgGrid} />
+          <div className={styles.heroGlow1} />
+          <div className={styles.heroGlow2} />
+        </div>
 
-                 <div className={styles.heroFeatures}>
-                   <div className={styles.heroFeature}>
-                     <span className={styles.featureTick}>✓</span> AICTE Approved
-                   </div>
-                   <div className={styles.heroFeature}>
-                     <span className={styles.featureTick}>✓</span> 24/7 Access
-                   </div>
-                   <div className={styles.heroFeature}>
-                     <span className={styles.featureTick}>✓</span> Instant Confirmation
-                   </div>
-                 </div>
-               </div>
+        <div className={styles.heroInner}>
+          <div className={styles.heroLayout}>
+            <div className={styles.heroLeft}>
+              <div className={styles.heroTitleGroup}>
+                <h1 className={styles.heroTitle}>
+                  Venue &amp; Lab <br />
+                  <span className={styles.heroAccent}>Booking Portal</span>
+                </h1>
 
-               <div
-                 className={styles.searchBar}
-                 style={{
-                   background: 'rgba(255,255,255,0.08)',
-                   border: '1px solid rgba(255,255,255,0.15)',
-                 }}
-               >
-                 <div className={styles.searchField}>
-                   <div className={styles.searchIconWrap}>
-                     <span className="material-icons">search</span>
-                   </div>
-                   <input
-                     className={styles.searchInput}
-                     placeholder="Search venues, labs, halls..."
-                     type="text"
-                   />
-                 </div>
-                 <button className={styles.searchSubmit} type="button">
-                   <span className="material-icons">arrow_forward</span>
-                 </button>
-               </div>
+                <div className={styles.heroFeatures}>
+                  <div className={styles.heroFeature}>
+                    <span className={styles.featureTick}>✓</span> AICTE Approved
+                  </div>
+                  <div className={styles.heroFeature}>
+                    <span className={styles.featureTick}>✓</span> 24/7 Access
+                  </div>
+                  <div className={styles.heroFeature}>
+                    <span className={styles.featureTick}>✓</span> Instant Confirmation
+                  </div>
+                </div>
+              </div>
 
-               <div className={styles.popularRow}>
-                 <span className={styles.popularLabel}>Popular:</span>
-                 <a className={styles.popularTag} href="#" onClick={(e) => { e.preventDefault(); navigate('/venue/aicte-idea-lab') }}>AICTE Idea Lab</a>
-                 <a className={styles.popularTag} href="#" onClick={(e) => { e.preventDefault(); navigate('/venue/platinum-hall') }}>Platinum Hall</a>
-                 <a className={styles.popularTag} href="#" onClick={(e) => { e.preventDefault(); navigate('/venue/seminar-hall-a') }}>Seminar Hall A</a>
-               </div>
-             </div>
+              <div
+                className={styles.searchBar}
+                style={{
+                  background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                }}
+              >
+                <div className={styles.searchField}>
+                  <div className={styles.searchIconWrap}>
+                    <span className="material-icons">search</span>
+                  </div>
+                  <input
+                    className={styles.searchInput}
+                    placeholder="Search venues, labs, halls..."
+                    type="text"
+                  />
+                </div>
+                <button className={styles.searchSubmit} type="button">
+                  <span className="material-icons">arrow_forward</span>
+                </button>
+              </div>
 
-             <div className={styles.heroRight}>
-               <div className={styles.heroVisual}>
-                 <div className={styles.mockupFloat}>
-                   <div className={styles.mockupCard}>
-                     <div className={styles.mockupTitleBar}>
-                       <div className={styles.mockupDotRed} />
-                       <div className={styles.mockupDotYellow} />
-                       <div className={styles.mockupDotGreen} />
-                     </div>
-                     <div className={styles.mockupBody}>
-                       <div className={styles.mockupImgArea}>
-                         <span className="material-icons">apartment</span>
-                         <div className={styles.mockupImgOverlay} />
-                       </div>
-                       <div className={styles.mockupTextLine} />
-                       <div className={styles.mockupTextLineSm} />
-                       <div className={styles.mockupCalGrid}>
-                         <div className={styles.mockupCell} />
-                         <div className={styles.mockupCellActive}>
-                           <div className={styles.mockupActiveDot} />
-                         </div>
-                         <div className={styles.mockupCell} />
-                       </div>
-                     </div>
-                   </div>
-                 </div>
+              <div className={styles.popularRow}>
+                <span className={styles.popularLabel}>Popular:</span>
+                <a className={styles.popularTag} href="#" onClick={(e) => { e.preventDefault(); navigate('/venue/aicte-idea-lab') }}>AICTE Idea Lab</a>
+                <a className={styles.popularTag} href="#" onClick={(e) => { e.preventDefault(); navigate('/venue/platinum-hall') }}>Platinum Hall</a>
+                <a className={styles.popularTag} href="#" onClick={(e) => { e.preventDefault(); navigate('/venue/seminar-hall-a') }}>Seminar Hall A</a>
+              </div>
+            </div>
 
-                 <div className={styles.confirmBadge}>
-                   <div className={styles.confirmIconWrap}>
-                     <span className="material-icons">check</span>
-                   </div>
-                   <div className={styles.confirmText}>
-                     <p className={styles.confirmTitle}>Lab Booking Confirmed</p>
-                     <p className={styles.confirmSub}>Room 302 • 10:00 AM</p>
-                   </div>
-                 </div>
+            <div className={styles.heroRight}>
+              <div className={styles.heroVisual}>
+                <div className={styles.mockupFloat}>
+                  <div className={styles.mockupCard}>
+                    <div className={styles.mockupTitleBar}>
+                      <div className={styles.mockupDotRed} />
+                      <div className={styles.mockupDotYellow} />
+                      <div className={styles.mockupDotGreen} />
+                    </div>
+                    <div className={styles.mockupBody}>
+                      <div className={styles.mockupImgArea}>
+                        <span className="material-icons">apartment</span>
+                        <div className={styles.mockupImgOverlay} />
+                      </div>
+                      <div className={styles.mockupTextLine} />
+                      <div className={styles.mockupTextLineSm} />
+                      <div className={styles.mockupCalGrid}>
+                        <div className={styles.mockupCell} />
+                        <div className={styles.mockupCellActive}>
+                          <div className={styles.mockupActiveDot} />
+                        </div>
+                        <div className={styles.mockupCell} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                 <div className={styles.calendarWidget}>
-                   <div className={styles.heroBookingWidget}>
-                     <p className={styles.heroBookingLabel}>OCTOBER</p>
-                     <div className={styles.heroBookingDates}>
-                       <span className={styles.heroBookingDate}>12</span>
-                       <span className={`${styles.heroBookingDate} ${styles.heroBookingDateActive}`}>13</span>
-                       <span className={`${styles.heroBookingDate} ${styles.heroBookingDateAvailable}`}>14</span>
-                       <span className={styles.heroBookingDate}>15</span>
-                       <span className={styles.heroBookingDate}>16</span>
-                     </div>
-                   </div>
-                 </div>
+                <div className={styles.confirmBadge}>
+                  <div className={styles.confirmIconWrap}>
+                    <span className="material-icons">check</span>
+                  </div>
+                  <div className={styles.confirmText}>
+                    <p className={styles.confirmTitle}>Lab Booking Confirmed</p>
+                    <p className={styles.confirmSub}>Room 302 • 10:00 AM</p>
+                  </div>
+                </div>
 
-                 <div className={styles.previewThumbnail}>
-                   <img
-                     alt="Preview"
-                     className={styles.previewImg}
-                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvAHJJEwa7KoT2DEx2GgxWNy2DFj7UOe0qW7lOjfLi6BhumzALFJVdoqbBG0Rm4bGCxJPbTsz8vxDxf0LBlOTnEZWmF1F-wIyvk2vKhTk79hVomkcbbVoPEcUR2q3y0TCYIKKGVtg9uxrHR-gNCv9QjF-l8HFuB9g_oE3MBF2diCzvqOqUrP9w9k1NyWMlu1K5H6Mxf3h-vavtV3gTo8NGFjbcDzFsJZ5yLntU0Ausp9BFthl5B-VNoeKkTzGYIcGpqPWLaat4W8U"
-                   />
-                 </div>
-               </div>
-             </div>
-           </div>
-         </div>
-       </section>
+                <div className={styles.calendarWidget}>
+                  <div className={styles.heroBookingWidget}>
+                    <p className={styles.heroBookingLabel}>OCTOBER</p>
+                    <div className={styles.heroBookingDates}>
+                      <span className={styles.heroBookingDate}>12</span>
+                      <span className={`${styles.heroBookingDate} ${styles.heroBookingDateActive}`}>13</span>
+                      <span className={`${styles.heroBookingDate} ${styles.heroBookingDateAvailable}`}>14</span>
+                      <span className={styles.heroBookingDate}>15</span>
+                      <span className={styles.heroBookingDate}>16</span>
+                    </div>
+                  </div>
+                </div>
 
-       {/* Stats Bar */}
-       <div className={styles.statsBar}>
-         <div className={styles.statsInner}>
-           <div className={styles.statsGrid}>
-             <div className={styles.statItem}>
-               <p className={`${styles.statValue} ${styles.statOrange}`}>15+</p>
-               <p className={styles.statLabel}>Available Venues</p>
-             </div>
-             <div className={styles.statItem}>
-               <p className={styles.statValue}>500+</p>
-               <p className={styles.statLabel}>Monthly Bookings</p>
-             </div>
-             <div className={styles.statItem}>
-               <p className={`${styles.statValue} ${styles.statOrange}`}>24h</p>
-               <p className={styles.statLabel}>Approval Time</p>
-             </div>
-             <div className={styles.statItem}>
-               <p className={styles.statValue}>100%</p>
-               <p className={styles.statLabel}>Digital Process</p>
-             </div>
-           </div>
-         </div>
-       </div>
+                <div className={styles.previewThumbnail}>
+                  <img
+                    alt="Preview"
+                    className={styles.previewImg}
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvAHJJEwa7KoT2DEx2GgxWNy2DFj7UOe0qW7lOjfLi6BhumzALFJVdoqbBG0Rm4bGCxJPbTsz8vxDxf0LBlOTnEZWmF1F-wIyvk2vKhTk79hVomkcbbVoPEcUR2q3y0TCYIKKGVtg9uxrHR-gNCv9QjF-l8HFuB9g_oE3MBF2diCzvqOqUrP9w9k1NyWMlu1K5H6Mxf3h-vavtV3gTo8NGFjbcDzFsJZ5yLntU0Ausp9BFthl5B-VNoeKkTzGYIcGpqPWLaat4W8U"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-       {/* How It Works */}
-       <section className={styles.howSection} id="how-it-works">
-         <div className={styles.sectionContainer}>
-           <div className={styles.sectionHeader}>
-             <h2 className={styles.sectionLabel}>Workflow</h2>
-             <h3 className={styles.sectionTitle}>How to Book ?</h3>
-             <div className={styles.sectionDivider} />
-           </div>
+      {/* Stats Bar */}
+      <div className={styles.statsBar}>
+        <div className={styles.statsInner}>
+          <div className={styles.statsGrid}>
+            <div className={styles.statItem}>
+              <p className={`${styles.statValue} ${styles.statOrange}`}>15+</p>
+              <p className={styles.statLabel}>Available Venues</p>
+            </div>
+            <div className={styles.statItem}>
+              <p className={styles.statValue}>500+</p>
+              <p className={styles.statLabel}>Monthly Bookings</p>
+            </div>
+            <div className={styles.statItem}>
+              <p className={`${styles.statValue} ${styles.statOrange}`}>24h</p>
+              <p className={styles.statLabel}>Approval Time</p>
+            </div>
+            <div className={styles.statItem}>
+              <p className={styles.statValue}>100%</p>
+              <p className={styles.statLabel}>Digital Process</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-           <div className={styles.stepsGrid}>
-             <div className={styles.stepCard}>
-               <div className={styles.stepCardBg} />
-               <div className={styles.stepCardContent}>
-                 <div className={styles.stepIconWrap}>
-                   <span className={`material-icons ${styles.stepIcon}`}>email</span>
-                 </div>
-                 <div className={styles.stepNum}>01</div>
-                 <h4 className={styles.stepTitle}>Send Request</h4>
-                 <p className={styles.stepDesc}>Initiate your booking by sending a formal request through the portal.</p>
-               </div>
-             </div>
+      {/* How It Works */}
+      <section className={styles.howSection} id="how-it-works">
+        <div className={styles.sectionContainer}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionLabel}>Workflow</h2>
+            <h3 className={styles.sectionTitle}>How to Book ?</h3>
+            <div className={styles.sectionDivider} />
+          </div>
 
-             <div className={styles.stepCard}>
-               <div className={styles.stepCardBg} />
-               <div className={styles.stepCardContent}>
-                 <div className={styles.stepIconWrap}>
-                   <span className={`material-icons ${styles.stepIcon}`}>edit_note</span>
-                 </div>
-                 <div className={styles.stepNum}>02</div>
-                 <h4 className={styles.stepTitle}>Fill Form</h4>
-                 <p className={styles.stepDesc}>Complete the detailed application form with event specifics and requirements.</p>
-               </div>
-             </div>
+          <div className={styles.stepsGrid}>
+            <div className={styles.stepCard}>
+              <div className={styles.stepCardBg} />
+              <div className={styles.stepCardContent}>
+                <div className={styles.stepIconWrap}>
+                  <span className={`material-icons ${styles.stepIcon}`}>email</span>
+                </div>
+                <div className={styles.stepNum}>01</div>
+                <h4 className={styles.stepTitle}>Send Request</h4>
+                <p className={styles.stepDesc}>Initiate your booking by sending a formal request through the portal.</p>
+              </div>
+            </div>
 
-             <div className={styles.stepCard}>
-               <div className={styles.stepCardBg} />
-               <div className={styles.stepCardContent}>
-                 <div className={styles.stepIconWrap}>
-                   <span className={`material-icons ${styles.stepIcon}`}>admin_panel_settings</span>
-                 </div>
-                 <div className={styles.stepNum}>03</div>
-                 <h4 className={styles.stepTitle}>Admin Review</h4>
-                 <p className={styles.stepDesc}>The administration team reviews the availability and purpose of the venue.</p>
-               </div>
-             </div>
+            <div className={styles.stepCard}>
+              <div className={styles.stepCardBg} />
+              <div className={styles.stepCardContent}>
+                <div className={styles.stepIconWrap}>
+                  <span className={`material-icons ${styles.stepIcon}`}>edit_note</span>
+                </div>
+                <div className={styles.stepNum}>02</div>
+                <h4 className={styles.stepTitle}>Fill Form</h4>
+                <p className={styles.stepDesc}>Complete the detailed application form with event specifics and requirements.</p>
+              </div>
+            </div>
 
-             <div className={styles.stepCard}>
-               <div className={styles.stepCardBg} />
-               <div className={styles.stepCardContent}>
-                 <div className={styles.stepIconWrap}>
-                   <span className={`material-icons ${styles.stepIcon}`}>check_circle</span>
-                 </div>
-                 <div className={styles.stepNum}>04</div>
-                 <h4 className={styles.stepTitle}>Get Confirmation</h4>
-                 <p className={styles.stepDesc}>Receive your official booking confirmation and access pass via email.</p>
-               </div>
-             </div>
-           </div>
-         </div>
-       </section>
+            <div className={styles.stepCard}>
+              <div className={styles.stepCardBg} />
+              <div className={styles.stepCardContent}>
+                <div className={styles.stepIconWrap}>
+                  <span className={`material-icons ${styles.stepIcon}`}>admin_panel_settings</span>
+                </div>
+                <div className={styles.stepNum}>03</div>
+                <h4 className={styles.stepTitle}>Admin Review</h4>
+                <p className={styles.stepDesc}>The administration team reviews the availability and purpose of the venue.</p>
+              </div>
+            </div>
 
-       {/* Venues Section */}
-       <section className={styles.venuesSection} id="venues">
-         <div className={styles.sectionContainer}>
-           <div className={styles.venuesSectionHeader}>
-             <div>
-               <h2 className={styles.sectionLabel}>Our Spaces</h2>
-               <h3 className={styles.venuesTitle}>Featured Venues</h3>
-             </div>
-             <a className={styles.viewAllLink} href="#">
-               View all 15+ venues
-               <span className={`material-icons ${styles.viewAllIcon}`}>arrow_forward</span>
-             </a>
-           </div>
+            <div className={styles.stepCard}>
+              <div className={styles.stepCardBg} />
+              <div className={styles.stepCardContent}>
+                <div className={styles.stepIconWrap}>
+                  <span className={`material-icons ${styles.stepIcon}`}>check_circle</span>
+                </div>
+                <div className={styles.stepNum}>04</div>
+                <h4 className={styles.stepTitle}>Get Confirmation</h4>
+                <p className={styles.stepDesc}>Receive your official booking confirmation and access pass via email.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-           <div className={styles.venuesGrid}>
-             {venuesData.slice(0, 3).map((venue, index) => (
-               <div className={styles.venueCard} key={venue.id}>
-                 <div className={styles.venueImgWrap}>
-                   <img
-                     alt={venue.name}
-                     className={styles.venueImg}
-                     src={venue.images.hero}
-                   />
-                   <div className={styles.venueBadgeAvailable}>Available</div>
-                 </div>
-                 <div className={styles.venueBody}>
-                   <div className={styles.venueTopRow}>
-                     <h4 className={styles.venueTitle}>{venue.name}</h4>
-                     <span className={styles.venueLocation}>{venue.location}</span>
-                   </div>
-                   <p className={styles.venueDesc}>{venue.description.substring(0,100)}...</p>
-                   <div className={styles.venueAmenities}>
-                     <div className={styles.venueAmenity}><span className="material-icons">people</span><span>{venue.capacity} Seats</span></div>
-                     {venue.amenities.includes('High-speed Wi-Fi') && <div className={styles.venueAmenity}><span className="material-icons">wifi</span><span>WiFi</span></div>}
-                     {venue.amenities.includes('Professional Sound System') && <div className={styles.venueAmenity}><span className="material-icons">mic</span><span>Audio Sys</span></div>}
-                   </div>
-                   <button type="button" onClick={() => navigate(`/venue/${venue.id}`)} className={styles.venueBookBtn}>
-                     Check Availability <span className="material-icons">arrow_forward</span>
-                   </button>
-                 </div>
-               </div>
-             ))}
-           </div>
-         </div>
-       </section>
+      {/* Venues Section — Live Data */}
+      <section className={styles.venuesSection} id="venues">
+        <div className={styles.sectionContainer}>
+          <div className={styles.venuesSectionHeader}>
+            <div>
+              <h2 className={styles.sectionLabel}>Our Spaces</h2>
+              <h3 className={styles.venuesTitle}>Featured Venues</h3>
+            </div>
+            <Link className={styles.viewAllLink} to="/venues">
+              View all {venues.length > 0 ? `${venues.length}+` : ''} venues
+              <span className={`material-icons ${styles.viewAllIcon}`}>arrow_forward</span>
+            </Link>
+          </div>
 
-       {/* CTA Section */}
-       <section className={styles.ctaSection}>
-         <div className={styles.ctaTextureBg} />
-         <div className={styles.ctaInner}>
-           <div className={styles.ctaTextBlock}>
-             <h2 className={styles.ctaTitle}>Need a custom booking arrangement?</h2>
-             <p className={styles.ctaSub}>Contact the administration office for special event permissions.</p>
-           </div>
-           <div className={styles.ctaBtns}>
-             <button className={styles.ctaContactBtn} type="button" onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>Contact Admin</button>
-           </div>
-         </div>
-       </section>
+          {/* Loading skeleton */}
+          {venuesLoading && (
+            <div className={styles.venuesGrid}>
+              {[1, 2, 3].map(i => (
+                <div key={i} className={styles.skeletonCard}>
+                  <div className={styles.skeletonImage}></div>
+                  <div className={styles.skeletonBody}>
+                    <div className={styles.skeletonText}></div>
+                    <div className={styles.skeletonTextShort}></div>
+                    <div className={styles.skeletonTextShort}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
-       {/* Footer */}
-       <footer className={styles.footer} id="contact">
-         <div className={styles.footerInner}>
-           <div className={styles.footerGrid}>
-             <div className={styles.footerBrandCol}>
-               <div className={styles.footerLogoRow}>
-                 <div className={styles.footerLogoWrap}>
-                   <img alt="KSRCE Logo" className={styles.footerLogo} src={ksrceLogo} />
-                 </div>
-                 <span className={styles.footerColName}>KSR College</span>
-               </div>
-               <p className={styles.footerDesc}>
-                 Empowering education through efficient resource management. The official venue booking portal for students and faculty.
-               </p>
-             </div>
+          {/* Error state */}
+          {!venuesLoading && venuesError && (
+            <div className={styles.venuesFeedbackState}>
+              <span className="material-icons" style={{ fontSize: '2.5rem', color: '#ef4444', marginBottom: 12 }}>error_outline</span>
+              <p>Unable to load venues. Please try again later.</p>
+              <button className={styles.retryBtn} onClick={() => window.location.reload()}>
+                <span className="material-icons" style={{ fontSize: '1rem' }}>refresh</span>
+                Retry
+              </button>
+            </div>
+          )}
 
-             <div>
-               <h3 className={styles.footerColTitle}>Quick Links</h3>
-               <ul className={styles.footerLinks}>
-                 <li><a className={styles.footerLink} href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>Home</a></li>
-                 <li><a className={styles.footerLink} href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>About Us</a></li>
-                 <li><a className={styles.footerLink} href="#" onClick={(e) => { e.preventDefault(); document.getElementById('venues')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}>All Venues</a></li>
-                 <li><a className={styles.footerLink} href="#" onClick={(e) => { e.preventDefault(); document.getElementById('venues')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}>Check Availability</a></li>
-               </ul>
-             </div>
+          {/* Empty state */}
+          {!venuesLoading && !venuesError && venues.length === 0 && (
+            <div className={styles.venuesFeedbackState}>
+              <span className="material-icons" style={{ fontSize: '2.5rem', color: '#9ca3af', marginBottom: 12 }}>meeting_room</span>
+              <p>No venues available at the moment.</p>
+            </div>
+          )}
 
-             <div>
-               <h3 className={styles.footerColTitle}>Support</h3>
-               <ul className={styles.footerLinks}>
-                 <li><a className={styles.footerLink} href="#" onClick={(e) => { e.preventDefault(); document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}>How to Book</a></li>
-                 <li><a className={styles.footerLink} href="#">Cancellation Policy</a></li>
-                 <li><a className={styles.footerLink} href="#" onClick={(e) => { e.preventDefault(); navigate('/login') }}>Admin Login</a></li>
-                 <li><a className={styles.footerLink} href="#">Report Issue</a></li>
-               </ul>
-             </div>
+          {/* Venue cards — live data */}
+          {!venuesLoading && !venuesError && venues.length > 0 && (
+            <div className={styles.venuesGrid}>
+              {venues.map(venue => (
+                <div className={styles.venueCard} key={venue._id}>
+                  <div className={styles.venueImgWrap}>
+                    <img
+                      alt={venue.name}
+                      className={styles.venueImg}
+                      src={getVenueImage(venue)}
+                      onError={(e) => { e.target.src = '/placeholder-venue.jpg'; }}
+                    />
+                    <div className={styles.venueBadgeAvailable}>Available</div>
+                  </div>
+                  <div className={styles.venueBody}>
+                    <div className={styles.venueTopRow}>
+                      <h4 className={styles.venueTitle}>{venue.name}</h4>
+                      {venue.location && (
+                        <span className={styles.venueLocation}>{venue.location}</span>
+                      )}
+                    </div>
+                    <p className={styles.venueDesc}>
+                      {venue.description
+                        ? venue.description.substring(0, 100) + (venue.description.length > 100 ? '...' : '')
+                        : 'Premium venue available for booking.'}
+                    </p>
+                    <div className={styles.venueAmenities}>
+                      {venue.capacity && (
+                        <div className={styles.venueAmenity}>
+                          <span className="material-icons">people</span>
+                          <span>{venue.capacity} Seats</span>
+                        </div>
+                      )}
+                      {venue.amenities?.includes('High-speed Wi-Fi') && (
+                        <div className={styles.venueAmenity}>
+                          <span className="material-icons">wifi</span>
+                          <span>WiFi</span>
+                        </div>
+                      )}
+                      {venue.amenities?.includes('Professional Sound System') && (
+                        <div className={styles.venueAmenity}>
+                          <span className="material-icons">mic</span>
+                          <span>Audio Sys</span>
+                        </div>
+                      )}
+                      {/* Fallback: show wifi based on wifiStatus field if amenities didn't include it */}
+                      {!venue.amenities?.includes('High-speed Wi-Fi') && venue.wifiStatus && venue.wifiStatus !== 'None' && (
+                        <div className={styles.venueAmenity}>
+                          <span className="material-icons">wifi</span>
+                          <span>WiFi</span>
+                        </div>
+                      )}
+                    </div>
+                    <button type="button" onClick={() => navigate(`/venue/${venue._id}`)} className={styles.venueBookBtn}>
+                      Check Availability <span className="material-icons">arrow_forward</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
 
-             <div>
-               <h3 className={styles.footerColTitle}>Contact</h3>
-               <ul className={styles.footerContactList}>
-                 <li className={styles.footerContactItem}>
-                   <span className={`material-icons ${styles.footerContactIcon}`}>location_on</span>
-                   <span>KSR Kalvi Nagar, Tiruchengode,<br />Namakkal - 637215</span>
-                 </li>
-                 <li className={styles.footerContactItem}>
-                   <span className={`material-icons ${styles.footerContactIcon}`}>phone</span>
-                   <span>+91 12345 67890</span>
-                 </li>
-                 <li className={styles.footerContactItem}>
-                   <span className={`material-icons ${styles.footerContactIcon}`}>email</span>
-                   <span>admin@ksr.edu.in</span>
-                 </li>
-               </ul>
-             </div>
-           </div>
+      {/* CTA Section */}
+      <section className={styles.ctaSection}>
+        <div className={styles.ctaTextureBg} />
+        <div className={styles.ctaInner}>
+          <div className={styles.ctaTextBlock}>
+            <h2 className={styles.ctaTitle}>Need a custom booking arrangement?</h2>
+            <p className={styles.ctaSub}>Contact the administration office for special event permissions.</p>
+          </div>
+          <div className={styles.ctaBtns}>
+            <button className={styles.ctaContactBtn} type="button" onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>Contact Admin</button>
+          </div>
+        </div>
+      </section>
 
-           <div className={styles.footerBottom}>
-             <p className={styles.footerCopy}>© 2023 KSR College of Engineering. All rights reserved.</p>
-             <div className={styles.footerLegalLinks}>
-               <a className={styles.footerLegalLink} href="#">Privacy Policy</a>
-               <a className={styles.footerLegalLink} href="#">Terms of Service</a>
-             </div>
-           </div>
+      {/* Footer */}
+      <footer className={styles.footer} id="contact">
+        <div className={styles.footerInner}>
+          <div className={styles.footerGrid}>
+            <div className={styles.footerBrandCol}>
+              <div className={styles.footerLogoRow}>
+                <div className={styles.footerLogoWrap}>
+                  <img alt="KSRCE Logo" className={styles.footerLogo} src={ksrceLogo} />
+                </div>
+                <span className={styles.footerColName}>KSR College</span>
+              </div>
+              <p className={styles.footerDesc}>
+                Empowering education through efficient resource management. The official venue booking portal for students and faculty.
+              </p>
+            </div>
 
-           <div className={styles.footerAccentBar} />
-         </div>
-       </footer>
-     </div>
-   )
- }
+            <div>
+              <h3 className={styles.footerColTitle}>Quick Links</h3>
+              <ul className={styles.footerLinks}>
+                <li><a className={styles.footerLink} href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>Home</a></li>
+                <li><a className={styles.footerLink} href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>About Us</a></li>
+                <li><Link className={styles.footerLink} to="/venues">All Venues</Link></li>
+                <li><a className={styles.footerLink} href="#" onClick={(e) => { e.preventDefault(); document.getElementById('venues')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}>Check Availability</a></li>
+              </ul>
+            </div>
 
- export default LandingPage
+            <div>
+              <h3 className={styles.footerColTitle}>Support</h3>
+              <ul className={styles.footerLinks}>
+                <li><a className={styles.footerLink} href="#" onClick={(e) => { e.preventDefault(); document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}>How to Book</a></li>
+                <li><a className={styles.footerLink} href="#">Cancellation Policy</a></li>
+                <li><a className={styles.footerLink} href="#" onClick={(e) => { e.preventDefault(); navigate('/login') }}>Admin Login</a></li>
+                <li><a className={styles.footerLink} href="#">Report Issue</a></li>
+              </ul>
+            </div>
 
+            <div>
+              <h3 className={styles.footerColTitle}>Contact</h3>
+              <ul className={styles.footerContactList}>
+                <li className={styles.footerContactItem}>
+                  <span className={`material-icons ${styles.footerContactIcon}`}>location_on</span>
+                  <span>KSR Kalvi Nagar, Tiruchengode,<br />Namakkal - 637215</span>
+                </li>
+                <li className={styles.footerContactItem}>
+                  <span className={`material-icons ${styles.footerContactIcon}`}>phone</span>
+                  <span>+91 12345 67890</span>
+                </li>
+                <li className={styles.footerContactItem}>
+                  <span className={`material-icons ${styles.footerContactIcon}`}>email</span>
+                  <span>admin@ksr.edu.in</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className={styles.footerBottom}>
+            <p className={styles.footerCopy}>© 2023 KSR College of Engineering. All rights reserved.</p>
+            <div className={styles.footerLegalLinks}>
+              <a className={styles.footerLegalLink} href="#">Privacy Policy</a>
+              <a className={styles.footerLegalLink} href="#">Terms of Service</a>
+            </div>
+          </div>
+
+          <div className={styles.footerAccentBar} />
+        </div>
+      </footer>
+    </div>
+  )
+}
+
+export default LandingPage

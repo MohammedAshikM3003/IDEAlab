@@ -1,0 +1,408 @@
+/* ============ PUBLIC VENUES PAGE ============ */
+:root {
+  --pv-primary: #ff9500;
+  --pv-secondary: #FF7A59;
+  --pv-navy: #002147;
+  --pv-navy-dark: #001835;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f9fafb;
+}
+
+/* ============ HEADER ============ */
+.header {
+  background: rgba(0, 33, 71, 0.97);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.headerInner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.headerBrand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+.logoWrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.brandText {
+  display: flex;
+  flex-direction: column;
+}
+.brandName {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+.brandBadge {
+  color: var(--pv-secondary);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #d1d5db;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: background 150ms ease, color 150ms ease;
+}
+.backLink:hover {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+
+/* ============ HERO BANNER ============ */
+.heroBanner {
+  position: relative;
+  background: linear-gradient(135deg, var(--pv-navy) 0%, var(--pv-navy-dark) 100%);
+  padding: 64px 24px 56px;
+  text-align: center;
+  overflow: hidden;
+}
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.heroContent {
+  position: relative;
+  z-index: 1;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.heroTitle {
+  color: #fff;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0 0 12px;
+  letter-spacing: -0.02em;
+}
+.heroSub {
+  color: #9ca3af;
+  font-size: 1.05rem;
+  margin: 0 0 28px;
+  line-height: 1.5;
+}
+.searchWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(8px);
+  transition: border-color 200ms ease;
+}
+.searchWrap:focus-within {
+  border-color: rgba(255,149,0,0.5);
+}
+.searchInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 0.9rem;
+}
+.searchInput::placeholder {
+  color: #6b7280;
+}
+
+/* ============ MAIN ============ */
+.main {
+  flex: 1;
+  padding: 40px 0 64px;
+}
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Results bar */
+.resultsBar {
+  margin-bottom: 28px;
+}
+.resultsCount {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin: 0;
+}
+.resultsCount strong {
+  color: var(--pv-navy);
+}
+
+/* ============ VENUES GRID ============ */
+.venuesGrid {
+  display: grid;
+  gap: 28px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .venuesGrid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .venuesGrid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ============ VENUE CARD ============ */
+.venueCard {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  border: 1px solid #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 300ms ease, transform 300ms ease;
+}
+.venueCard:hover {
+  box-shadow: 0 16px 40px rgba(0,0,0,0.14);
+  transform: translateY(-4px);
+}
+.venueImgWrap {
+  height: 210px;
+  overflow: hidden;
+  position: relative;
+}
+.venueImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 500ms ease;
+}
+.venueCard:hover .venueImg {
+  transform: scale(1.08);
+}
+.badgeAvailable {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: #22c55e;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(34,197,94,0.3);
+}
+.venueBody {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.venueName {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--pv-navy);
+  margin: 0 0 6px;
+}
+.venueLocation {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #6b7280;
+  font-size: 0.8rem;
+  margin: 0 0 10px;
+}
+.venueLocation .material-icons {
+  color: var(--pv-secondary);
+}
+.venueDesc {
+  color: #6b7280;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  margin: 0 0 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.venueAmenities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+  margin-top: auto;
+}
+.amenityTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: #4b5563;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+.amenityTag .material-icons {
+  font-size: 0.875rem !important;
+  color: var(--pv-secondary);
+}
+.checkBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 16px;
+  border: 2px solid var(--pv-primary);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--pv-primary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+  margin-top: auto;
+}
+.checkBtn:hover {
+  background: var(--pv-primary);
+  color: #fff;
+}
+.checkBtn .material-icons {
+  font-size: 1rem !important;
+}
+
+/* ============ SKELETON ============ */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeletonCard {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid #f3f4f6;
+}
+.skeletonImage {
+  width: 100%;
+  height: 210px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+.skeletonBody {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.skeletonText {
+  height: 18px;
+  width: 65%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+.skeletonTextShort {
+  height: 14px;
+  width: 40%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ============ FEEDBACK STATES ============ */
+.feedbackState {
+  text-align: center;
+  padding: 80px 24px;
+  color: #6b7280;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.feedbackState h3 {
+  margin: 8px 0 0;
+  color: var(--pv-navy);
+  font-size: 1.25rem;
+}
+.feedbackState p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+.retryBtn {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: 2px solid var(--pv-primary);
+  background: #fff;
+  color: var(--pv-primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+.retryBtn:hover {
+  background: var(--pv-primary);
+  color: #fff;
+}
+
+/* ============ FOOTER ============ */
+.footer {
+  background: var(--pv-navy-dark);
+  padding: 24px;
+  text-align: center;
+  border-top: 3px solid var(--pv-primary);
+}
+.footer p {
+  color: #6b7280;
+  font-size: 0.8rem;
+  margin: 0;
+}

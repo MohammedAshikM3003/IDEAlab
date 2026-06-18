@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react'
+﻿import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import settingsIcon from '../assets/settingsIcon.svg'
@@ -8,10 +8,42 @@ import AdminLogOutPopUp from './Alerts/AdminLogOutPopUp'
 import InternalBookingModal from './Alerts/InternalBookingModal'
 import styles from './Sidebar.module.css'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+
 export default function Sidebar({ activePage, isSidebarOpen, setIsSidebarOpen }) {
   const inboxIsActive = activePage === 'inbox'
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [isInternalBookingOpen, setIsInternalBookingOpen] = useState(false)
+  const [pendingCount, setPendingCount] = useState(0)
+
+  useEffect(() => {
+    let isMounted = true
+
+    fetch(`${API_URL}/api/bookings`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!isMounted) return
+        const bookings = data.bookings || data.data || data || []
+        const count = bookings.filter((booking) => {
+          const status = String(booking.status || '').trim().toLowerCase()
+          return status === 'pending' || status === 'form_sent'
+        }).length
+        setPendingCount(count)
+      })
+      .catch(() => {
+        if (isMounted) {
+          setPendingCount(0)
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   return (
     <>
@@ -45,7 +77,7 @@ export default function Sidebar({ activePage, isSidebarOpen, setIsSidebarOpen })
               <span className={`${styles.txt} ${inboxIsActive ? '' : 'group-hover:text-primary'} transition-colors`}>
                 Request Inbox
               </span>
-              <span className={styles.badge}>23</span>
+              {pendingCount > 0 ? <span className={styles.badge}>{pendingCount}</span> : null}
             </div>
           </Link>
 

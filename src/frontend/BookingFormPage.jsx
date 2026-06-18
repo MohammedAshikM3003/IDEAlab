@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import styles from './BookingFormPage.module.css'
 import ksrLogo from '../assets/KSRCElogo.svg'
+import Calendar from './Calendar'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
@@ -12,16 +13,168 @@ const initialForm = {
   venue: '',
   purpose: '',
   eventDate: '',
-  timeSlotStart: '',
-  timeSlotEnd: '',
+  timeSlotStart: { hour: '10', minute: '00', period: 'AM' },
+  timeSlotEnd: { hour: '12', minute: '00', period: 'PM' },
   attendance: '',
   equipment: '',
   supervisor: '',
 }
 
-const HOURS = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, '0'))
-const MINUTES = ['00', '15', '30', '45']
-const PERIODS = ['AM', 'PM']
+// ─── Time Spinner Picker ─────────────────────────────────────────────────────
+function TimeSpinnerPicker({ id, value, onChange, hasError }) {
+  // Safe-parse: treat missing/invalid hour as 10, minute as 00, period as AM
+  const safeHour = (value && value.hour) || '10'
+  const safeMinute = (value && value.minute != null) ? value.minute : '00'
+  const safePeriod = (value && (value.period === 'AM' || value.period === 'PM'))
+    ? value.period
+    : 'AM'
+
+  // Resolve numeric base — always a finite integer before clamping
+  const numHour = Number(safeHour)
+  const numMinute = Number(safeMinute)
+  const baseHour = Number.isFinite(numHour) ? numHour : 10
+  const baseMinute = Number.isFinite(numMinute) ? numMinute : 0
+
+  function clampHour(n) {
+    if (!Number.isFinite(n) || n < 1) return 12   // NaN / < 1 → wrap to 12
+    if (n > 12) return 1                           // > 12  → wrap to 1
+    return n
+  }
+
+  function clampMinute(n) {
+    if (!Number.isFinite(n)) return 0   // NaN → reset to 0
+    if (n < 0) return 59               // underflow  → wrap to 59
+    if (n > 59) return 0               // overflow   → wrap to 0
+    return n
+  }
+
+  function stepHour(delta) {
+    const next = clampHour(baseHour + delta)
+    onChange({ ...value, hour: String(next).padStart(2, '0'), minute: safeMinute, period: safePeriod })
+  }
+
+  function stepMinute(delta) {
+    const next = clampMinute(baseMinute + delta)
+    onChange({ ...value, hour: safeHour, minute: String(next).padStart(2, '0'), period: safePeriod })
+  }
+
+  function handleHourInput(e) {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 2)
+    onChange({ ...value, hour: raw, minute: safeMinute, period: safePeriod })
+  }
+
+  function handleHourBlur(e) {
+    const n = Number(e.target.value)
+    const clamped = Number.isFinite(n) && n >= 1 && n <= 12 ? n : 10
+    onChange({ ...value, hour: String(clamped).padStart(2, '0'), minute: safeMinute, period: safePeriod })
+  }
+
+  function handleMinuteInput(e) {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 2)
+    onChange({ ...value, hour: safeHour, minute: raw, period: safePeriod })
+  }
+
+  function handleMinuteBlur(e) {
+    const n = Number(e.target.value)
+    const clamped = Number.isFinite(n) && n >= 0 && n <= 59 ? n : 0
+    onChange({ ...value, hour: safeHour, minute: String(clamped).padStart(2, '0'), period: safePeriod })
+  }
+
+  return (
+    <div
+      className={`${styles.timeSpinnerWrapper}${hasError ? ' ' + styles.timeSpinnerError : ''}`}
+      role="group"
+      aria-label="Time picker"
+    >
+      {/* HH spinner */}
+      <div className={styles.spinnerUnit}>
+        <button
+          type="button"
+          className={styles.spinnerBtn}
+          onClick={() => stepHour(1)}
+          aria-label="Increase hour"
+          tabIndex={-1}
+        >
+          <svg viewBox="0 0 10 6" aria-hidden="true"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+        </button>
+        <input
+          id={id}
+          type="text"
+          inputMode="numeric"
+          value={safeHour}
+          onChange={handleHourInput}
+          onBlur={handleHourBlur}
+          className={styles.spinnerInput}
+          aria-label="Hour"
+          maxLength={2}
+        />
+        <button
+          type="button"
+          className={styles.spinnerBtn}
+          onClick={() => stepHour(-1)}
+          aria-label="Decrease hour"
+          tabIndex={-1}
+        >
+          <svg viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+        </button>
+      </div>
+
+      <span className={styles.spinnerColon}>:</span>
+
+      {/* MM spinner */}
+      <div className={styles.spinnerUnit}>
+        <button
+          type="button"
+          className={styles.spinnerBtn}
+          onClick={() => stepMinute(1)}
+          aria-label="Increase minute"
+          tabIndex={-1}
+        >
+          <svg viewBox="0 0 10 6" aria-hidden="true"><path d="M1 5L5 1L9 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+        </button>
+        <input
+          type="text"
+          inputMode="numeric"
+          value={safeMinute}
+          onChange={handleMinuteInput}
+          onBlur={handleMinuteBlur}
+          className={styles.spinnerInput}
+          aria-label="Minute"
+          maxLength={2}
+        />
+        <button
+          type="button"
+          className={styles.spinnerBtn}
+          onClick={() => stepMinute(-1)}
+          aria-label="Decrease minute"
+          tabIndex={-1}
+        >
+          <svg viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+        </button>
+      </div>
+
+      {/* AM/PM toggle */}
+      <div className={styles.spinnerPeriod}>
+        <button
+          type="button"
+          className={`${styles.periodBtn}${safePeriod === 'AM' ? ' ' + styles.periodBtnActive : ''}`}
+          onClick={() => onChange({ ...value, hour: safeHour, minute: safeMinute, period: 'AM' })}
+          aria-pressed={safePeriod === 'AM'}
+        >
+          AM
+        </button>
+        <button
+          type="button"
+          className={`${styles.periodBtn}${safePeriod === 'PM' ? ' ' + styles.periodBtnActive : ''}`}
+          onClick={() => onChange({ ...value, hour: safeHour, minute: safeMinute, period: 'PM' })}
+          aria-pressed={safePeriod === 'PM'}
+        >
+          PM
+        </button>
+      </div>
+    </div>
+  )
+}
 
 function normalizeVenues(data) {
   if (Array.isArray(data)) return data
@@ -95,6 +248,14 @@ function BookingFormPage() {
   const [submitError, setSubmitError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const calendarRef = useRef(null)
+
+  const displayDate = useMemo(() => {
+    if (!form.eventDate) return ''
+    const [year, month, day] = form.eventDate.split('-')
+    return `${day}-${month}-${year}`
+  }, [form.eventDate])
 
   useEffect(() => {
     let isMounted = true
@@ -168,6 +329,21 @@ function BookingFormPage() {
     }
   }, [token])
 
+  useEffect(() => {
+    if (!isCalendarOpen) return
+
+    const handleClickOutside = (event) => {
+      if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+        setIsCalendarOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isCalendarOpen])
+
   const venueOptions = useMemo(() => {
     return venues
       .map((venue) => {
@@ -191,21 +367,31 @@ function BookingFormPage() {
     }
   }
 
-  function handleTimePartChange(field, part, value) {
-    setForm((prev) => {
-      const currentParts = parseTime(prev[field])
-      const nextParts = {
-        hour: currentParts.hour || '01',
-        minute: currentParts.minute || '00',
-        period: currentParts.period || 'AM',
-        [part]: value,
-      }
-      return { ...prev, [field]: buildTime(nextParts) }
-    })
+  function handleDateSelect(date) {
+    setForm((prev) => ({ ...prev, eventDate: date.toISOString().split('T')[0] }))
+    setIsCalendarOpen(false)
+    if (errors.eventDate) {
+      setErrors((prev) => ({ ...prev, eventDate: '' }))
+    }
+  }
 
+  function handleTimeChange(field, nextValue) {
+    setForm((prev) => ({ ...prev, [field]: nextValue }))
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: '' }))
     }
+  }
+
+  function timePartsToMinutes(parts) {
+    let h = Number(parts.hour)
+    const m = Number(parts.minute)
+    if (parts.period === 'PM' && h !== 12) h += 12
+    if (parts.period === 'AM' && h === 12) h = 0
+    return h * 60 + m
+  }
+
+  function timePartsToString(parts) {
+    return `${parts.hour}:${parts.minute} ${parts.period}`
   }
 
   function validateForm() {
@@ -215,9 +401,13 @@ function BookingFormPage() {
     if (!form.venue) nextErrors.venue = 'Please select a venue.'
     if (!form.purpose.trim()) nextErrors.purpose = 'Event purpose is required.'
     if (!form.eventDate) nextErrors.eventDate = 'Event date is required.'
-    if (!form.timeSlotStart) nextErrors.timeSlotStart = 'Start time is required.'
-    if (!form.timeSlotEnd) nextErrors.timeSlotEnd = 'End time is required.'
-    if (form.timeSlotStart && form.timeSlotEnd && form.timeSlotEnd <= form.timeSlotStart) {
+
+    const startMins = timePartsToMinutes(form.timeSlotStart)
+    const endMins = timePartsToMinutes(form.timeSlotEnd)
+
+    if (!form.timeSlotStart.hour) nextErrors.timeSlotStart = 'Start time is required.'
+    if (!form.timeSlotEnd.hour) nextErrors.timeSlotEnd = 'End time is required.'
+    if (form.timeSlotStart.hour && form.timeSlotEnd.hour && endMins <= startMins) {
       nextErrors.timeSlotEnd = 'End time must be after start time.'
     }
     if (!form.attendance || Number(form.attendance) <= 0) {
@@ -250,7 +440,7 @@ function BookingFormPage() {
         venue: form.venue,
         purpose: form.purpose,
         eventDate: String(form.eventDate),
-        timeSlot: `${form.timeSlotStart} - ${form.timeSlotEnd}`,
+        timeSlot: `${timePartsToString(form.timeSlotStart)} - ${timePartsToString(form.timeSlotEnd)}`,
         attendance: Number(form.attendance),
         equipment: form.equipment || '',
         supervisor: form.supervisor,
@@ -283,8 +473,7 @@ function BookingFormPage() {
     </div>
   )
 
-  const timeSlotStartParts = parseTime(form.timeSlotStart)
-  const timeSlotEndParts = parseTime(form.timeSlotEnd)
+
 
   if (loading) {
     return (
@@ -567,138 +756,73 @@ function BookingFormPage() {
             </div>
             <div className={styles.sectionGrid}>
               <div className={styles.field}>
-                <label className={styles.fieldLabel} htmlFor="eventDate">
-                  Event Date
+                <label htmlFor="eventDate" className={styles.fieldLabel}>
+                  Date of Event
                 </label>
-                <input
-                  id="eventDate"
-                  name="eventDate"
-                  type="date"
-                  value={form.eventDate}
-                  onChange={handleChange}
-                  required
-                  aria-invalid={Boolean(errors.eventDate)}
-                  className={styles.dateControl}
-                />
-                {errors.eventDate ? <div className={styles.error}>{errors.eventDate}</div> : null}
+                <div className={styles.control} onClick={() => setIsCalendarOpen(true)}>
+                  <input
+                    type="text"
+                    id="eventDate"
+                    name="eventDate"
+                    value={displayDate}
+                    readOnly
+                    className={`${styles.input} ${styles.hasIcon}`}
+                    placeholder="Select a date"
+                  />
+                  <div className={styles.inputIcon} onClick={() => setIsCalendarOpen(true)}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                {isCalendarOpen && (
+                  <div className={styles.calendarWrapper} ref={calendarRef}>
+                    <Calendar
+                      selectedDate={form.eventDate ? new Date(form.eventDate) : new Date()}
+                      onDateSelect={handleDateSelect}
+                      minDate={new Date()}
+                    />
+                  </div>
+                )}
+                {errors.eventDate && <p className={styles.error}>{errors.eventDate}</p>}
               </div>
 
               <div className={styles.field}>
-                <label className={styles.fieldLabel} htmlFor="timeSlotStart">
+                <label htmlFor="timeSlotStart" className={styles.fieldLabel}>
                   Time Slot Start
                 </label>
-                <div className={styles.control}>
-                  <div className={styles.timeRow}>
-                    <select
-                      id="timeSlotStart"
-                      value={timeSlotStartParts.hour}
-                      onChange={(event) =>
-                        handleTimePartChange('timeSlotStart', 'hour', event.target.value)
-                      }
-                      aria-invalid={Boolean(errors.timeSlotStart)}
-                      className={`${styles.select} ${styles.timeSelect}`}
-                    >
-                      <option value="">HH</option>
-                      {HOURS.map((hour) => (
-                        <option key={hour} value={hour}>
-                          {Number(hour)}
-                        </option>
-                      ))}
-                    </select>
-                    <span className={styles.timeDivider}>:</span>
-                    <select
-                      value={timeSlotStartParts.minute}
-                      onChange={(event) =>
-                        handleTimePartChange('timeSlotStart', 'minute', event.target.value)
-                      }
-                      aria-invalid={Boolean(errors.timeSlotStart)}
-                      className={`${styles.select} ${styles.timeSelect}`}
-                    >
-                      <option value="">MM</option>
-                      {MINUTES.map((minute) => (
-                        <option key={minute} value={minute}>
-                          {minute}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      value={timeSlotStartParts.period}
-                      onChange={(event) =>
-                        handleTimePartChange('timeSlotStart', 'period', event.target.value)
-                      }
-                      aria-invalid={Boolean(errors.timeSlotStart)}
-                      className={`${styles.select} ${styles.timeMeridiem}`}
-                    >
-                      <option value="">AM/PM</option>
-                      {PERIODS.map((period) => (
-                        <option key={period} value={period}>
-                          {period}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                <TimeSpinnerPicker
+                  id="timeSlotStart"
+                  value={form.timeSlotStart}
+                  onChange={(next) => handleTimeChange('timeSlotStart', next)}
+                  hasError={Boolean(errors.timeSlotStart)}
+                />
                 {errors.timeSlotStart ? (
                   <div className={styles.error}>{errors.timeSlotStart}</div>
                 ) : null}
               </div>
 
               <div className={styles.field}>
-                <label className={styles.fieldLabel} htmlFor="timeSlotEnd">
+                <label htmlFor="timeSlotEnd" className={styles.fieldLabel}>
                   Time Slot End
                 </label>
-                <div className={styles.control}>
-                  <div className={styles.timeRow}>
-                    <select
-                      id="timeSlotEnd"
-                      value={timeSlotEndParts.hour}
-                      onChange={(event) =>
-                        handleTimePartChange('timeSlotEnd', 'hour', event.target.value)
-                      }
-                      aria-invalid={Boolean(errors.timeSlotEnd)}
-                      className={`${styles.select} ${styles.timeSelect}`}
-                    >
-                      <option value="">HH</option>
-                      {HOURS.map((hour) => (
-                        <option key={hour} value={hour}>
-                          {Number(hour)}
-                        </option>
-                      ))}
-                    </select>
-                    <span className={styles.timeDivider}>:</span>
-                    <select
-                      value={timeSlotEndParts.minute}
-                      onChange={(event) =>
-                        handleTimePartChange('timeSlotEnd', 'minute', event.target.value)
-                      }
-                      aria-invalid={Boolean(errors.timeSlotEnd)}
-                      className={`${styles.select} ${styles.timeSelect}`}
-                    >
-                      <option value="">MM</option>
-                      {MINUTES.map((minute) => (
-                        <option key={minute} value={minute}>
-                          {minute}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      value={timeSlotEndParts.period}
-                      onChange={(event) =>
-                        handleTimePartChange('timeSlotEnd', 'period', event.target.value)
-                      }
-                      aria-invalid={Boolean(errors.timeSlotEnd)}
-                      className={`${styles.select} ${styles.timeMeridiem}`}
-                    >
-                      <option value="">AM/PM</option>
-                      {PERIODS.map((period) => (
-                        <option key={period} value={period}>
-                          {period}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                {errors.timeSlotEnd ? <div className={styles.error}>{errors.timeSlotEnd}</div> : null}
+                <TimeSpinnerPicker
+                  id="timeSlotEnd"
+                  value={form.timeSlotEnd}
+                  onChange={(next) => handleTimeChange('timeSlotEnd', next)}
+                  hasError={Boolean(errors.timeSlotEnd)}
+                />
+                {errors.timeSlotEnd ? (
+                  <div className={styles.error}>{errors.timeSlotEnd}</div>
+                ) : null}
               </div>
             </div>
           </section>

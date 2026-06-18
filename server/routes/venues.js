@@ -9,11 +9,28 @@ const router = express.Router()
 router.get('/public', async (_req, res) => {
   try {
     const venues = await Venue.find({ status: 'active' })
-      .select('_id name')
+      .select('_id name location description capacity bannerImage gallery amenities wifiStatus status')
       .sort({ createdAt: -1 })
     return res.json(venues)
   } catch {
     return res.status(500).json({ message: 'Failed to load venues' })
+  }
+})
+
+router.get('/public/:id', async (req, res) => {
+  const { id } = req.params
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'Invalid venue id' })
+  }
+
+  try {
+    const venue = await Venue.findOne({ _id: id, status: 'active' })
+    if (!venue) {
+      return res.status(404).json({ message: 'Venue not found' })
+    }
+    return res.json(venue)
+  } catch {
+    return res.status(500).json({ message: 'Failed to load venue' })
   }
 })
 

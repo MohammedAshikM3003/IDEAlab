@@ -2,7 +2,7 @@ import cron from 'node-cron'
 
 import outboxService from '../services/email/outboxService.js'
 
-const PROCESS_OUTBOX_CRON = '*/5 * * * *'
+const PROCESS_OUTBOX_CRON = '* * * * *'
 
 /**
  * Run one outbox processing cycle.

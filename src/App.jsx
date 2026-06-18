@@ -17,6 +17,7 @@ import BookingFormPage from './frontend/BookingFormPage.jsx'
 import { UserProfileProvider } from './frontend/UserProfileContext.jsx'
 
 import VenueDetailPage from './frontend/VenueDetailPage.jsx'
+import PublicVenuesPage from './frontend/PublicVenuesPage.jsx'
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -25,6 +26,7 @@ function App() {
     <UserProfileProvider>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/venues" element={<PublicVenuesPage />} />
         <Route path="/venue/:venueId" element={<VenueDetailPage />} />
         <Route path="/landing" element={<Navigate to="/" replace />} />
         <Route path="/login" element={<LoginPage />} />
