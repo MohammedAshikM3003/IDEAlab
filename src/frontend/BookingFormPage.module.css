@@ -430,12 +430,13 @@
 }
 
 .periodBtn {
-  padding: 4px 10px;
+  height: 46px;
+  padding: 0 16px;
   border: 1px solid #E5E7EB;
-  border-radius: 6px;
+  border-radius: 10px;
   background: #ffffff;
   color: #1F2937;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
