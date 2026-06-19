@@ -48,6 +48,8 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
   const [facilityNameError, setFacilityNameError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isAddAmenityModalOpen, setIsAddAmenityModalOpen] = useState(false);
+  const [newAmenityName, setNewAmenityName] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [isVenueLoading, setIsVenueLoading] = useState(false);
   const [cropModal, setCropModal] = useState({
@@ -279,16 +281,23 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
     setAmenities((prev) => prev.map((item) => (item.id === amenityId ? { ...item, selected: !item.selected } : item)));
   };
 
-  const addAmenityItem = () => {
-    const name = window.prompt("Add amenity name");
+  const openAddAmenityModal = () => {
+    setNewAmenityName("");
+    setIsAddAmenityModalOpen(true);
+  };
+
+  const submitNewAmenity = () => {
+    const name = newAmenityName;
     if (!name || !name.trim()) {
       return;
     }
     const key = name.trim().toLowerCase().replace(/\s+/g, "-");
     setAmenities((prev) => [
       ...prev,
-      { id: `amenity-${key}-${Date.now()}`, name: name.trim(), icon: "check_circle", selected: false },
+      { id: `amenity-${key}-${Date.now()}`, name: name.trim(), icon: "check_circle", selected: true },
     ]);
+    setIsAddAmenityModalOpen(false);
+    setNewAmenityName("");
   };
 
   const resetForm = () => {
@@ -768,7 +777,7 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
                       <span className={`material-icons ${styles.cardTitleIcon}`}>wifi</span>
                       <h2 className={styles.cardTitle}>Amenities</h2>
                     </div>
-                    <button className={styles.inlineAddBtn} onClick={addAmenityItem} type="button">
+                    <button className={styles.inlineAddBtn} onClick={openAddAmenityModal} type="button">
                       <span className="material-icons">add_circle_outline</span>
                       Add Item
                     </button>
@@ -816,6 +825,33 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
                 </button>
               </div>
             </>
+          </div>
+        </div>
+      ) : null}
+
+      {isAddAmenityModalOpen ? (
+        <div className={styles.publishModalBackdrop} role="presentation">
+          <div aria-modal="true" className={styles.publishModalCard} role="dialog">
+            <h3 className={styles.publishModalTitle} style={{ marginBottom: "0.75rem" }}>Add Amenity</h3>
+            <p className={styles.publishModalMessage}>Enter the name of the new amenity.</p>
+            <input 
+              type="text" 
+              className={styles.input} 
+              style={{ width: "100%", marginBottom: "1.25rem", boxSizing: "border-box" }}
+              value={newAmenityName}
+              onChange={(e) => setNewAmenityName(e.target.value)}
+              placeholder="e.g. Whiteboard"
+              autoFocus
+              onKeyDown={(e) => { if (e.key === 'Enter') submitNewAmenity(); }}
+            />
+            <div className={styles.publishModalActions}>
+              <button className={styles.publishBtnSecondary} onClick={() => setIsAddAmenityModalOpen(false)} type="button">
+                Cancel
+              </button>
+              <button className={styles.publishBtnPrimary} onClick={submitNewAmenity} type="button">
+                Add Amenity
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
