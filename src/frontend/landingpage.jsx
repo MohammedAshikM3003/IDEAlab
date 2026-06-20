@@ -16,20 +16,24 @@ function LandingPage() {
   const [venues, setVenues] = useState([])
   const [venuesLoading, setVenuesLoading] = useState(true)
   const [venuesError, setVenuesError] = useState(null)
+  const [stats, setStats] = useState({ venuesCount: 15, monthlyBookings: 500, approvalTime: '24h', digitalProcess: '100%' })
 
   useEffect(() => {
-    const fetchVenues = async () => {
+    const fetchVenuesAndStats = async () => {
       try {
         setVenuesLoading(true)
         setVenuesError(null)
 
-        const res = await fetch(`${API_URL}/api/venues/public`)
+        const [venuesRes, statsRes] = await Promise.all([
+          fetch(`${API_URL}/api/venues/public`),
+          fetch(`${API_URL}/api/venues/public-stats`).catch(() => null)
+        ])
 
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`)
+        if (!venuesRes.ok) {
+          throw new Error(`HTTP error! status: ${venuesRes.status}`)
         }
 
-        const data = await res.json()
+        const data = await venuesRes.json()
         console.log('Venues API response:', data)
 
         // Handle both response formats: {venues: [...]} or [...]
@@ -41,6 +45,16 @@ function LandingPage() {
           .slice(0, 3)
 
         setVenues(activeVenues)
+
+        if (statsRes && statsRes.ok) {
+          const statsData = await statsRes.json()
+          setStats({
+            venuesCount: statsData.venuesCount || 0,
+            monthlyBookings: statsData.monthlyBookings || 0,
+            approvalTime: statsData.approvalTime || '24h',
+            digitalProcess: statsData.digitalProcess || '100%'
+          })
+        }
       } catch (err) {
         console.error('Failed to fetch venues:', err)
         setVenuesError(err.message)
@@ -49,7 +63,7 @@ function LandingPage() {
       }
     }
 
-    fetchVenues()
+    fetchVenuesAndStats()
   }, [])
 
   const navigateToSection = (sectionId) => {
@@ -404,19 +418,19 @@ function LandingPage() {
         <div className={styles.statsInner}>
           <div className={styles.statsGrid}>
             <div className={styles.statItem}>
-              <p className={`${styles.statValue} ${styles.statOrange}`}>15+</p>
+              <p className={`${styles.statValue} ${styles.statOrange}`}>{stats.venuesCount}+</p>
               <p className={styles.statLabel}>Available Venues</p>
             </div>
             <div className={styles.statItem}>
-              <p className={styles.statValue}>500+</p>
+              <p className={styles.statValue}>{stats.monthlyBookings}+</p>
               <p className={styles.statLabel}>Monthly Bookings</p>
             </div>
             <div className={styles.statItem}>
-              <p className={`${styles.statValue} ${styles.statOrange}`}>24h</p>
+              <p className={`${styles.statValue} ${styles.statOrange}`}>{stats.approvalTime}</p>
               <p className={styles.statLabel}>Approval Time</p>
             </div>
             <div className={styles.statItem}>
-              <p className={styles.statValue}>100%</p>
+              <p className={styles.statValue}>{stats.digitalProcess}</p>
               <p className={styles.statLabel}>Digital Process</p>
             </div>
           </div>

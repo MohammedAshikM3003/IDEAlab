@@ -336,6 +336,15 @@
   .profileLink {
     padding-left: 0;
   }
+
+  .notifPanel {
+    position: fixed;
+    top: 60px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: none;
+  }
 }
 
 .img {

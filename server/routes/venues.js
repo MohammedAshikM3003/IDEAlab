@@ -2,6 +2,7 @@ import express from 'express'
 import mongoose from 'mongoose'
 
 import Venue from '../models/Venue.js'
+import BookingRequest from '../models/BookingRequest.js'
 import { authMiddleware } from '../middleware/auth.js'
 
 const router = express.Router()
@@ -14,6 +15,29 @@ router.get('/public', async (_req, res) => {
     return res.json(venues)
   } catch {
     return res.status(500).json({ message: 'Failed to load venues' })
+  }
+})
+
+router.get('/public-stats', async (_req, res) => {
+  try {
+    const venuesCount = await Venue.countDocuments({ status: 'active' })
+    
+    // Count bookings received in the last 30 days
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    
+    const monthlyBookings = await BookingRequest.countDocuments({
+      receivedAt: { $gte: thirtyDaysAgo }
+    })
+
+    return res.json({
+      venuesCount,
+      monthlyBookings,
+      approvalTime: '24h',
+      digitalProcess: '100%'
+    })
+  } catch {
+    return res.status(500).json({ message: 'Failed to load stats' })
   }
 })
 

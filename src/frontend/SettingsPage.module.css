@@ -242,6 +242,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .formLoadError {
@@ -584,6 +585,31 @@
 .inputOff {
   background: #f8fafc;
   color: #64748b;
+}
+
+.emailInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.emailInputWrapper .input {
+  flex: 1;
+}
+
+.changeEmailBtn {
+  border: 0;
+  background: transparent;
+  color: #ff7a59;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.changeEmailBtn:hover {
+  text-decoration: underline;
 }
 
 .formBtns {
@@ -1134,12 +1160,13 @@
   .bottomHead {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
+    flex-wrap: wrap;
   }
 
   .bottomHead .link {
-    white-space: nowrap;
+    white-space: normal;
     flex-shrink: 0;
   }
 

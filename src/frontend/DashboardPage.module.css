@@ -1381,7 +1381,7 @@
 }
 
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .main {
     padding-left: 0 !important;
   }
@@ -1447,6 +1447,9 @@
   .cell,
   .cellMuted {
     padding: 0;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .cell:first-child {
@@ -1470,7 +1473,7 @@
     color: #6b7280;
   }
 }
-@media (min-width: 769px) {
+@media (min-width: 1025px) {
   .menu {
     display: none !important;
   }

@@ -49,6 +49,18 @@ const toProfileFromUser = (user) => ({
 const ensureSettings = async (user) => {
   let settings = await Setting.findOne({ userId: user._id })
   if (settings) {
+    let changed = false
+    if (settings.profile.email !== user.email) {
+      settings.profile.email = user.email
+      changed = true
+    }
+    if (settings.profile.emailVerified !== Boolean(user.emailVerified)) {
+      settings.profile.emailVerified = Boolean(user.emailVerified)
+      changed = true
+    }
+    if (changed) {
+      await settings.save()
+    }
     return settings
   }
 

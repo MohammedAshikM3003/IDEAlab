@@ -676,7 +676,8 @@
 .viewAllIcon { font-size: 1.125rem !important; transition: transform 150ms ease; }
 .viewAllLink:hover .viewAllIcon { transform: translateX(4px); }
 .venuesGrid { display: grid; gap: 32px; }
-@media (min-width: 768px) { .venuesGrid { grid-template-columns: repeat(3,1fr); } }
+@media (min-width: 768px) { .venuesGrid { grid-template-columns: repeat(2,1fr); } }
+@media (min-width: 1024px) { .venuesGrid { grid-template-columns: repeat(3,1fr); } }
 .venueCard {
   background: #fff;
   border-radius: 12px;

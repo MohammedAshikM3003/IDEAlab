@@ -44,6 +44,17 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    pendingEmail: {
+      type: String,
+      lowercase: true,
+      trim: true,
+    },
+    emailChangeOtp: {
+      type: String,
+    },
+    emailChangeOtpExpires: {
+      type: Date,
+    },
     lastLogin: {
       type: Date,
     },

@@ -134,6 +134,15 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
+  
+  const [isEmailChangeModalOpen, setIsEmailChangeModalOpen] = useState(false)
+  const [emailChangeStep, setEmailChangeStep] = useState('email')
+  const [newEmailInput, setNewEmailInput] = useState('')
+  const [emailChangeError, setEmailChangeError] = useState('')
+  const [emailChangeOtpInput, setEmailChangeOtpInput] = useState('')
+  const [emailChangeOtpError, setEmailChangeOtpError] = useState('')
+  const [emailChangeResendSeconds, setEmailChangeResendSeconds] = useState(60)
+
   const avatarInputRef = useRef(null)
   const cropSourceObjectUrlRef = useRef(null)
 
@@ -318,6 +327,20 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
     }
   }, [isMobileModalOpen, mobileModalStep, resendSeconds])
 
+  useEffect(() => {
+    if (!isEmailChangeModalOpen || emailChangeStep !== 'otp' || emailChangeResendSeconds <= 0) {
+      return undefined
+    }
+
+    const timerId = setTimeout(() => {
+      setEmailChangeResendSeconds((previous) => Math.max(previous - 1, 0))
+    }, 1000)
+
+    return () => {
+      clearTimeout(timerId)
+    }
+  }, [isEmailChangeModalOpen, emailChangeStep, emailChangeResendSeconds])
+
   const normalizeMobileNumber = (value) => {
     const digitsOnly = value.replace(/\D/g, '')
 
@@ -471,6 +494,59 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
     setOtpError('')
     setResendSeconds(30)
     setPendingMobileNumber('')
+  }
+
+  const closeEmailChangeModal = () => {
+    setIsEmailChangeModalOpen(false)
+    setNewEmailInput('')
+    setEmailChangeError('')
+    setEmailChangeStep('email')
+    setEmailChangeOtpInput('')
+    setEmailChangeOtpError('')
+    setEmailChangeResendSeconds(60)
+  }
+
+  const handleRequestEmailChange = async () => {
+    if (!newEmailInput || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmailInput)) {
+      setEmailChangeError('Please enter a valid email address.')
+      return
+    }
+
+    if (newEmailInput.trim().toLowerCase() === emailAddress.toLowerCase()) {
+      setEmailChangeError('This is already your email address.')
+      return
+    }
+
+    try {
+      await api.post('/api/users/me/request-email-change', { newEmail: newEmailInput })
+      setEmailChangeError('')
+      setEmailChangeStep('otp')
+      setEmailChangeOtpInput('')
+      setEmailChangeOtpError('')
+      setEmailChangeResendSeconds(60)
+    } catch (error) {
+      setEmailChangeError(error.message || 'Failed to request email change.')
+    }
+  }
+
+  const handleVerifyEmailChange = async () => {
+    if (!/^\d{6}$/.test(emailChangeOtpInput.trim())) {
+      setEmailChangeOtpError('Please enter a valid 6-digit OTP.')
+      return
+    }
+
+    try {
+      const response = await api.post('/api/users/me/verify-email-change', { otp: emailChangeOtpInput.trim() })
+      setEmailAddress(response.email)
+      syncUserProfileContext({ ...userProfile, email: response.email })
+      closeEmailChangeModal()
+      setToast({
+        id: `toast-email-changed-${Date.now()}`,
+        text: 'Email successfully changed.',
+      })
+    } catch (error) {
+      setEmailChangeOtpError(error.message || 'Verification failed.')
+    }
   }
 
   const handleSendOtp = () => {
@@ -639,7 +715,12 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
 
                   <label className={styles.field}>
                     <span className={styles.label}>Email Address</span>
-                    <input className={styles.input} onChange={(event) => setEmailAddress(event.target.value)} type="email" value={emailAddress} />
+                    <div className={styles.emailInputWrapper}>
+                      <input className={`${styles.input} ${styles.inputOff}`} readOnly type="email" value={emailAddress} />
+                      <button className={styles.changeEmailBtn} onClick={() => setIsEmailChangeModalOpen(true)} type="button">
+                        [Change]
+                      </button>
+                    </div>
                   </label>
 
                   <label className={styles.field}>
@@ -898,6 +979,91 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
                       </button>
                       <button className={styles.btnPrimary} onClick={handleVerifyAndSaveMobile} type="button">
                         Verify & Save
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          ) : null}
+
+          {isEmailChangeModalOpen ? (
+            <div className={styles.modalOverlay} onClick={closeEmailChangeModal} role="presentation">
+              <div className={styles.modalCard} onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true">
+                <button className={styles.modalClose} onClick={closeEmailChangeModal} type="button" aria-label="Close">
+                  x
+                </button>
+                <h3 className={styles.modalTitle}>Change Email Address</h3>
+
+                {emailChangeStep === 'email' ? (
+                  <>
+                    <p className={styles.modalText}>
+                      This only changes your login email. Booking requests will continue to be received at ksridealab@gmail.com.
+                    </p>
+                    <label className={styles.field}>
+                      <span className={styles.label}>New Email Address</span>
+                      <input
+                        className={styles.input}
+                        onChange={(event) => {
+                          setNewEmailInput(event.target.value)
+                          if (emailChangeError) {
+                            setEmailChangeError('')
+                          }
+                        }}
+                        placeholder="new@example.com"
+                        type="email"
+                        value={newEmailInput}
+                      />
+                    </label>
+                    {emailChangeError ? <div className={styles.inlineError}>{emailChangeError}</div> : null}
+
+                    <div className={styles.modalActions}>
+                      <button className={styles.btnOutline} onClick={closeEmailChangeModal} type="button">
+                        Cancel
+                      </button>
+                      <button className={styles.btnPrimary} onClick={handleRequestEmailChange} type="button">
+                        Send Code
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className={styles.hint}>Verification code sent to {newEmailInput}</p>
+
+                    <label className={styles.field}>
+                      <span className={styles.label}>Enter 6-digit Code</span>
+                      <input
+                        className={styles.input}
+                        inputMode="numeric"
+                        maxLength={6}
+                        onChange={(event) => {
+                          const onlyDigits = event.target.value.replace(/\D/g, '')
+                          setEmailChangeOtpInput(onlyDigits)
+                          if (emailChangeOtpError) {
+                            setEmailChangeOtpError('')
+                          }
+                        }}
+                        placeholder="Enter 6-digit OTP"
+                        type="text"
+                        value={emailChangeOtpInput}
+                      />
+                    </label>
+                    {emailChangeOtpError ? <div className={styles.inlineError}>{emailChangeOtpError}</div> : null}
+
+                    {emailChangeResendSeconds > 0 ? (
+                      <p className={styles.hint}>Resend code in {formatResendCountdown(emailChangeResendSeconds)}</p>
+                    ) : (
+                      <button className={styles.linkBtn} onClick={handleRequestEmailChange} type="button">
+                        Resend Code
+                      </button>
+                    )}
+
+                    <div className={styles.modalActions}>
+                      <button className={styles.btnOutline} onClick={closeEmailChangeModal} type="button">
+                        Cancel
+                      </button>
+                      <button className={styles.btnPrimary} onClick={handleVerifyEmailChange} type="button">
+                        Verify
                       </button>
                     </div>
                   </>
