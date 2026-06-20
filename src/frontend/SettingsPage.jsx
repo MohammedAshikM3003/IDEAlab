@@ -143,6 +143,12 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
   const [emailChangeOtpError, setEmailChangeOtpError] = useState('')
   const [emailChangeResendSeconds, setEmailChangeResendSeconds] = useState(60)
 
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
+  const [currentPasswordInput, setCurrentPasswordInput] = useState('')
+  const [newPasswordInput, setNewPasswordInput] = useState('')
+  const [confirmPasswordInput, setConfirmPasswordInput] = useState('')
+  const [passwordChangeError, setPasswordChangeError] = useState('')
+
   const avatarInputRef = useRef(null)
   const cropSourceObjectUrlRef = useRef(null)
 
@@ -529,6 +535,47 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
     }
   }
 
+  const closePasswordModal = () => {
+    setIsPasswordModalOpen(false)
+    setCurrentPasswordInput('')
+    setNewPasswordInput('')
+    setConfirmPasswordInput('')
+    setPasswordChangeError('')
+  }
+
+  const handleChangePassword = async () => {
+    if (!currentPasswordInput) {
+      setPasswordChangeError('Current password is required.')
+      return
+    }
+    if (!newPasswordInput) {
+      setPasswordChangeError('New password is required.')
+      return
+    }
+    if (newPasswordInput.length < 8) {
+      setPasswordChangeError('New password must be at least 8 characters long.')
+      return
+    }
+    if (newPasswordInput !== confirmPasswordInput) {
+      setPasswordChangeError('New passwords do not match.')
+      return
+    }
+
+    try {
+      await api.post('/api/users/me/change-password', {
+        currentPassword: currentPasswordInput,
+        newPassword: newPasswordInput,
+      })
+      closePasswordModal()
+      setToast({
+        id: `toast-password-changed-${Date.now()}`,
+        text: 'Password successfully changed.',
+      })
+    } catch (error) {
+      setPasswordChangeError(error.message || 'Failed to change password.')
+    }
+  }
+
   const handleVerifyEmailChange = async () => {
     if (!/^\d{6}$/.test(emailChangeOtpInput.trim())) {
       setEmailChangeOtpError('Please enter a valid 6-digit OTP.')
@@ -729,6 +776,9 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
                   </label>
 
                   <div className={styles.formBtns}>
+                    <button className={styles.btnSecondary} onClick={() => setIsPasswordModalOpen(true)} type="button">
+                      Change Password
+                    </button>
                     <button className={styles.btnPrimary} onClick={handleSaveProfile} type="button">
                       Save Changes
                     </button>
@@ -1210,6 +1260,68 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
                   </button>
                   <button className={styles.btnPrimary} onClick={handleCropApply} type="button">
                     Apply
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {isPasswordModalOpen ? (
+            <div className={styles.modalOverlay} onClick={closePasswordModal} role="presentation">
+              <div className={styles.modalCard} onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true">
+                <button className={styles.modalClose} onClick={closePasswordModal} type="button" aria-label="Close">
+                  x
+                </button>
+                <h3 className={styles.modalTitle}>Change Password</h3>
+
+                <label className={styles.field}>
+                  <span className={styles.label}>Current Password</span>
+                  <input
+                    className={styles.input}
+                    onChange={(e) => {
+                      setCurrentPasswordInput(e.target.value)
+                      setPasswordChangeError('')
+                    }}
+                    type="password"
+                    value={currentPasswordInput}
+                  />
+                </label>
+
+                <label className={styles.field}>
+                  <span className={styles.label}>New Password</span>
+                  <input
+                    className={styles.input}
+                    onChange={(e) => {
+                      setNewPasswordInput(e.target.value)
+                      setPasswordChangeError('')
+                    }}
+                    type="password"
+                    value={newPasswordInput}
+                  />
+                  <div className={styles.hint}>Must be at least 8 characters long.</div>
+                </label>
+
+                <label className={styles.field}>
+                  <span className={styles.label}>Confirm New Password</span>
+                  <input
+                    className={styles.input}
+                    onChange={(e) => {
+                      setConfirmPasswordInput(e.target.value)
+                      setPasswordChangeError('')
+                    }}
+                    type="password"
+                    value={confirmPasswordInput}
+                  />
+                </label>
+
+                {passwordChangeError ? <div className={styles.inlineError}>{passwordChangeError}</div> : null}
+
+                <div className={styles.modalActions}>
+                  <button className={styles.btnOutline} onClick={closePasswordModal} type="button">
+                    Cancel
+                  </button>
+                  <button className={styles.btnPrimary} onClick={handleChangePassword} type="button">
+                    Change Password
                   </button>
                 </div>
               </div>

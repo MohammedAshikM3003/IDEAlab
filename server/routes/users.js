@@ -236,4 +236,44 @@ router.post('/me/verify-email-change', authMiddleware, async (req, res) => {
   }
 })
 
+router.post('/me/change-password', authMiddleware, async (req, res) => {
+  const { currentPassword, newPassword } = req.body
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ message: 'Current and new passwords are required' })
+  }
+
+  if (newPassword.length < 8) {
+    return res.status(400).json({ message: 'New password must be at least 8 characters long' })
+  }
+
+  try {
+    const user = await User.findById(req.user._id)
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+
+    const isMatch = await user.comparePassword(currentPassword)
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Incorrect current password' })
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10)
+    user.password = hashedPassword
+    await user.save()
+
+    await SecurityActivity.create({
+      userId: user._id,
+      action: 'Password changed',
+      detail: 'Password was updated from account settings',
+      iconType: 'security',
+    })
+
+    return res.json({ message: 'Password successfully changed' })
+  } catch (error) {
+    console.error('Password change failed', error)
+    return res.status(500).json({ message: 'Failed to change password' })
+  }
+})
+
 export default router
