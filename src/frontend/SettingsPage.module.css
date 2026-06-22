@@ -1135,6 +1135,38 @@
   background: #002147;
 }
 
+.passwordInputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordInputWrap .input {
+  width: 100%;
+  padding-right: 36px;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 10px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.eyeBtn:hover {
+  color: #334155;
+}
+
+.eyeIcon {
+  width: 18px;
+  height: 18px;
+}
 
 @media (max-width: 768px) {
   .main {

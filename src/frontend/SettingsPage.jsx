@@ -9,6 +9,24 @@ import { api } from './utils/api.js'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
+function IconEye({ className }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+  )
+}
+
+function IconEyeOff({ className }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+      <line x1="1" y1="1" x2="23" y2="23"></line>
+    </svg>
+  )
+}
+
 function IconShield({ className }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -148,6 +166,9 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
   const [newPasswordInput, setNewPasswordInput] = useState('')
   const [confirmPasswordInput, setConfirmPasswordInput] = useState('')
   const [passwordChangeError, setPasswordChangeError] = useState('')
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const avatarInputRef = useRef(null)
   const cropSourceObjectUrlRef = useRef(null)
@@ -388,12 +409,12 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
       return
     }
 
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml']
     const isValidType = validTypes.includes(selectedFile.type)
     const isValidSize = selectedFile.size <= 1024 * 1024
 
     if (!isValidType || !isValidSize) {
-      setAvatarError('File must be JPG, GIF or PNG and under 1MB.')
+      setAvatarError('File must be JPG, SVG or PNG and under 1MB.')
       event.target.value = ''
       return
     }
@@ -735,7 +756,7 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
                     />
                     <div>
                       <input
-                        accept=".jpg,.jpeg,.png,.gif,image/jpeg,image/png,image/gif"
+                        accept=".jpg,.jpeg,.png,.svg,image/jpeg,image/png,image/svg+xml"
                         className={styles.hiddenFileInput}
                         onChange={handleAvatarChange}
                         ref={avatarInputRef}
@@ -744,7 +765,7 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
                       <button className={styles.btnSecondary} onClick={triggerAvatarPicker} type="button">
                         Change Avatar
                       </button>
-                      <div className={styles.hint}>JPG, GIF or PNG. 1MB Max.</div>
+                      <div className={styles.hint}>JPG, SVG or PNG. 1MB Max.</div>
                       {avatarError ? <div className={styles.inlineError}>{avatarError}</div> : null}
                     </div>
                   </div>
@@ -1276,42 +1297,57 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
 
                 <label className={styles.field}>
                   <span className={styles.label}>Current Password</span>
-                  <input
-                    className={styles.input}
-                    onChange={(e) => {
-                      setCurrentPasswordInput(e.target.value)
-                      setPasswordChangeError('')
-                    }}
-                    type="password"
-                    value={currentPasswordInput}
-                  />
+                  <div className={styles.passwordInputWrap}>
+                    <input
+                      className={styles.input}
+                      onChange={(e) => {
+                        setCurrentPasswordInput(e.target.value)
+                        setPasswordChangeError('')
+                      }}
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      value={currentPasswordInput}
+                    />
+                    <button type="button" className={styles.eyeBtn} onClick={() => setShowCurrentPassword(!showCurrentPassword)}>
+                      {showCurrentPassword ? <IconEyeOff className={styles.eyeIcon} /> : <IconEye className={styles.eyeIcon} />}
+                    </button>
+                  </div>
                 </label>
 
                 <label className={styles.field}>
                   <span className={styles.label}>New Password</span>
-                  <input
-                    className={styles.input}
-                    onChange={(e) => {
-                      setNewPasswordInput(e.target.value)
-                      setPasswordChangeError('')
-                    }}
-                    type="password"
-                    value={newPasswordInput}
-                  />
+                  <div className={styles.passwordInputWrap}>
+                    <input
+                      className={styles.input}
+                      onChange={(e) => {
+                        setNewPasswordInput(e.target.value)
+                        setPasswordChangeError('')
+                      }}
+                      type={showNewPassword ? 'text' : 'password'}
+                      value={newPasswordInput}
+                    />
+                    <button type="button" className={styles.eyeBtn} onClick={() => setShowNewPassword(!showNewPassword)}>
+                      {showNewPassword ? <IconEyeOff className={styles.eyeIcon} /> : <IconEye className={styles.eyeIcon} />}
+                    </button>
+                  </div>
                   <div className={styles.hint}>Must be at least 8 characters long.</div>
                 </label>
 
                 <label className={styles.field}>
                   <span className={styles.label}>Confirm New Password</span>
-                  <input
-                    className={styles.input}
-                    onChange={(e) => {
-                      setConfirmPasswordInput(e.target.value)
-                      setPasswordChangeError('')
-                    }}
-                    type="password"
-                    value={confirmPasswordInput}
-                  />
+                  <div className={styles.passwordInputWrap}>
+                    <input
+                      className={styles.input}
+                      onChange={(e) => {
+                        setConfirmPasswordInput(e.target.value)
+                        setPasswordChangeError('')
+                      }}
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPasswordInput}
+                    />
+                    <button type="button" className={styles.eyeBtn} onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                      {showConfirmPassword ? <IconEyeOff className={styles.eyeIcon} /> : <IconEye className={styles.eyeIcon} />}
+                    </button>
+                  </div>
                 </label>
 
                 {passwordChangeError ? <div className={styles.inlineError}>{passwordChangeError}</div> : null}
