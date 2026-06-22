@@ -200,11 +200,17 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
         const isDevice = iconType === 'device' || /login|chrome|windows/i.test(item.action || '')
         const isSuccess = iconType === 'success' || /password|updated|verified/i.test(item.action || '')
 
+        const exactTimeLabel = item.timestamp ? new Date(item.timestamp).toLocaleString(undefined, {
+          month: 'short', day: 'numeric', year: 'numeric',
+          hour: 'numeric', minute: '2-digit'
+        }) : ''
+
         return {
           ...item,
           icon: isDevice ? IconDevices : isSuccess ? IconCheck : IconCircle,
           iconClass: isDevice ? styles.iconBlue : isSuccess ? styles.iconGreen : styles.iconGray,
           timeLabel: relativeTime(item.timestamp),
+          exactTimeLabel,
         }
       }),
     [activity],
@@ -247,7 +253,6 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
     setEmailAddress(profile.email || '')
     setDesignation(profile.designation || profile.role || '')
     setMobileNumberInput(profile.mobile || '')
-    setNotifications(Array.isArray(settingsData?.notifications) ? settingsData.notifications : [])
     setActivity(Array.isArray(settingsData?.securityActivity) ? settingsData.securityActivity : [])
     syncUserProfileContext(profile)
   }, [syncUserProfileContext])
@@ -285,8 +290,8 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
     setNotificationsError('')
 
     try {
-      const data = await api.get('/api/settings')
-      setNotifications(Array.isArray(data?.notifications) ? data.notifications : [])
+      const data = await api.get('/api/notifications')
+      setNotifications(Array.isArray(data) ? data : [])
     } catch (error) {
       setNotificationsError(error.message || 'Failed to load')
     } finally {
@@ -681,8 +686,9 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
 
   const markAllNotificationsAsRead = async () => {
     try {
-      const response = await api.patch('/api/settings/notifications/read-all', {})
-      setNotifications(Array.isArray(response?.settings?.notifications) ? response.settings.notifications : [])
+      await api.patch('/api/notifications/read-all', {})
+      const data = await api.get('/api/notifications')
+      setNotifications(Array.isArray(data) ? data : [])
       setToast({ id: `toast-notifications-read-${Date.now()}`, text: 'All marked as read' })
     } catch (error) {
       setToast({ id: `toast-notifications-read-failed-${Date.now()}`, text: error.message || 'Update failed' })
@@ -691,15 +697,15 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
 
   const clearAllNotifications = async () => {
     try {
-      const response = await api.delete('/api/settings/notifications')
-      setNotifications(Array.isArray(response?.settings?.notifications) ? response.settings.notifications : [])
+      await api.delete('/api/notifications')
+      setNotifications([])
       setToast({ id: `toast-notifications-cleared-${Date.now()}`, text: 'Notifications cleared' })
     } catch (error) {
       setToast({ id: `toast-notifications-clear-failed-${Date.now()}`, text: error.message || 'Update failed' })
     }
   }
 
-  const fullDisplayName = `${userProfile.titlePrefix} ${firstName || userProfile.firstName} ${lastName || userProfile.lastName}`
+  const fullDisplayName = `${firstName || userProfile.firstName} ${lastName || userProfile.lastName}`.trim()
 
   const openAvatarViewer = () => {
     if (!userProfile.avatarUrl) {
@@ -830,7 +836,6 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
                   </div>
                   <div className={styles.badges}>
                     <span className={`${styles.badge} ${styles.tagBlue}`}>{user?.role || 'Admin'}</span>
-                    <span className={`${styles.badge} ${styles.tagPurple}`}>{designation || 'Not set'}</span>
                   </div>
                 </div>
 
@@ -853,19 +858,7 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
                         <span className={user?.emailVerified ? styles.verifyTxt : styles.verifyMuted}>Email Verified</span>
                       </div>
                     </li>
-                    <li className={styles.verifyItem}>
-                      <div className={styles.verifyLeft}>
-                        {user?.mobile ? (
-                          <IconCheck className={`${styles.verifyIco} ${styles.verifyIcoOk}`} />
-                        ) : (
-                          <IconCircle className={`${styles.verifyIco} ${styles.verifyIcoPend}`} />
-                        )}
-                        <span className={user?.mobile ? styles.verifyTxt : styles.verifyMuted}>Mobile Number</span>
-                      </div>
-                      <button className={styles.linkBtn} onClick={() => setIsMobileModalOpen(true)} type="button">
-                        Update
-                      </button>
-                    </li>
+
                     <li className={styles.verifyItem}>
                       <div className={styles.verifyLeft}>
                         {user?.twoFactorEnabled ? (
@@ -913,11 +906,14 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
           const EventIcon = event.icon
           return (
             <li className={styles.activityItem} key={event._id || event.id}>
-              <EventIcon className={`${styles.actIcon} ${event.iconClass}`} />
-              <div>
-                <div>{event.action}</div>
-                <div className={styles.activityTime}>{event.timeLabel}</div>
+              <div className={styles.activityLeft}>
+                <EventIcon className={`${styles.actIcon} ${event.iconClass}`} />
+                <div className={styles.logTextWrap}>
+                  <div className={styles.logAction}>{event.action}</div>
+                  <div className={styles.activityTimeMuted}>{event.exactTimeLabel}</div>
+                </div>
               </div>
+              <div className={styles.activityRightTime}>{event.timeLabel}</div>
             </li>
           )
         })
@@ -1205,11 +1201,14 @@ export default function SettingsPage({ isSidebarOpen, setIsSidebarOpen }) {
                     const EventIcon = event.icon
                     return (
                       <li className={styles.logItem} key={`log-${event._id || event.id}`}>
-                        <EventIcon className={`${styles.actIcon} ${event.iconClass}`} />
-                        <div>
-                          <div>{event.action}</div>
-                          <div className={styles.activityTime}>{event.timeLabel}</div>
+                        <div className={styles.activityLeft}>
+                          <EventIcon className={`${styles.actIcon} ${event.iconClass}`} />
+                          <div className={styles.logTextWrap}>
+                            <div className={styles.logAction}>{event.action}</div>
+                            <div className={styles.activityTimeMuted}>{event.exactTimeLabel}</div>
+                          </div>
                         </div>
+                        <div className={styles.activityRightTime}>{event.timeLabel}</div>
                       </li>
                     )
                   })}

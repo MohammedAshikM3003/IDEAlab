@@ -296,7 +296,8 @@
 .activityItem,
 .notifyItem {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
   padding: 12px 0;
   border-top: 1px solid #e5e7eb;
@@ -1069,9 +1070,40 @@
 
 .logItem {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
   padding: 10px 12px;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.activityLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.activityRightTime {
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.activityTimeMuted {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.logTextWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.logAction {
+  font-weight: 500;
 }
 
 .logItem + .logItem {

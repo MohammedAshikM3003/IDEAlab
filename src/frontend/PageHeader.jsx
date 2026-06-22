@@ -30,7 +30,7 @@ const NOTIFICATION_ITEMS = [
 export default function PageHeader({ title, setIsSidebarOpen }) {
   const navigate = useNavigate();
   const { userProfile } = useUserProfile();
-  const fullName = `${userProfile.titlePrefix} ${userProfile.firstName} ${userProfile.lastName}`;
+  const fullName = `${userProfile.firstName} ${userProfile.lastName}`.trim();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notificationsRead, setNotificationsRead] = useState(() => {
     const saved = localStorage.getItem(NOTIFICATIONS_READ_KEY);

@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import Calendar from '../Calendar'
 import styles from './InternalBookingModal.module.css'
 
+import TimePickerField from '../TimePickerField'
+
 const VENUES = [
   { value: '', label: 'Select a venue' },
   { value: 'aicte', label: 'AICTE Idea Lab' },
@@ -37,26 +39,25 @@ const toISODate = (date) => {
 }
 
 const parseTimeValue = (timeValue) => {
-  if (!timeValue) return { hour12: 9, minute: '00', period: 'AM' }
+  if (!timeValue) return { hour: '', minute: '', period: 'AM' }
 
   const [hourRaw, minuteRaw] = timeValue.split(':').map(Number)
   if (!Number.isInteger(hourRaw) || !Number.isInteger(minuteRaw)) {
-    return { hour12: 9, minute: '00', period: 'AM' }
+    return { hour: '', minute: '', period: 'AM' }
   }
 
   const period = hourRaw >= 12 ? 'PM' : 'AM'
   const hour12 = hourRaw % 12 || 12
   const minute = String(Math.max(0, Math.min(59, minuteRaw))).padStart(2, '0')
-  return { hour12, minute, period }
+  return { hour: String(hour12).padStart(2, '0'), minute, period }
 }
 
-const to24HourTime = (hour12, minute, period) => {
-  let hour24 = hour12 % 12
+const to24HourTime = (hour, minute, period) => {
+  if (!hour || !minute) return ''
+  let hour24 = Number(hour) % 12
   if (period === 'PM') hour24 += 12
   return `${String(hour24).padStart(2, '0')}:${minute}`
 }
-
-const formatDisplayTime = ({ hour12, minute, period }) => `${String(hour12).padStart(2, '0')}:${minute} ${period}`
 
 const toMinutes = (timeValue) => {
   if (!timeValue) return null
@@ -112,11 +113,7 @@ export default function InternalBookingModal({ isOpen, onClose }) {
   const endParts = parseTimeValue(endTime)
   const isEndBeforeStart = toMinutes(startTime) !== null && toMinutes(endTime) !== null && toMinutes(endTime) < toMinutes(startTime)
 
-  const updateTime = (currentValue, setTime, updates) => {
-    const currentParts = parseTimeValue(currentValue)
-    const nextParts = { ...currentParts, ...updates }
-    setTime(to24HourTime(nextParts.hour12, nextParts.minute, nextParts.period))
-  }
+
 
   const normalizedEventTitle = (eventTitle || '').trim().replace(/\s+/g, ' ')
   const successEventTitle = normalizedEventTitle || 'Untitled Event'
@@ -169,122 +166,20 @@ export default function InternalBookingModal({ isOpen, onClose }) {
             </label>
 
             <div className={styles.timePickersRow}>
-              <section className={styles.timePickerPanel} aria-label="Start Time Picker">
-                <div className={styles.timePickerHeader}>
-                  <span className={styles.timePickerHeading}>Start Time</span>
-                  <span className={styles.timePickerCurrent}>{formatDisplayTime(startParts)}</span>
-                </div>
+              <TimePickerField
+                id="internal-booking-start"
+                label="Time Slot Start"
+                value={startParts}
+                onChange={(next) => setStartTime(to24HourTime(next.hour, next.minute, next.period))}
+              />
 
-                <div className={styles.meridiemToggle} role="group" aria-label="Start time AM or PM">
-                  <button
-                    className={`${styles.meridiemBtn} ${startParts.period === 'AM' ? styles.meridiemBtnActive : ''}`}
-                    onClick={() => updateTime(startTime, setStartTime, { period: 'AM' })}
-                    type="button"
-                  >
-                    AM
-                  </button>
-                  <button
-                    className={`${styles.meridiemBtn} ${startParts.period === 'PM' ? styles.meridiemBtnActive : ''}`}
-                    onClick={() => updateTime(startTime, setStartTime, { period: 'PM' })}
-                    type="button"
-                  >
-                    PM
-                  </button>
-                </div>
-
-                <div className={styles.timeSectionLabel}>START TIME</div>
-                <div className={styles.hourGrid} role="group" aria-label="Start hour options">
-                  {HOUR_OPTIONS.map((hour) => (
-                    <button
-                      key={`start-hour-${hour}`}
-                      className={`${styles.timeCell} ${startParts.hour12 === hour ? styles.timeCellActive : ''}`}
-                      onClick={() => updateTime(startTime, setStartTime, { hour12: hour })}
-                      type="button"
-                    >
-                      {hour}
-                    </button>
-                  ))}
-                </div>
-
-                <div className={styles.timeSectionLabel}>MIN</div>
-                <div className={styles.minuteGridWrap} role="group" aria-label="Start minute options">
-                  <div className={styles.minuteGrid}>
-                  {MINUTE_OPTIONS.map((minuteValue) => {
-                    const minute = String(minuteValue).padStart(2, '0')
-                    return (
-                    <button
-                      key={`start-minute-${minute}`}
-                      className={`${styles.timeCell} ${startParts.minute === minute ? styles.timeCellActive : ''}`}
-                      onClick={() => updateTime(startTime, setStartTime, { minute })}
-                      type="button"
-                    >
-                      {minute}
-                    </button>
-                    )
-                  })}
-                  </div>
-                </div>
-              </section>
-
-              <section className={styles.timePickerPanel} aria-label="End Time Picker">
-                <div className={styles.timePickerHeader}>
-                  <span className={styles.timePickerHeading}>End Time</span>
-                  <span className={`${styles.timePickerCurrent} ${isEndBeforeStart ? styles.timePickerCurrentError : ''}`}>
-                    {formatDisplayTime(endParts)}
-                  </span>
-                </div>
-                {isEndBeforeStart ? <div className={styles.timeWarning}>End time before start</div> : null}
-
-                <div className={styles.meridiemToggle} role="group" aria-label="End time AM or PM">
-                  <button
-                    className={`${styles.meridiemBtn} ${endParts.period === 'AM' ? styles.meridiemBtnActive : ''}`}
-                    onClick={() => updateTime(endTime, setEndTime, { period: 'AM' })}
-                    type="button"
-                  >
-                    AM
-                  </button>
-                  <button
-                    className={`${styles.meridiemBtn} ${endParts.period === 'PM' ? styles.meridiemBtnActive : ''}`}
-                    onClick={() => updateTime(endTime, setEndTime, { period: 'PM' })}
-                    type="button"
-                  >
-                    PM
-                  </button>
-                </div>
-
-                <div className={styles.timeSectionLabel}>END TIME</div>
-                <div className={styles.hourGrid} role="group" aria-label="End hour options">
-                  {HOUR_OPTIONS.map((hour) => (
-                    <button
-                      key={`end-hour-${hour}`}
-                      className={`${styles.timeCell} ${endParts.hour12 === hour ? styles.timeCellActive : ''}`}
-                      onClick={() => updateTime(endTime, setEndTime, { hour12: hour })}
-                      type="button"
-                    >
-                      {hour}
-                    </button>
-                  ))}
-                </div>
-
-                <div className={styles.timeSectionLabel}>MIN</div>
-                <div className={styles.minuteGridWrap} role="group" aria-label="End minute options">
-                  <div className={styles.minuteGrid}>
-                  {MINUTE_OPTIONS.map((minuteValue) => {
-                    const minute = String(minuteValue).padStart(2, '0')
-                    return (
-                    <button
-                      key={`end-minute-${minute}`}
-                      className={`${styles.timeCell} ${endParts.minute === minute ? styles.timeCellActive : ''}`}
-                      onClick={() => updateTime(endTime, setEndTime, { minute })}
-                      type="button"
-                    >
-                      {minute}
-                    </button>
-                    )
-                  })}
-                  </div>
-                </div>
-              </section>
+              <TimePickerField
+                id="internal-booking-end"
+                label="Time Slot End"
+                value={endParts}
+                onChange={(next) => setEndTime(to24HourTime(next.hour, next.minute, next.period))}
+                errorMsg={isEndBeforeStart ? "End time before start" : undefined}
+              />
             </div>
 
             {isSlotCheckReady ? (

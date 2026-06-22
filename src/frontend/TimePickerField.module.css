@@ -1,0 +1,250 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  flex: 1;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0 12px;
+  border-left: 3px solid transparent;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, border-left-color 0.2s ease;
+}
+
+.control:focus-within {
+  border-color: #e2e8f0;
+  border-left-color: #ff6b35;
+  border-left-width: 3px;
+  box-shadow: none;
+}
+
+.input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 12px 4px;
+  font-size: 14px;
+  color: #0f172a !important;
+  background-color: transparent !important;
+  -webkit-text-fill-color: #0f172a !important;
+  outline: none;
+  width: 100%;
+}
+
+.input::placeholder {
+  color: #cbd5e0;
+}
+
+.inputIcon {
+  position: absolute;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  color: #94a3b8;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.inputIcon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.hasIcon {
+  padding-right: 40px;
+}
+
+.pointerCursor {
+  cursor: pointer;
+}
+
+.error {
+  font-size: 12px;
+  color: #b91c1c;
+  margin-top: -2px;
+}
+
+.timePickerPopup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+  margin-top: 4px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+}
+
+/* ─── Time Spinner Picker ───────────────────────────────────────────────────── */
+.timeSpinnerWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border: 1px solid #E5E7EB;
+  border-left: 3px solid transparent;
+  border-radius: 12px;
+  background: #ffffff;
+  min-height: 46px;
+  transition: border-color 0.2s ease, border-left-color 0.2s ease;
+}
+
+.timeSpinnerWrapper:focus-within {
+  border-color: #E5E7EB;
+  border-left-color: #F26522;
+}
+
+.timeSpinnerError {
+  border-color: #fca5a5;
+  border-left-color: #b91c1c !important;
+}
+
+.spinnerUnit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.spinnerLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-bottom: 2px;
+  letter-spacing: 0.05em;
+}
+
+.spinnerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #6B7280;
+  padding: 0;
+  border-radius: 4px;
+  transition: color 0.2s ease, background 0.2s ease;
+  line-height: 1;
+}
+
+.spinnerBtn:hover {
+  color: #F26522;
+  background: rgba(242, 101, 34, 0.08);
+}
+
+.spinnerBtn:active {
+  color: #e85a28;
+  background: rgba(242, 101, 34, 0.16);
+}
+
+.spinnerBtn svg {
+  width: 10px;
+  height: 6px;
+  display: block;
+}
+
+.spinnerInput {
+  width: 56px;
+  height: 38px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  background: #f9fafb;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1F2937;
+  font-family: inherit;
+  outline: none;
+  overflow: visible;
+  box-sizing: border-box;
+  padding: 0 4px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  -moz-appearance: textfield;
+}
+
+.spinnerInput::-webkit-outer-spin-button,
+.spinnerInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.spinnerInput:focus {
+  border-color: #F26522;
+  background: #fff8f5;
+  outline: none;
+}
+
+.spinnerColon {
+  font-size: 20px;
+  font-weight: 800;
+  color: #6B7280;
+  line-height: 1;
+  margin-top: 18px;
+  user-select: none;
+}
+
+.inlinePeriodToggle {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.periodBtn {
+  height: 46px;
+  padding: 0 16px;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1F2937;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  line-height: 1.4;
+}
+
+.periodBtn:hover {
+  border-color: #F26522;
+  color: #F26522;
+}
+
+.periodBtnActive {
+  background: #F26522;
+  color: #ffffff;
+  border-color: #F26522;
+  box-shadow: 0 2px 8px rgba(242, 101, 34, 0.3);
+}
+
+.periodBtnActive:hover {
+  background: #e85a28;
+  color: #ffffff;
+  border-color: #e85a28;
+}
+
+@media (max-width: 640px) {
+  .timeSpinnerWrapper {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+}
