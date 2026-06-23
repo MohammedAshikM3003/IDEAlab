@@ -2,7 +2,7 @@ import cron from 'node-cron'
 
 import gmailWatchService from '../services/gmail/gmailWatchService.js'
 
-const RENEW_WATCH_CRON = '0 2 */6 * *'
+const RENEW_WATCH_CRON = '0 2 */5 * *'
 
 /**
  * Run one Gmail watch renewal cycle.

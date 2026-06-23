@@ -207,6 +207,21 @@ const startServer = async () => {
     await mongoose.connect(MONGODB_URI)
     console.log('MongoDB connected ✅')
     await ensureDefaultAdmin()
+
+    // Start Gmail watch on every server boot so Pub/Sub push notifications
+    // are always active (watch expires every 7 days; this ensures it resets on restart).
+    import('./services/gmail/gmailWatchService.js')
+      .then(({ default: gmailWatchService }) =>
+        gmailWatchService.startWatch().then((result) => {
+          console.log('[startup] Gmail watch started ✅', {
+            historyId: result?.historyId || null,
+            expiration: result?.expiration || null,
+          })
+        })
+      )
+      .catch((err) => {
+        console.warn('[startup] Gmail watch failed to start (non-fatal):', err?.message || String(err))
+      })
   } catch (error) {
     console.error('MongoDB connection failed:', error.message)
   }
