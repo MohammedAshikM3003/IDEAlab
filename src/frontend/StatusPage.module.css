@@ -365,6 +365,11 @@
   border-left: 4px solid #16a34a;
 }
 
+.venueCardScheduled {
+  composes: venueCard;
+  border-left: 4px solid #3b82f6;
+}
+
 .venueCardMaintenance {
   composes: venueCard;
   border-left: 4px solid #d97706;
@@ -422,6 +427,12 @@
   color: #16a34a;
 }
 
+.venueIconScheduled {
+  composes: venueIconBase;
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
 .venueIconMaintenance {
   composes: venueIconBase;
   background: #ffedd5;
@@ -453,6 +464,12 @@
   composes: statusBadge;
   background: #dcfce7;
   color: #16a34a;
+}
+
+.badgeScheduled {
+  composes: statusBadge;
+  background: #dbeafe;
+  color: #1d4ed8;
 }
 
 .badgeMaintenance {
@@ -509,6 +526,13 @@
 
 .endsInText {
   color: #d97706;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.startsInText {
+  color: #1d4ed8;
   font-size: 0.78rem;
   font-weight: 700;
   white-space: nowrap;

@@ -116,13 +116,25 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
           tags: [{ label: statusLabel, tone: getStatusTone(statusLabel) }],
           eventDate: b.extractedDetails?.requestedDate || 'TBD',
           timeSlot: (() => {
-            const raw = b.extractedDetails?.timeSlot || 'TBD'
+            let raw = b.extractedDetails?.timeSlot || 'TBD'
             if (raw === 'TBD') return raw
-            return raw.replace(/(\d{2}):(\d{2})/g, (match, h, m) => {
-              const hour = parseInt(h, 10)
-              const period = hour >= 12 ? 'PM' : 'AM'
+            
+            // Clean up missing minutes like "04: PM"
+            raw = raw.replace(/(\d{1,2}):\s*(AM|PM)/ig, '$1:00 $2')
+            
+            // Normalize all times to HH:MM AM/PM
+            const timeRegex = /(\d{1,2}):(\d{2})(?:\s*(AM|PM))?/ig
+            return raw.replace(timeRegex, (match, h, m, period) => {
+              let hour = parseInt(h, 10)
+              const isPM = period && period.toUpperCase() === 'PM'
+              const isAM = period && period.toUpperCase() === 'AM'
+              
+              if (isPM && hour < 12) hour += 12
+              if (isAM && hour === 12) hour = 0
+              
+              const outPeriod = hour >= 12 ? 'PM' : 'AM'
               const hour12 = hour % 12 || 12
-              return `${hour12}:${m} ${period}`
+              return `${hour12}:${m} ${outPeriod}`
             })
           })(),
           department: b.extractedDetails?.department || 'Not specified',

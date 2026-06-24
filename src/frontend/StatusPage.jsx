@@ -59,16 +59,23 @@ function formatTimeClock(date) {
 function formatTime12(value) {
   const raw = String(value || '').trim()
   if (!raw) return ''
-  if (/\b(am|pm)\b/i.test(raw)) {
-    return raw.replace(/\s+/g, ' ').toUpperCase()
+  const match = raw.match(/(\d{1,2})[:\s.]?(\d{2})?\s*(am|pm)?/i)
+  if (match) {
+    let h = parseInt(match[1], 10)
+    let m = match[2] || '00'
+    let p = (match[3] || '').toUpperCase()
+    if (!p) {
+      if (raw.toUpperCase().includes('PM')) p = 'PM'
+      else if (raw.toUpperCase().includes('AM')) p = 'AM'
+      else {
+        p = h >= 12 ? 'PM' : 'AM'
+        if (h > 12) h -= 12
+        if (h === 0) h = 12
+      }
+    }
+    return `${h}:${m} ${p}`
   }
-  const match = raw.match(/^(\d{1,2}):(\d{2})$/)
-  if (!match) return raw
-  const hour24 = Number(match[1])
-  const minute = match[2]
-  const period = hour24 >= 12 ? 'PM' : 'AM'
-  const hour12 = hour24 % 12 || 12
-  return `${hour12}:${minute} ${period}`
+  return raw
 }
 
 function formatTime24(value) {
@@ -122,13 +129,29 @@ function formatCapacityText(venue) {
   return parts.join(' • ')
 }
 
+function parseTimeStrToMinutes(timeStr) {
+  if (!timeStr) return -1;
+  const match = String(timeStr).match(/(\d{1,2})[:\s.]?(\d{2})?\s*(am|pm)?/i);
+  if (!match) return -1;
+  let h = parseInt(match[1], 10);
+  let m = parseInt(match[2] || '0', 10);
+  let p = (match[3] || '').toUpperCase();
+  if (!p) {
+    if (String(timeStr).toUpperCase().includes('PM')) p = 'PM';
+    if (String(timeStr).toUpperCase().includes('AM')) p = 'AM';
+  }
+  if (p === 'PM' && h < 12) h += 12;
+  if (p === 'AM' && h === 12) h = 0;
+  return h * 60 + m;
+}
+
 function getTimeSlotLabel(timeSlot) {
   const start = timeSlot?.start ? String(timeSlot.start).trim() : ''
   const end = timeSlot?.end ? String(timeSlot.end).trim() : ''
   if (!start || !end) {
     return ''
   }
-  return `${start} - ${end}`
+  return `${formatTime12(start)} - ${formatTime12(end)}`
 }
 
 export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
@@ -380,41 +403,44 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
     return () => controller.abort()
   }, [selectedDateKey])
 
-  const availabilityByVenueId = useMemo(() => {
-    const map = new Map()
-    availabilityBookings.forEach((booking) => {
-      const venue = booking?.confirmedBooking?.venue
-      let venueId = null
-
-      if (typeof venue === 'string') {
-        venueId = venue
-      } else if (venue?._id) {
-        venueId = String(venue._id)
-      }
-
-      if (!venueId) {
-        return
-      }
-
-      if (!map.has(venueId)) {
-        map.set(venueId, booking)
-      }
-    })
-    return map
-  }, [availabilityBookings])
-
   const rightNowItemsForSelectedDate = useMemo(() => {
     const list = Array.isArray(venues) ? venues : []
+    const today = new Date();
+    const isToday = selectedDate.toDateString() === today.toDateString();
+    const currentMins = today.getHours() * 60 + today.getMinutes();
 
     return list.map((venue) => {
       const venueId = venue?._id ? String(venue._id) : String(venue?.id || venue?.name || '')
-      const booking = venueId ? availabilityByVenueId.get(venueId) : null
-      const timeSlotLabel = getTimeSlotLabel(booking?.confirmedBooking?.timeSlot)
-      const endTime = booking?.confirmedBooking?.timeSlot?.end
-        ? String(booking.confirmedBooking.timeSlot.end)
-        : ''
+      
+      const venueBookings = availabilityBookings.filter((b) => {
+        const v = b?.confirmedBooking?.venue;
+        const vId = typeof v === 'string' ? v : String(v?._id || '');
+        return vId === venueId;
+      });
 
-      if (booking) {
+      let activeBooking = null;
+      if (isToday) {
+        activeBooking = venueBookings.find((b) => {
+          const slot = b?.confirmedBooking?.timeSlot;
+          if (!slot) return false;
+          const startMins = parseTimeStrToMinutes(slot.start);
+          const endMins = parseTimeStrToMinutes(slot.end);
+          return startMins !== -1 && endMins !== -1 && currentMins >= startMins && currentMins <= endMins;
+        });
+      }
+
+      if (activeBooking) {
+        const timeSlotLabel = getTimeSlotLabel(activeBooking.confirmedBooking.timeSlot);
+        const endTimeStr = activeBooking.confirmedBooking.timeSlot.end;
+        const endMins = parseTimeStrToMinutes(endTimeStr);
+        const startMins = parseTimeStrToMinutes(activeBooking.confirmedBooking.timeSlot.start);
+        const minsLeft = Math.max(0, endMins - currentMins);
+        
+        let percent = 0;
+        if (endMins > startMins) {
+           percent = Math.min(100, Math.max(0, ((currentMins - startMins) / (endMins - startMins)) * 100));
+        }
+
         return {
           id: venueId,
           type: 'inUse',
@@ -423,8 +449,40 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
           badge: 'IN USE',
           capacityText: formatCapacityText(venue),
           sessionText: timeSlotLabel ? `Current Session: ${timeSlotLabel}` : 'Current Session: Approved booking',
-          requestedBy: booking?.requesterName || booking?.subject || 'Requester',
-          freeAt: endTime || 'TBD',
+          requestedBy: activeBooking.requesterName || activeBooking.subject || 'Requester',
+          freeAt: endTimeStr ? formatTime12(endTimeStr) : 'TBD',
+          percent: percent || 0,
+          endsInText: `Ends in ${minsLeft}m`,
+        }
+      }
+
+      const nextBooking = !isToday
+        ? venueBookings[0]
+        : venueBookings.find((b) => {
+            const slot = b?.confirmedBooking?.timeSlot;
+            if (!slot) return false;
+            const sMins = parseTimeStrToMinutes(slot.start);
+            return sMins > currentMins;
+          });
+
+      if (nextBooking) {
+        const slot = nextBooking.confirmedBooking?.timeSlot;
+        const timeSlotLabel = getTimeSlotLabel(slot);
+        const startsAt = slot?.start ? formatTime12(slot.start) : '';
+        const startMinsVal = parseTimeStrToMinutes(slot?.start);
+        const minsUntil = isToday && startMinsVal !== -1 ? Math.max(0, startMinsVal - currentMins) : null;
+
+        return {
+          id: venueId,
+          type: 'scheduled',
+          icon: 'event',
+          venue: venue?.name || 'Venue',
+          badge: 'SCHEDULED',
+          capacityText: formatCapacityText(venue),
+          sessionText: timeSlotLabel ? `Scheduled: ${timeSlotLabel}` : 'Has a confirmed booking.',
+          requestedBy: nextBooking.requesterName || nextBooking.subject || 'Requester',
+          startsAt: startsAt,
+          startsInText: minsUntil !== null ? (minsUntil <= 0 ? 'Starting now' : `Starts in ${minsUntil}m`) : '',
         }
       }
 
@@ -435,11 +493,11 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
         venue: venue?.name || 'Venue',
         badge: 'AVAILABLE',
         capacityText: formatCapacityText(venue),
-        vacancyText: 'Currently available.',
+        vacancyText: isToday ? 'Currently available.' : 'Available on this date.',
         nextBookingText: 'No approved bookings on this date.',
       }
     })
-  }, [availabilityByVenueId, venues])
+  }, [availabilityBookings, venues, selectedDate, lastRefreshedAt])
 
   const upcomingItemsForSelectedDate = useMemo(
     () => upcomingItemsByDate[selectedDateKey] || [],
@@ -700,18 +758,7 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
     }
   }, [isDetailsOpen, isEditOpen, isEditSuccessOpen, isCancelOpen])
 
-  const rightNowProgress = useMemo(() => {
-    const now = lastRefreshedAt
-    const mockStart = new Date(now.getTime() - 45 * 60000)
-    const mockEnd = new Date(now.getTime() + 26 * 60000)
-    const percent = Math.min(100, Math.max(0, ((now - mockStart) / (mockEnd - mockStart)) * 100))
-    const minsLeft = Math.max(0, Math.round((mockEnd - now) / 60000))
 
-    return {
-      percent,
-      endsInText: `Ends in ${minsLeft}m`,
-    }
-  }, [lastRefreshedAt])
 
   const goToPreviousDate = () => {
     setSelectedDate((previous) => {
@@ -894,7 +941,9 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
                           ? statusStyles.venueCardInUse
                           : item.type === 'available'
                             ? statusStyles.venueCardAvailable
-                            : statusStyles.venueCardMaintenance
+                            : item.type === 'scheduled'
+                              ? statusStyles.venueCardScheduled
+                              : statusStyles.venueCardMaintenance
                       }
                       key={item.id}
                     >
@@ -906,7 +955,9 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
                                 ? statusStyles.venueIconInUse
                                 : item.type === 'available'
                                   ? statusStyles.venueIconAvailable
-                                  : statusStyles.venueIconMaintenance
+                                  : item.type === 'scheduled'
+                                    ? statusStyles.venueIconScheduled
+                                    : statusStyles.venueIconMaintenance
                             }
                           >
                             <span className="material-icons">{item.icon}</span>
@@ -923,7 +974,9 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
                               ? statusStyles.badgeInUse
                               : item.type === 'available'
                                 ? statusStyles.badgeAvailable
-                                : statusStyles.badgeMaintenance
+                                : item.type === 'scheduled'
+                                  ? statusStyles.badgeScheduled
+                                  : statusStyles.badgeMaintenance
                           }
                         >
                           {item.badge}
@@ -935,9 +988,9 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
                           <p className={statusStyles.sessionText}>{item.sessionText}</p>
                           <div className={statusStyles.progressRow}>
                             <div className={statusStyles.progressBar}>
-                              <div className={statusStyles.progressFill} style={{ width: `${rightNowProgress.percent}%` }} />
+                              <div className={statusStyles.progressFill} style={{ width: `${item.percent}%` }} />
                             </div>
-                            <span className={statusStyles.endsInText}>{rightNowProgress.endsInText}</span>
+                            <span className={statusStyles.endsInText}>{item.endsInText}</span>
                           </div>
                           <div className={statusStyles.footerRow}>
                             <span className={statusStyles.requestedBy}>
@@ -945,6 +998,23 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
                               {item.requestedBy}
                             </span>
                             <span className={statusStyles.freeAtText}>Free at {item.freeAt}</span>
+                          </div>
+                        </>
+                      ) : null}
+
+                      {item.type === 'scheduled' ? (
+                        <>
+                          <p className={statusStyles.sessionText}>{item.sessionText}</p>
+                          {item.startsInText ? (
+                            <div className={statusStyles.progressRow}>
+                              <span className={statusStyles.startsInText}>{item.startsInText}</span>
+                            </div>
+                          ) : null}
+                          <div className={statusStyles.footerRow}>
+                            <span className={statusStyles.requestedBy}>
+                              <span className="material-icons">person</span>
+                              {item.requestedBy}
+                            </span>
                           </div>
                         </>
                       ) : null}

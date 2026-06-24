@@ -221,17 +221,27 @@
 .venueCard:hover .venueImg {
   transform: scale(1.08);
 }
-.badgeAvailable {
+.badge {
   position: absolute;
   top: 14px;
   right: 14px;
-  background: #22c55e;
   color: #fff;
   font-size: 0.72rem;
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 6px;
+}
+.badgeAvailable {
+  background: #22c55e;
   box-shadow: 0 2px 6px rgba(34,197,94,0.3);
+}
+.badgeScheduled {
+  background: #eab308;
+  box-shadow: 0 2px 6px rgba(234,179,8,0.3);
+}
+.badgeOccupied {
+  background: #ef4444;
+  box-shadow: 0 2px 6px rgba(239,68,68,0.3);
 }
 .venueBody {
   padding: 22px;

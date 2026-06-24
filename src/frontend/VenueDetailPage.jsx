@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import s from "./VenueDetailPage.module.css";
 import lp from "./landingpage.module.css";
 import ksrceLogo from '../assets/collegelogo.jpg';
+import VenueCalendar from './components/VenueCalendar';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -145,16 +146,28 @@ export default function VenueDetailPage() {
   const equipment = venue.equipment || [];
   const bookingSteps = [
     {
-      name: 'Check Availability',
-      description: 'Use the calendar to find an open date for your event. You can see which dates are booked, open, or closed for maintenance.',
+      icon: 'email',
+      num: '01',
+      name: 'Send Request',
+      description: 'Initiate your booking by sending a formal request through the portal.',
     },
     {
-      name: 'Submit Request',
-      description: 'Fill out the booking form with your event details. Our team will review your request and get back to you within 24 hours.',
+      icon: 'edit_note',
+      num: '02',
+      name: 'Fill Form',
+      description: 'Complete the detailed application form with event specifics and requirements.',
     },
     {
-      name: 'Confirmation',
-      description: 'Once approved, you will receive a confirmation email with all the details for your scheduled event. You are all set!',
+      icon: 'admin_panel_settings',
+      num: '03',
+      name: 'Admin Review',
+      description: 'The administration team reviews the availability and purpose of the venue.',
+    },
+    {
+      icon: 'check_circle',
+      num: '04',
+      name: 'Get Confirmation',
+      description: 'Receive your official booking confirmation and access pass via email.',
     },
   ];
 
@@ -362,6 +375,7 @@ export default function VenueDetailPage() {
                   </ul>
                 )}
               </div>
+
             </div>
           </div>
         </div>
@@ -408,37 +422,45 @@ export default function VenueDetailPage() {
           </section>
         )}
 
-        <section className={`${s.container} ${s.bookWrap}`}>
-          <div className={s.bookPanel}>
-            <div className={s.bookBody}>
-              <div className={s.bookHead}>
-                <h2 className={s.bookName}>Booking Process</h2>
-                <p className={s.bookSub}>Follow these simple steps to reserve the {venue.name} for your project.</p>
+        <section className={`${s.container} ${s.bottomSectionWrap}`}>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+            
+            {/* Availability Calendar */}
+            <div className={s.calendarPanel}>
+              <h3 className={s.sectionHeader}>
+                <span className="material-icons text-primary">calendar_month</span>
+                Availability Calendar
+              </h3>
+              <div className={s.calendarInner}>
+                <VenueCalendar bookings={venue.upcomingBookings || []} />
+              </div>
+            </div>
+
+            {/* How to Book */}
+            <div className={s.howToBookPanel}>
+              <div className={s.howToBookHeader}>
+                <span className={s.howToBookLabel}>Workflow</span>
+                <h2 className={s.howToBookTitle}>How to Book ?</h2>
+                <div className={s.howToBookDivider} />
               </div>
 
-              <div className={s.steps}>
-                <div className={s.stepLine} />
+              <div className={s.htbStepsGrid}>
                 {bookingSteps.map((step, index) => (
-                  <div className={s.step} key={index}>
-                    <div className={s.stepRing}>
-                      <span className={`material-icons ${s.stepIcon}`}>
-                        {index === 0 ? 'email' : index === 1 ? 'assignment' : 'verified'}
-                      </span>
+                  <div className={s.htbStepCard} key={index}>
+                    <div className={s.htbStepCardBg} />
+                    <div className={s.htbStepCardContent}>
+                      <div className={s.htbStepIconWrap}>
+                        <span className={`material-icons ${s.htbStepIcon}`}>{step.icon}</span>
+                      </div>
+                      <div className={s.htbStepNum}>{step.num}</div>
+                      <h4 className={s.htbStepName}>{step.name}</h4>
+                      <p className={s.htbStepDesc}>{step.description}</p>
                     </div>
-                    <h3 className={s.stepName}>{index + 1}. {step.name}</h3>
-                    <p className={s.stepDesc}>
-                      {step.description}
-                    </p>
                   </div>
                 ))}
               </div>
-
-              <div className={s.ctaWrap}>
-                <button className={s.ctaBtn} type="button" onClick={() => navigate('/', { state: { scrollTo: 'how-it-works' } })}>
-                  Want to Book? Know How
-                </button>
-              </div>
             </div>
+            
           </div>
         </section>
       </main>

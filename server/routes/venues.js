@@ -12,6 +12,25 @@ router.get('/public', async (_req, res) => {
     const venues = await Venue.find({ status: 'active' })
       .select('_id name location description capacity bannerImage gallery amenities wifiStatus status')
       .sort({ createdAt: -1 })
+      .lean()
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const bookings = await BookingRequest.find({
+      status: 'approved',
+      'confirmedBooking.date': { $gte: today }
+    }).select('confirmedBooking.venue confirmedBooking.date confirmedBooking.timeSlot')
+
+    venues.forEach(venue => {
+      venue.upcomingBookings = bookings
+        .filter(b => b.confirmedBooking?.venue?.toString() === venue._id.toString())
+        .map(b => ({
+          date: b.confirmedBooking.date,
+          timeSlot: b.confirmedBooking.timeSlot
+        }))
+    })
+
     return res.json(venues)
   } catch {
     return res.status(500).json({ message: 'Failed to load venues' })
@@ -48,10 +67,25 @@ router.get('/public/:id', async (req, res) => {
   }
 
   try {
-    const venue = await Venue.findOne({ _id: id, status: 'active' })
+    const venue = await Venue.findOne({ _id: id, status: 'active' }).lean()
     if (!venue) {
       return res.status(404).json({ message: 'Venue not found' })
     }
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const bookings = await BookingRequest.find({
+      status: 'approved',
+      'confirmedBooking.venue': venue._id,
+      'confirmedBooking.date': { $gte: today }
+    }).select('confirmedBooking.date confirmedBooking.timeSlot')
+
+    venue.upcomingBookings = bookings.map(b => ({
+      date: b.confirmedBooking.date,
+      timeSlot: b.confirmedBooking.timeSlot
+    }))
+
     return res.json(venue)
   } catch {
     return res.status(500).json({ message: 'Failed to load venue' })

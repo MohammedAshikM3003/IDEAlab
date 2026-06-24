@@ -444,6 +444,80 @@ class BookingController {
 			return res.status(500).json({ message: 'Failed to submit form response' })
 		}
 	}
+
+	/**
+	 * Create an internal booking directly (already approved, no email flow).
+	 * @param {import('express').Request} req - Request.
+	 * @param {import('express').Response} res - Response.
+	 * @returns {Promise<import('express').Response>} Response.
+	 */
+	async createInternal(req, res) {
+		const { eventPurpose, organizer, venue: venueId, date, timeSlot, isRecurring } = req.body || {}
+
+		if (!eventPurpose || !venueId || !date || !timeSlot?.start || !timeSlot?.end || !organizer) {
+			return res.status(400).json({ message: 'eventPurpose, organizer, venue, date, timeSlot.start, and timeSlot.end are all required' })
+		}
+
+		const bookingDate = toDate(date)
+		if (!bookingDate) {
+			return res.status(400).json({ message: 'Invalid date' })
+		}
+
+		try {
+			let venue = null
+			if (mongoose.Types.ObjectId.isValid(venueId)) {
+				venue = await Venue.findById(venueId)
+			}
+			if (!venue) {
+				venue = await Venue.findOne({ name: venueId })
+			}
+			if (!venue) {
+				return res.status(404).json({ message: 'Venue not found' })
+			}
+
+			const internalId = `internal-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+
+			const booking = new BookingRequest({
+				emailMessageId: internalId,
+				emailThreadId: internalId,
+				requesterEmail: req.user?.email || 'admin@internal',
+				requesterName: organizer,
+				subject: eventPurpose,
+				status: 'approved',
+				receivedAt: new Date(),
+				extractedDetails: {
+					eventPurpose,
+					venue: venue.name,
+					requestedDate: bookingDate.toISOString().split('T')[0],
+					timeSlot: `${String(timeSlot.start).trim()} - ${String(timeSlot.end).trim()}`,
+				},
+				confirmedBooking: {
+					venue: venue._id,
+					date: bookingDate,
+					timeSlot: {
+						start: String(timeSlot.start).trim(),
+						end: String(timeSlot.end).trim(),
+					},
+					approvedAt: new Date(),
+					approvedBy: req.user?._id,
+				},
+				adminActions: [
+					{
+						action: 'approved',
+						performedBy: req.user?._id,
+						comments: 'Internal booking created directly by admin',
+					},
+				],
+			})
+
+			await booking.save()
+			const populated = await BookingRequest.findById(booking._id).populate('confirmedBooking.venue')
+			return res.status(201).json({ message: 'Internal booking created', booking: populated })
+		} catch (err) {
+			console.error('[createInternal]', err)
+			return res.status(500).json({ message: 'Failed to create internal booking' })
+		}
+	}
 }
 
 const bookingController = new BookingController()

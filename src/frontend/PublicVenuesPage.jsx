@@ -38,6 +38,56 @@ function PublicVenuesPage() {
     return '/placeholder-venue.jpg'
   }
 
+  const getVenueStatusBadge = (venue) => {
+    const now = new Date();
+    const currentHours = now.getHours();
+    const currentMinutes = now.getMinutes();
+    const currentTime = currentHours + currentMinutes / 60;
+    
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+    const parseTime = (timeStr) => {
+      const match = timeStr.trim().match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if (!match) return 0;
+      let h = parseInt(match[1]);
+      let m = parseInt(match[2]);
+      const ampm = match[3].toUpperCase();
+      if (ampm === 'PM' && h !== 12) h += 12;
+      if (ampm === 'AM' && h === 12) h = 0;
+      return h + m / 60;
+    };
+
+    let isOccupiedNow = false;
+    let isScheduledToday = false;
+
+    if (venue.upcomingBookings && venue.upcomingBookings.length > 0) {
+      for (const b of venue.upcomingBookings) {
+        if (!b.date) continue;
+        const bDate = new Date(b.date);
+        const bDateStr = `${bDate.getFullYear()}-${String(bDate.getMonth() + 1).padStart(2, '0')}-${String(bDate.getDate()).padStart(2, '0')}`;
+        if (bDateStr === todayStr) {
+          isScheduledToday = true;
+          if (b.timeSlot?.start && b.timeSlot?.end) {
+            const start = parseTime(b.timeSlot.start);
+            const end = parseTime(b.timeSlot.end);
+            if (currentTime >= start && currentTime <= end) {
+              isOccupiedNow = true;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    if (isOccupiedNow) {
+      return <div className={`${styles.badge} ${styles.badgeOccupied}`}>Occupied Now</div>;
+    }
+    if (isScheduledToday) {
+      return <div className={`${styles.badge} ${styles.badgeScheduled}`}>Scheduled Today</div>;
+    }
+    return <div className={`${styles.badge} ${styles.badgeAvailable}`}>Available</div>;
+  };
+
   const filteredVenues = venues.filter(v =>
     v.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     v.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -153,7 +203,7 @@ function PublicVenuesPage() {
                       src={getVenueImage(venue)}
                       onError={(e) => { e.target.src = '/placeholder-venue.jpg' }}
                     />
-                    <div className={styles.badgeAvailable}>Available</div>
+                    {getVenueStatusBadge(venue)}
                   </div>
                   <div className={styles.venueBody}>
                     <h3 className={styles.venueName}>{venue.name}</h3>

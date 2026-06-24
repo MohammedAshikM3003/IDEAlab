@@ -1111,3 +1111,209 @@
   to { transform: rotate(360deg); }
 }
 
+/* ── Bottom Section (Calendar & Booking) ── */
+.bottomSectionWrap {
+  padding: 4rem 0;
+}
+
+.calendarPanel {
+  background-color: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 1px solid #f1f5f9;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+:global(.dark) .calendarPanel {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+
+.sectionHeader {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1E3A5F;
+  margin: 0;
+  padding: 2rem 2rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+:global(.dark) .sectionHeader {
+  color: #fff;
+  border-color: #334155;
+}
+
+.calendarInner {
+  padding: 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* ── How to Book Panel ── */
+.howToBookPanel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.howToBookHeader {
+  text-align: center;
+  padding: 2rem 2rem 1.5rem;
+}
+
+.howToBookLabel {
+  color: #ff9500;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.howToBookTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1E3A5F;
+  margin: 0;
+}
+
+:global(.dark) .howToBookTitle {
+  color: #fff;
+}
+
+.howToBookDivider {
+  width: 56px;
+  height: 4px;
+  background: #ff9500;
+  border-radius: 9999px;
+  margin: 14px auto 0;
+}
+
+.htbStepsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  padding: 0 1.5rem 2rem;
+  flex-grow: 1;
+}
+
+@media (max-width: 640px) {
+  .htbStepsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.htbStepCard {
+  position: relative;
+  min-height: 0;
+}
+
+.htbStepCardBg {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f3f4f6;
+  height: 100%;
+  transition: transform 300ms ease, box-shadow 300ms ease;
+}
+
+:global(.dark) .htbStepCardBg {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.htbStepCard:hover .htbStepCardBg {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06);
+}
+
+.htbStepCardContent {
+  position: relative;
+  z-index: 1;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.htbStepIconWrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 149, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  transition: background 300ms ease;
+}
+
+.htbStepCard:hover .htbStepIconWrap {
+  background: #ff9500;
+}
+
+.htbStepIcon {
+  font-size: 1.5rem !important;
+  color: #ff9500;
+  transition: color 300ms ease;
+}
+
+.htbStepCard:hover .htbStepIcon {
+  color: #fff;
+}
+
+.htbStepNum {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #f3f4f6;
+  z-index: 0;
+  transition: color 300ms ease;
+  line-height: 1;
+}
+
+:global(.dark) .htbStepNum {
+  color: #334155;
+}
+
+.htbStepCard:hover .htbStepNum {
+  color: rgba(255, 149, 0, 0.1);
+}
+
+.htbStepName {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1E3A5F;
+  margin: 0 0 6px;
+}
+
+:global(.dark) .htbStepName {
+  color: #fff;
+}
+
+.htbStepDesc {
+  color: #6b7280;
+  line-height: 1.5;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+:global(.dark) .htbStepDesc {
+  color: #94a3b8;
+}
+
