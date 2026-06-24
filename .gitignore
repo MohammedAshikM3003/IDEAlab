@@ -27,3 +27,6 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Temporary query/debug scripts (may contain credentials)
+server/temp_query*
