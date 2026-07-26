@@ -258,7 +258,7 @@ class BookingController {
 			return res.status(400).json({ message: 'Invalid booking id' })
 		}
 
-		const { reason } = req.body || {}
+		const { reason, comments } = req.body || {}
 		if (!String(reason || '').trim()) {
 			return res.status(400).json({ message: 'reason is required' })
 		}
@@ -274,7 +274,7 @@ class BookingController {
 			booking.adminActions.push({
 				action: 'rejected',
 				performedBy: req.user?._id,
-				comments: String(reason).trim(),
+				comments: typeof comments === 'string' && comments.trim() ? comments.trim() : String(reason).trim(),
 			})
 			await booking.save()
 
@@ -286,6 +286,7 @@ class BookingController {
 				templateData: {
 					name: booking.requesterName,
 					reason: String(reason).trim(),
+					additionalComments: typeof comments === 'string' && comments.trim() ? comments.trim() : '',
 					threadId: booking.emailThreadId,
 				},
 				bookingRequestId: booking._id,

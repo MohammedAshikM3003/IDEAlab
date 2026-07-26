@@ -150,6 +150,9 @@ class TemplateEngine {
 					'</div>' +
 					'<div style="margin-top:14px;padding:14px;border:1px solid #fee2e2;background:#fef2f2;border-radius:10px">' +
 					'<div style="font-size:14px;color:#7f1d1d"><strong>Reason:</strong> {{reason}}</div>' +
+					'{{#if additionalComments}}' +
+					'<div style="margin-top:10px;font-size:14px;color:#7f1d1d"><strong>Additional Comments:</strong> {{additionalComments}}</div>' +
+					'{{/if}}' +
 					'</div>' +
 					'<div style="margin-top:14px;font-size:14px;color:#374151;line-height:22px">' +
 					'You may reply to this email if you have questions.' +
