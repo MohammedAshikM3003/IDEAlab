@@ -655,83 +655,137 @@
 .stepDesc { color: #6b7280; line-height: 1.625; font-size: 0.875rem; margin: 0; }
 
 /* ============ VENUES ============ */
-.venuesSection { padding: 96px 0; background: #f9fafb; }
+/* ============ VENUES CAROUSEL ============ */
+.venuesSection { padding: 80px 0; background: #f9fafb; }
 .venuesSectionHeader {
+  max-width: 1280px;
+  margin: 0 auto 40px;
+  padding: 0 32px;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 48px;
-  gap: 16px;
+  justify-content: space-between;
 }
-@media (min-width: 768px) { .venuesSectionHeader { flex-direction: row; } }
 .venuesTitle { font-size: 1.875rem; font-weight: 700; color: var(--navy-dark); margin: 0; }
 @media (min-width: 768px) { .venuesTitle { font-size: 2.25rem; } }
-.viewAllLink {
-  display: flex; align-items: center; gap: 8px;
-  color: var(--navy-dark); font-weight: 600; text-decoration: none;
-  transition: color 150ms ease;
+
+/* Carousel outer — clips overflow, adds soft fade edges */
+.venuesCarouselOuter {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  padding: 16px 0;
 }
-.viewAllLink:hover { color: var(--primary); }
-.viewAllIcon { font-size: 1.125rem !important; transition: transform 150ms ease; }
-.viewAllLink:hover .viewAllIcon { transform: translateX(4px); }
-.venuesGrid { display: grid; gap: 32px; }
-@media (min-width: 768px) { .venuesGrid { grid-template-columns: repeat(2,1fr); } }
-@media (min-width: 1024px) { .venuesGrid { grid-template-columns: repeat(3,1fr); } }
-.venueCard {
+.venuesCarouselOuter::before,
+.venuesCarouselOuter::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 80px;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+.venuesCarouselOuter::before {
+  left: 0;
+  background: linear-gradient(to right, #f9fafb, transparent);
+}
+.venuesCarouselOuter::after {
+  right: 0;
+  background: linear-gradient(to left, #f9fafb, transparent);
+}
+
+/* Scrolling strip */
+.venuesCarouselInner {
+  display: flex;
+  gap: 24px;
+  width: max-content;
+  animation: marqueeScroll 32s linear infinite;
+  will-change: transform;
+}
+.venuesCarouselInner:hover,
+.venuesCarouselInner.paused {
+  animation-play-state: paused;
+}
+
+/* Individual carousel card */
+.marqCard {
+  flex-shrink: 0;
+  width: 300px;
   background: #fff;
   border-radius: 12px;
+  border-left: 4px solid var(--primary);
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  user-select: none;
+}
+.marqCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+}
+.marqCardType {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primary);
+  background: rgba(255, 149, 0, 0.1);
+  padding: 3px 8px;
+  border-radius: 4px;
+  width: fit-content;
+}
+.marqCardName {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--navy-dark);
+  margin: 0;
+  line-height: 1.3;
+}
+.marqCardDesc {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-  border: 1px solid #f3f4f6;
-  display: flex; flex-direction: column; height: 100%;
-  transition: box-shadow 300ms ease;
+  line-height: 1.5;
+  flex: 1;
 }
-.venueCard:hover { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
-.venueImgWrap { height: 224px; overflow: hidden; position: relative; }
-.venueImg {
-  width: 100%; height: 100%; object-fit: cover;
-  transform: scale(1); transition: transform 500ms ease;
+.marqCapacity {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4b5563;
 }
-.venueCard:hover .venueImg { transform: scale(1.1); }
-.venueBadge {
-  position: absolute; top: 16px; right: 16px;
-  font-size: 0.75rem; font-weight: 700;
-  padding: 4px 8px; border-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  color: #fff;
-}
-.badgeAvailable { background: #22c55e; }
-.badgeScheduled { background: #eab308; }
-.badgeOccupied { background: #ef4444; }
-.venueBody { padding: 24px; display: flex; flex-direction: column; flex: 1; }
-.venueTopRow { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.venueTitle { font-size: 1.25rem; font-weight: 700; color: var(--navy-dark); margin: 0; }
-.venueLocation { font-size: 0.75rem; color: #6b7280; background: #f3f4f6; padding: 4px 8px; border-radius: 4px; }
-.venueDesc {
-  color: #6b7280; font-size: 0.875rem; margin: 0 0 16px;
-  display: -webkit-box; line-clamp: 2; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-}
-.venueAmenities {
-  display: flex; align-items: center; gap: 16px;
-  font-size: 0.875rem; color: #4b5563;
-  margin-bottom: 24px; margin-top: auto;
-}
-.venueAmenity { display: flex; align-items: center; gap: 4px; }
-.venueAmenity .material-icons { font-size: 1rem !important; color: var(--secondary); }
-.venueBookBtn {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 100%; padding: 10px 16px;
-  background: #fff; border: 2px solid var(--primary);
-  color: var(--primary); font-weight: 600;
-  border-radius: 8px; text-decoration: none;
-  cursor: pointer; font-size: 0.875rem;
+.marqCapacity .material-icons { font-size: 0.875rem !important; color: var(--secondary); }
+.marqBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 2px solid var(--primary);
+  background: #fff;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  border-radius: 8px;
+  cursor: pointer;
   transition: background 150ms ease, color 150ms ease;
-  gap: 8px; margin-top: auto;
+  margin-top: auto;
+  width: 100%;
   box-sizing: border-box;
 }
-.venueBookBtn:hover { background: var(--primary); color: #fff; }
-.venueBookBtn .material-icons { font-size: 0.875rem !important; }
+.marqBtn:hover { background: var(--primary); color: #fff; }
+.marqBtn .material-icons { font-size: 0.8125rem !important; }
 
 /* ============ CTA ============ */
 .ctaSection {
@@ -834,40 +888,27 @@
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+@keyframes marqueeScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
 
-/* ============ SKELETON / LOADING STATES ============ */
-.skeletonCard {
-  background: #fff;
-  border-radius: 12px;
+/* ============ CAROUSEL SKELETON / LOADING STATES ============ */
+.marqSkeletonOuter {
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  border: 1px solid #f3f4f6;
-}
-.skeletonImage {
   width: 100%;
-  height: 224px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  padding: 16px 0;
 }
-.skeletonBody {
-  padding: 24px;
+.marqSkeletonInner {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  gap: 24px;
+  padding: 0 32px;
 }
-.skeletonText {
-  height: 20px;
-  width: 70%;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-.skeletonTextShort {
-  height: 14px;
-  width: 45%;
-  border-radius: 6px;
+.marqSkeletonCard {
+  flex-shrink: 0;
+  width: 300px;
+  height: 180px;
+  border-radius: 12px;
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
@@ -920,30 +961,18 @@
   background-size: 40px 40px;
 }
 
-/* ============ MOBILE FIXES: FEATURED VENUES ============ */
+/* ============ MOBILE FIXES: CAROUSEL ============ */
 @media (max-width: 767px) {
   :global(#venues) { scroll-margin-top: 88px; }
 
   .venuesSection {
-    padding-top: 24px;
-    padding-bottom: 24px;
-    margin-top: 0;
-  }
-
-  .heroSection:empty {
-    display: none;
-    min-height: 0;
-    padding: 0;
-    margin: 0;
+    padding-top: 48px;
+    padding-bottom: 48px;
   }
 
   .venuesSectionHeader {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 12px;
-    margin-bottom: 16px;
+    padding: 0 16px;
+    margin-bottom: 24px;
   }
 
   .sectionLabel {
@@ -952,23 +981,17 @@
   }
 
   .venuesTitle {
+    font-size: 1.5rem;
     text-align: left;
   }
 
-  .viewAllLink {
-    text-align: left;
-    font-size: 13px;
-    color: #f97316;
-    text-decoration: none;
-    white-space: nowrap;
-    line-height: 1.2;
+  .marqCard {
+    width: 260px;
+    padding: 18px;
   }
 
-  .venuesGrid {
-    gap: 20px;
-  }
-
-  .venueCard:first-child {
-    margin-top: 12px;
+  .venuesCarouselOuter::before,
+  .venuesCarouselOuter::after {
+    width: 32px;
   }
 }

@@ -431,6 +431,7 @@ class BookingController {
 			booking.extractedDetails.requestedDate = req.body?.eventDate
 			booking.extractedDetails.timeSlot = req.body?.timeSlot
 			booking.extractedDetails.attendance = req.body?.attendance
+			booking.extractedDetails.attendees = req.body?.attendees
 			booking.extractedDetails.equipment = req.body?.equipment
 			booking.extractedDetails.supervisor = req.body?.supervisor
 			booking.requesterName = req.body?.name

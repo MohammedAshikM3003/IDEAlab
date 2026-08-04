@@ -16,6 +16,7 @@ const initialForm = {
   timeSlotStart: { hour: '', minute: '', period: 'AM' },
   timeSlotEnd: { hour: '', minute: '', period: 'PM' },
   attendance: '',
+  attendees: '',
   equipment: '',
   supervisor: '',
 }
@@ -259,6 +260,9 @@ function BookingFormPage() {
     if (!form.attendance || Number(form.attendance) <= 0) {
       nextErrors.attendance = 'Expected attendance is required.'
     }
+    if (!form.attendees || Number(form.attendees) < 0) {
+      nextErrors.attendees = 'Please enter a valid number of attendees.'
+    }
     if (!form.supervisor.trim()) nextErrors.supervisor = 'Supervisor name is required.'
 
     return nextErrors
@@ -288,6 +292,7 @@ function BookingFormPage() {
         eventDate: String(form.eventDate),
         timeSlot: `${timePartsToString(form.timeSlotStart)} - ${timePartsToString(form.timeSlotEnd)}`,
         attendance: Number(form.attendance),
+        attendees: Number(form.attendees),
         equipment: form.equipment || '',
         supervisor: form.supervisor,
       }
@@ -684,6 +689,27 @@ function BookingFormPage() {
                   />
                 </div>
                 {errors.attendance ? <div className={styles.error}>{errors.attendance}</div> : null}
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor="attendees">
+                  Total Attendees
+                </label>
+                <div className={styles.control}>
+                  <input
+                    id="attendees"
+                    name="attendees"
+                    type="number"
+                    min="0"
+                    value={form.attendees}
+                    onChange={handleChange}
+                    required
+                    placeholder="e.g. 50"
+                    aria-invalid={Boolean(errors.attendees)}
+                    className={styles.input}
+                  />
+                </div>
+                {errors.attendees ? <div className={styles.error}>{errors.attendees}</div> : null}
               </div>
 
               <div className={`${styles.field} ${styles.full}`}>

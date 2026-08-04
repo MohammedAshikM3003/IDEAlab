@@ -4,6 +4,45 @@ import s from "./VenueDetailPage.module.css";
 import lp from "./landingpage.module.css";
 import ksrceLogo from '../assets/collegelogo.jpg';
 import VenueCalendar from './components/VenueCalendar';
+import LiveOccupancy from './components/LiveOccupancy';
+import VenueGallery from './components/VenueGallery';
+
+/** Subcomponent for Equipment to cleanly handle per-item image error state */
+const EquipmentCard = ({ item, index }) => {
+  const [imgError, setImgError] = React.useState(false);
+  return (
+    <div className={s.eCard}>
+      <div className={s.eImgWrap}>
+        {item.image && !imgError ? (
+          <img
+            alt={item.itemDetails || `Equipment ${index + 1}`}
+            className={s.eImg}
+            src={item.image}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <div className={s.eImgPlaceholder}>
+            <span className="material-icons">precision_manufacturing</span>
+          </div>
+        )}
+      </div>
+      <div className={s.eBody}>
+        <div className={s.eHead}>
+          <h3 className={s.eTitle}>{item.itemDetails || `Equipment ${index + 1}`}</h3>
+          {item.quantity && (
+            <span className={s.tagGreen}>{item.quantity} Unit{item.quantity > 1 ? 's' : ''}</span>
+          )}
+        </div>
+        {item.condition && <p className={s.eSub}>Condition: {item.condition}</p>}
+        {item.description && (
+          <p className={s.eText}>
+            {item.description}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -45,25 +84,6 @@ export default function VenueDetailPage() {
 
     fetchVenue();
   }, [venueId]);
-
-  /** Get the hero / banner image with fallback */
-  const getHeroImage = () => {
-    if (venue.bannerImage) return venue.bannerImage;
-    if (venue.gallery?.length > 0) return venue.gallery[0];
-    return '/placeholder-venue.jpg';
-  };
-
-  /** Get gallery thumbnails (up to 4) */
-  const getThumbnails = () => {
-    const thumbs = [];
-    if (venue.bannerImage) thumbs.push(venue.bannerImage);
-    if (venue.gallery) {
-      venue.gallery.forEach(img => {
-        if (!thumbs.includes(img)) thumbs.push(img);
-      });
-    }
-    return thumbs.slice(0, 4);
-  };
 
   // ─── Loading state ───────────────────────────────────
   if (loading) {
@@ -130,7 +150,7 @@ export default function VenueDetailPage() {
               <button onClick={() => navigate(-1)} className={s.ctaBtn}>
                 ← Go Back
               </button>
-              <Link to="/venues" className={s.ctaBtn} style={{ textDecoration: 'none' }}>
+              <Link to="/" className={s.ctaBtn} style={{ textDecoration: 'none' }}>
                 Browse All Venues
               </Link>
             </div>
@@ -141,9 +161,10 @@ export default function VenueDetailPage() {
   }
 
   // ─── Main detail view ────────────────────────────────
-  const thumbnails = getThumbnails();
   const amenities = venue.amenities || [];
   const equipment = venue.equipment || [];
+  const hasEquipment = equipment.length > 0;
+  const hasAmenities = amenities.length > 0;
   const bookingSteps = [
     {
       icon: 'email',
@@ -247,7 +268,7 @@ export default function VenueDetailPage() {
                 <span className={s.crumbSep}>/</span>
               </li>
               <li>
-                <Link className={s.crumbAnchor} to="/venues">
+                <Link className={s.crumbAnchor} to="/">
                   Venues
                 </Link>
               </li>
@@ -260,29 +281,7 @@ export default function VenueDetailPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
             <div className="lg:col-span-7 space-y-4">
-              <div className={s.hero}>
-                <img
-                  alt={venue.name}
-                  className={s.heroImg}
-                  src={getHeroImage()}
-                  onError={(e) => { e.target.src = '/placeholder-venue.jpg'; }}
-                />
-              </div>
-
-              {thumbnails.length > 1 && (
-                <div className={s.thumbRow}>
-                  {thumbnails.map((thumb, index) => (
-                    <div className={index === 0 ? s.thumbOn : s.thumb} key={index}>
-                      <img
-                        alt={`Thumbnail ${index + 1}`}
-                        className={s.thumbImg}
-                        src={thumb}
-                        onError={(e) => { e.target.src = '/placeholder-venue.jpg'; }}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
+              <VenueGallery venue={venue} />
             </div>
 
             <div className={`lg:col-span-5 ${s.sidebar}`}>
@@ -360,67 +359,71 @@ export default function VenueDetailPage() {
                 )}
               </div>
 
+              {/* Live Occupancy — placeholder, data wired in next step */}
+              <LiveOccupancy venueId={venue._id} />
+
               <div className={s.desc}>
                 <p>
                   {venue.description || 'A premium venue available for booking. Contact administration for more details.'}
                 </p>
-                {amenities.length > 0 && (
-                  <ul className={s.features}>
-                    {amenities.map((amenity, index) => (
-                      <li className={s.feature} key={index}>
-                        <span className={`material-icons ${s.checkIcon}`}>check_circle</span>
-                        {amenity}
-                      </li>
-                    ))}
-                  </ul>
-                )}
               </div>
 
             </div>
           </div>
         </div>
 
-        {equipment.length > 0 && (
-          <section className={s.equipWrap}>
-            <div className={s.container}>
-              <h2 className={s.secTitle}>
-                <span className="material-icons text-primary">precision_manufacturing</span>
-                Available Equipment
-              </h2>
+        <section className={s.equipWrap}>
+          <div className={s.container}>
+            <h2 className={s.secTitle}>
+              <span className="material-icons text-primary">precision_manufacturing</span>
+              Equipment & Features
+            </h2>
 
-              <div className={s.equipRow}>
-                {equipment.map((item, index) => (
-                  <div className={s.eCard} key={index}>
-                    {item.image && (
-                      <div className={s.eImgWrap}>
-                        <img
-                          alt={item.itemDetails || `Equipment ${index + 1}`}
-                          className={s.eImg}
-                          src={item.image}
-                          onError={(e) => { e.target.style.display = 'none'; }}
-                        />
-                      </div>
+            {(hasEquipment || hasAmenities) ? (
+              <>
+                {hasEquipment && (
+                  <div className={s.equipRow}>
+                    {equipment.map((item, index) => (
+                      <EquipmentCard key={index} item={item} index={index} />
+                    ))}
+                  </div>
+                )}
+
+                {hasAmenities && (
+                  <div style={{ marginTop: hasEquipment ? '2rem' : '0' }}>
+                    {hasEquipment && (
+                      <h3 style={{ marginBottom: '1rem', fontSize: '1.125rem', fontWeight: 600, color: '#334155' }}>
+                        Additional Features
+                      </h3>
                     )}
-                    <div className={s.eBody}>
-                      <div className={s.eHead}>
-                        <h3 className={s.eTitle}>{item.itemDetails || `Equipment ${index + 1}`}</h3>
-                        {item.quantity && (
-                          <span className={s.tagGreen}>{item.quantity} Unit{item.quantity > 1 ? 's' : ''}</span>
-                        )}
-                      </div>
-                      {item.condition && <p className={s.eSub}>Condition: {item.condition}</p>}
-                      {item.description && (
-                        <p className={s.eText}>
-                          {item.description}
-                        </p>
-                      )}
+                    <div className={s.amenitiesGrid}>
+                      {amenities.map((amenity, index) => (
+                        <div className={s.amenityCard} key={index}>
+                          <div className={s.amenityIcon}>
+                            <span className="material-icons">check_circle</span>
+                          </div>
+                          <div className={s.amenityText}>{amenity}</div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
+                )}
+              </>
+            ) : (
+              <div className={s.galleryPlaceholder} style={{ height: 'auto', padding: '3rem 2rem' }}>
+                <span className="material-icons" style={{ fontSize: '3rem', color: '#9ca3af', marginBottom: '12px' }}>
+                  inventory_2
+                </span>
+                <h3 style={{ color: '#4b5563', fontSize: '1.25rem', fontWeight: '600', margin: '0 0 4px 0' }}>
+                  Equipment details coming soon
+                </h3>
+                <p style={{ color: '#6b7280', margin: 0, fontSize: '0.875rem' }}>
+                  We are currently updating our equipment inventory for this venue.
+                </p>
               </div>
-            </div>
-          </section>
-        )}
+            )}
+          </div>
+        </section>
 
         <section className={`${s.container} ${s.bottomSectionWrap}`}>
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
@@ -485,7 +488,7 @@ export default function VenueDetailPage() {
               <ul className={lp.footerLinks}>
                 <li><a className={lp.footerLink} href="#" onClick={(e) => { e.preventDefault(); navigate('/', { state: { scrollTo: 'hero' } }) }}>Home</a></li>
                 <li><a className={lp.footerLink} href="#" onClick={(e) => { e.preventDefault(); navigate('/', { state: { scrollTo: 'hero' } }) }}>About Us</a></li>
-                <li><Link className={lp.footerLink} to="/venues">All Venues</Link></li>
+                <li><a className={lp.footerLink} href="#" onClick={(e) => { e.preventDefault(); navigate('/', { state: { scrollTo: 'venues' } }) }}>All Venues</a></li>
                 <li><a className={lp.footerLink} href="#" onClick={(e) => { e.preventDefault(); navigate('/', { state: { scrollTo: 'venues' } }) }}>Check Availability</a></li>
               </ul>
             </div>

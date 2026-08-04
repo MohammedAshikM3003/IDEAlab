@@ -17,6 +17,8 @@ function LandingPage() {
   const [venuesLoading, setVenuesLoading] = useState(true)
   const [venuesError, setVenuesError] = useState(null)
   const [stats, setStats] = useState({ venuesCount: 15, monthlyBookings: 500, approvalTime: '24h', digitalProcess: '100%' })
+  // Carousel pause state: true when mouse hovers or finger touches the strip
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false)
 
   useEffect(() => {
     const fetchVenuesAndStats = async () => {
@@ -39,12 +41,8 @@ function LandingPage() {
         // Handle both response formats: {venues: [...]} or [...]
         const venueList = Array.isArray(data) ? data : (data.venues || [])
 
-        // Filter active and take first 3
-        const activeVenues = venueList
-          .filter(v => v.status === 'active')
-          .slice(0, 3)
-
-        setVenues(activeVenues)
+        // Keep all active venues for the carousel
+        setVenues(venueList.filter(v => v.status === 'active'))
 
         if (statsRes && statsRes.ok) {
           const statsData = await statsRes.json()
@@ -138,65 +136,7 @@ function LandingPage() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  /**
-   * Resolve the best available image URL for a venue.
-   * Priorities: bannerImage → first gallery image → placeholder.
-   */
-  const getVenueImage = (venue) => {
-    if (venue.bannerImage) return venue.bannerImage
-    if (venue.gallery && venue.gallery.length > 0) return venue.gallery[0]
-    return '/placeholder-venue.jpg'
-  }
 
-  const getVenueStatusBadge = (venue) => {
-    const now = new Date();
-    const currentHours = now.getHours();
-    const currentMinutes = now.getMinutes();
-    const currentTime = currentHours + currentMinutes / 60;
-    
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
-    const parseTime = (timeStr) => {
-      const match = timeStr.trim().match(/(\d+):(\d+)\s*(AM|PM)/i);
-      if (!match) return 0;
-      let h = parseInt(match[1]);
-      let m = parseInt(match[2]);
-      const ampm = match[3].toUpperCase();
-      if (ampm === 'PM' && h !== 12) h += 12;
-      if (ampm === 'AM' && h === 12) h = 0;
-      return h + m / 60;
-    };
-
-    let isOccupiedNow = false;
-    let isScheduledToday = false;
-
-    if (venue.upcomingBookings && venue.upcomingBookings.length > 0) {
-      for (const b of venue.upcomingBookings) {
-        if (!b.date) continue;
-        const bDate = new Date(b.date);
-        const bDateStr = `${bDate.getFullYear()}-${String(bDate.getMonth() + 1).padStart(2, '0')}-${String(bDate.getDate()).padStart(2, '0')}`;
-        if (bDateStr === todayStr) {
-          isScheduledToday = true;
-          if (b.timeSlot?.start && b.timeSlot?.end) {
-            const start = parseTime(b.timeSlot.start);
-            const end = parseTime(b.timeSlot.end);
-            if (currentTime >= start && currentTime <= end) {
-              isOccupiedNow = true;
-              break;
-            }
-          }
-        }
-      }
-    }
-
-    if (isOccupiedNow) {
-      return <div className={`${styles.venueBadge} ${styles.badgeOccupied}`}>Occupied Now</div>;
-    }
-    if (isScheduledToday) {
-      return <div className={`${styles.venueBadge} ${styles.badgeScheduled}`}>Scheduled Today</div>;
-    }
-    return <div className={`${styles.venueBadge} ${styles.badgeAvailable}`}>Available</div>;
-  };
 
   return (
     <div lang="en">
@@ -548,118 +488,94 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Venues Section — Live Data */}
+      {/* Venues Section — Infinite Marquee Carousel */}
       <section className={styles.venuesSection} id="venues">
-        <div className={styles.sectionContainer}>
-          <div className={styles.venuesSectionHeader}>
-            <div>
-              <h2 className={styles.sectionLabel}>Our Spaces</h2>
-              <h3 className={styles.venuesTitle}>Featured Venues</h3>
-            </div>
-            <Link className={styles.viewAllLink} to="/venues">
-              View all {venues.length > 0 ? `${venues.length}+` : ''} venues
-              <span className={`material-icons ${styles.viewAllIcon}`}>arrow_forward</span>
-            </Link>
+        {/* Section header — max-width constrained */}
+        <div className={styles.venuesSectionHeader}>
+          <div>
+            <h2 className={styles.sectionLabel}>Our Spaces</h2>
+            <h3 className={styles.venuesTitle}>Our Labs &amp; Spaces</h3>
           </div>
-
-          {/* Loading skeleton */}
-          {venuesLoading && (
-            <div className={styles.venuesGrid}>
-              {[1, 2, 3].map(i => (
-                <div key={i} className={styles.skeletonCard}>
-                  <div className={styles.skeletonImage}></div>
-                  <div className={styles.skeletonBody}>
-                    <div className={styles.skeletonText}></div>
-                    <div className={styles.skeletonTextShort}></div>
-                    <div className={styles.skeletonTextShort}></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Error state */}
-          {!venuesLoading && venuesError && (
-            <div className={styles.venuesFeedbackState}>
-              <span className="material-icons" style={{ fontSize: '2.5rem', color: '#ef4444', marginBottom: 12 }}>error_outline</span>
-              <p>Unable to load venues. Please try again later.</p>
-              <button className={styles.retryBtn} onClick={() => window.location.reload()}>
-                <span className="material-icons" style={{ fontSize: '1rem' }}>refresh</span>
-                Retry
-              </button>
-            </div>
-          )}
-
-          {/* Empty state */}
-          {!venuesLoading && !venuesError && venues.length === 0 && (
-            <div className={styles.venuesFeedbackState}>
-              <span className="material-icons" style={{ fontSize: '2.5rem', color: '#9ca3af', marginBottom: 12 }}>meeting_room</span>
-              <p>No venues available at the moment.</p>
-            </div>
-          )}
-
-          {/* Venue cards — live data */}
-          {!venuesLoading && !venuesError && venues.length > 0 && (
-            <div className={styles.venuesGrid}>
-              {venues.map(venue => (
-                <div className={styles.venueCard} key={venue._id}>
-                  <div className={styles.venueImgWrap}>
-                    <img
-                      alt={venue.name}
-                      className={styles.venueImg}
-                      src={getVenueImage(venue)}
-                      onError={(e) => { e.target.src = '/placeholder-venue.jpg'; }}
-                    />
-                    {getVenueStatusBadge(venue)}
-                  </div>
-                  <div className={styles.venueBody}>
-                    <div className={styles.venueTopRow}>
-                      <h4 className={styles.venueTitle}>{venue.name}</h4>
-                      {venue.location && (
-                        <span className={styles.venueLocation}>{venue.location}</span>
-                      )}
-                    </div>
-                    <p className={styles.venueDesc}>
-                      {venue.description
-                        ? venue.description.substring(0, 100) + (venue.description.length > 100 ? '...' : '')
-                        : 'Premium venue available for booking.'}
-                    </p>
-                    <div className={styles.venueAmenities}>
-                      {venue.capacity && (
-                        <div className={styles.venueAmenity}>
-                          <span className="material-icons">people</span>
-                          <span>{venue.capacity} Seats</span>
-                        </div>
-                      )}
-                      {venue.amenities?.includes('High-speed Wi-Fi') && (
-                        <div className={styles.venueAmenity}>
-                          <span className="material-icons">wifi</span>
-                          <span>WiFi</span>
-                        </div>
-                      )}
-                      {venue.amenities?.includes('Professional Sound System') && (
-                        <div className={styles.venueAmenity}>
-                          <span className="material-icons">mic</span>
-                          <span>Audio Sys</span>
-                        </div>
-                      )}
-                      {/* Fallback: show wifi based on wifiStatus field if amenities didn't include it */}
-                      {!venue.amenities?.includes('High-speed Wi-Fi') && venue.wifiStatus && venue.wifiStatus !== 'None' && (
-                        <div className={styles.venueAmenity}>
-                          <span className="material-icons">wifi</span>
-                          <span>WiFi</span>
-                        </div>
-                      )}
-                    </div>
-                    <button type="button" onClick={() => navigate(`/venue/${venue._id}`)} className={styles.venueBookBtn}>
-                      Check Availability <span className="material-icons">arrow_forward</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
+
+        {/* Loading skeleton — horizontal strip */}
+        {venuesLoading && (
+          <div className={styles.marqSkeletonOuter}>
+            <div className={styles.marqSkeletonInner}>
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className={styles.marqSkeletonCard} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Error state */}
+        {!venuesLoading && venuesError && (
+          <div className={styles.venuesFeedbackState}>
+            <span className="material-icons" style={{ fontSize: '2.5rem', color: '#ef4444', marginBottom: 12 }}>error_outline</span>
+            <p>Unable to load venues. Please try again later.</p>
+            <button className={styles.retryBtn} onClick={() => window.location.reload()}>
+              <span className="material-icons" style={{ fontSize: '1rem' }}>refresh</span>
+              Retry
+            </button>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!venuesLoading && !venuesError && venues.length === 0 && (
+          <div className={styles.venuesFeedbackState}>
+            <span className="material-icons" style={{ fontSize: '2.5rem', color: '#9ca3af', marginBottom: 12 }}>meeting_room</span>
+            <p>No venues available at the moment.</p>
+          </div>
+        )}
+
+        {/* Marquee carousel — list rendered twice for seamless loop */}
+        {!venuesLoading && !venuesError && venues.length > 0 && (
+          <div className={styles.venuesCarouselOuter}>
+            <div
+              className={`${styles.venuesCarouselInner}${isCarouselPaused ? ` ${styles.paused}` : ''}`}
+              onMouseEnter={() => setIsCarouselPaused(true)}
+              onMouseLeave={() => setIsCarouselPaused(false)}
+              onTouchStart={() => setIsCarouselPaused(true)}
+              onTouchEnd={() => setTimeout(() => setIsCarouselPaused(false), 300)}
+            >
+              {[...venues, ...venues].map((venue, idx) => (
+                <div
+                  className={styles.marqCard}
+                  key={`${venue._id}-${idx}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/venue/${venue._id}`)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/venue/${venue._id}`) }}
+                >
+                  {venue.facilityType && (
+                    <span className={styles.marqCardType}>{venue.facilityType}</span>
+                  )}
+                  <h4 className={styles.marqCardName}>{venue.name}</h4>
+                  <p className={styles.marqCardDesc}>
+                    {venue.description
+                      ? venue.description.substring(0, 110) + (venue.description.length > 110 ? '...' : '')
+                      : 'A premium space available for booking.'}
+                  </p>
+                  {venue.capacity && (
+                    <div className={styles.marqCapacity}>
+                      <span className="material-icons">people</span>
+                      {venue.capacity} seats
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.marqBtn}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/venue/${venue._id}`) }}
+                  >
+                    View Details
+                    <span className="material-icons">arrow_forward</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       {/* CTA Section */}
@@ -697,7 +613,7 @@ function LandingPage() {
               <ul className={styles.footerLinks}>
                 <li><a className={styles.footerLink} href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>Home</a></li>
                 <li><a className={styles.footerLink} href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>About Us</a></li>
-                <li><Link className={styles.footerLink} to="/venues">All Venues</Link></li>
+                <li><a className={styles.footerLink} href="#" onClick={(e) => { e.preventDefault(); document.getElementById('venues')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}>All Venues</a></li>
                 <li><a className={styles.footerLink} href="#" onClick={(e) => { e.preventDefault(); document.getElementById('venues')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}>Check Availability</a></li>
               </ul>
             </div>

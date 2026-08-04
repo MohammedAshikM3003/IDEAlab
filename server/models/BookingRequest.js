@@ -18,6 +18,7 @@ function createBookingRequestSchema() {
 				venue: { type: String },
 				timeSlot: { type: String },
 				attendance: { type: String },
+				attendees: { type: Number, default: null },
 				equipment: { type: String },
 				supervisor: { type: String },
 			},
