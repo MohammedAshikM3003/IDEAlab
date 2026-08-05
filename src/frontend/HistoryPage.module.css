@@ -609,6 +609,18 @@
   border-color: #fecaca;
 }
 
+.upcoming {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.inProgress {
+  background-color: #fef3c7;
+  color: #d97706;
+  border-color: #fde68a;
+}
+
 .loadingState {
   display: inline-flex;
   align-items: center;

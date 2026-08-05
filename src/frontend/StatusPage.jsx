@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { getBookingTimeStatus, parseTimeStrToMinutes } from './utils/bookingTimeStatus'
 
 import AdminBookingDetailsPopUpFM from './Alerts/AdminBookingDetailsPopUpFM'
 import detailsPopupStyles from './Alerts/AdminBookingDetailsPopUpFM.module.css'
@@ -129,21 +130,7 @@ function formatCapacityText(venue) {
   return parts.join(' • ')
 }
 
-function parseTimeStrToMinutes(timeStr) {
-  if (!timeStr) return -1;
-  const match = String(timeStr).match(/(\d{1,2})[:\s.]?(\d{2})?\s*(am|pm)?/i);
-  if (!match) return -1;
-  let h = parseInt(match[1], 10);
-  let m = parseInt(match[2] || '0', 10);
-  let p = (match[3] || '').toUpperCase();
-  if (!p) {
-    if (String(timeStr).toUpperCase().includes('PM')) p = 'PM';
-    if (String(timeStr).toUpperCase().includes('AM')) p = 'AM';
-  }
-  if (p === 'PM' && h < 12) h += 12;
-  if (p === 'AM' && h === 12) h = 0;
-  return h * 60 + m;
-}
+// parseTimeStrToMinutes imported from utils
 
 function getTimeSlotLabel(timeSlot) {
   const start = timeSlot?.start ? String(timeSlot.start).trim() : ''
@@ -274,14 +261,30 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
             const attendance = booking?.extractedDetails?.attendance
             const attendanceLabel = attendance ? `${attendance} Students` : ''
 
+            let statusType = 'pending';
+            let statusText = 'PENDING APPROVAL';
+            if (isApproved) {
+              const timeStatus = getBookingTimeStatus(bookingDateKey, start, end);
+              if (timeStatus === 'completed') {
+                statusType = 'completed';
+                statusText = 'COMPLETED';
+              } else if (timeStatus === 'in_progress') {
+                statusType = 'in_progress';
+                statusText = 'IN PROGRESS';
+              } else {
+                statusType = 'upcoming';
+                statusText = 'CONFIRMED';
+              }
+            }
+
             return {
               id: String(booking?._id || ''),
-              type: isApproved ? 'confirmed' : 'pending',
+              type: statusType,
               time12,
               time24: time24 || '--:--',
               title,
               venue: venueName,
-              statusText: isApproved ? 'CONFIRMED' : 'PENDING APPROVAL',
+              statusText: statusText,
               metaTwoIcon: attendanceLabel ? 'groups' : 'schedule',
               metaTwoText: attendanceLabel,
               requesterName: booking?.requesterName,
@@ -423,9 +426,8 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
         activeBooking = venueBookings.find((b) => {
           const slot = b?.confirmedBooking?.timeSlot;
           if (!slot) return false;
-          const startMins = parseTimeStrToMinutes(slot.start);
-          const endMins = parseTimeStrToMinutes(slot.end);
-          return startMins !== -1 && endMins !== -1 && currentMins >= startMins && currentMins <= endMins;
+          const status = getBookingTimeStatus(selectedDateKey, slot.start, slot.end);
+          return status === 'in_progress';
         });
       }
 
@@ -461,8 +463,8 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
         : venueBookings.find((b) => {
             const slot = b?.confirmedBooking?.timeSlot;
             if (!slot) return false;
-            const sMins = parseTimeStrToMinutes(slot.start);
-            return sMins > currentMins;
+            const status = getBookingTimeStatus(selectedDateKey, slot.start, slot.end);
+            return status === 'upcoming';
           });
 
       if (nextBooking) {
@@ -1090,15 +1092,17 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
 
                           <div
                             className={
-                              item.type === 'confirmed'
+                              item.type === 'completed' || item.type === 'upcoming' || item.type === 'confirmed'
                                 ? statusStyles.eventCardConfirmed
-                                : item.type === 'pending'
-                                  ? statusStyles.eventCardPending
-                                  : statusStyles.eventCardConflict
+                                : item.type === 'in_progress'
+                                  ? statusStyles.eventCardInProgress
+                                  : item.type === 'pending'
+                                    ? statusStyles.eventCardPending
+                                    : statusStyles.eventCardConflict
                             }
-                            onClick={item.type === 'confirmed' ? () => openDetailsForConfirmed(item) : undefined}
+                            onClick={['completed', 'upcoming', 'confirmed', 'in_progress'].includes(item.type) ? () => openDetailsForConfirmed(item) : undefined}
                             onKeyDown={
-                              item.type === 'confirmed'
+                              ['completed', 'upcoming', 'confirmed', 'in_progress'].includes(item.type)
                                 ? (event) => {
                                     if (event.key === 'Enter' || event.key === ' ') {
                                       event.preventDefault()
@@ -1107,8 +1111,8 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
                                   }
                                 : undefined
                             }
-                            role={item.type === 'confirmed' ? 'button' : undefined}
-                            tabIndex={item.type === 'confirmed' ? 0 : undefined}
+                            role={['completed', 'upcoming', 'confirmed', 'in_progress'].includes(item.type) ? 'button' : undefined}
+                            tabIndex={['completed', 'upcoming', 'confirmed', 'in_progress'].includes(item.type) ? 0 : undefined}
                           >
                             <div className={statusStyles.eventHead}>
                               <h4 className={statusStyles.eventTitleRow}>
@@ -1123,11 +1127,15 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
                               </h4>
                               <span
                                 className={
-                                  item.type === 'confirmed'
-                                    ? statusStyles.badgeConfirmed
-                                    : item.type === 'pending'
-                                      ? statusStyles.badgePending
-                                      : statusStyles.badgeConflict
+                                  item.type === 'completed'
+                                    ? statusStyles.badgeCompleted
+                                    : item.type === 'in_progress'
+                                      ? statusStyles.badgeInProgress
+                                      : item.type === 'upcoming' || item.type === 'confirmed'
+                                        ? statusStyles.badgeConfirmed
+                                        : item.type === 'pending'
+                                          ? statusStyles.badgePending
+                                          : statusStyles.badgeConflict
                                 }
                               >
                                 {item.statusText}

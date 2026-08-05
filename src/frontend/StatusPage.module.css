@@ -484,6 +484,18 @@
   color: #16a34a;
 }
 
+.badgeCompleted {
+  composes: statusBadge;
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.badgeInProgress {
+  composes: statusBadge;
+  background: #fef3c7;
+  color: #d97706;
+}
+
 .badgePending {
   composes: statusBadge;
   background: #fef3c7;
@@ -671,6 +683,11 @@
 .eventCardConfirmed {
   composes: eventCard;
   border-left: 4px solid #16a34a;
+}
+
+.eventCardInProgress {
+  composes: eventCard;
+  border-left: 4px solid #d97706;
 }
 
 .eventCardPending {

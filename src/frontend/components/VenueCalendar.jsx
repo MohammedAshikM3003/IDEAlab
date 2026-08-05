@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styles from './VenueCalendar.module.css';
+import { getBookingTimeStatus } from '../utils/bookingTimeStatus';
 
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -99,13 +100,23 @@ export default function VenueCalendar({ bookings = [] }) {
             </h4>
             {selectedBookings.length > 0 ? (
               <ul className={styles.bookingsList}>
-                {selectedBookings.map((b, idx) => (
-                  <li key={idx} className={styles.bookingItem}>
-                    <span className="material-icons">schedule</span>
-                    <span>{b.timeSlot?.start} - {b.timeSlot?.end}</span>
-                    <span className={styles.bookedTag}>Booked</span>
-                  </li>
-                ))}
+                {selectedBookings.map((b, idx) => {
+                  const bDateISO = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+                  const timeStatus = getBookingTimeStatus(bDateISO, b.timeSlot?.start, b.timeSlot?.end);
+                  const isCompleted = timeStatus === 'completed';
+                  
+                  return (
+                    <li key={idx} className={`${styles.bookingItem} ${isCompleted ? styles.completedItem : ''}`}>
+                      <span className="material-icons">schedule</span>
+                      <span>{b.timeSlot?.start} - {b.timeSlot?.end}</span>
+                      {isCompleted ? (
+                        <span className={styles.completedTag}>Completed</span>
+                      ) : (
+                        <span className={styles.bookedTag}>Booked</span>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <p className={styles.noBookings}>No bookings for this date. It is fully available!</p>

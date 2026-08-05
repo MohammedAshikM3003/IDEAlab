@@ -6,6 +6,7 @@ import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
 import layoutStyles from "./DashboardPage.module.css";
 import styles from "./HistoryPage.module.css";
+import { getBookingTimeStatus } from "./utils/bookingTimeStatus";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -177,9 +178,14 @@ function formatReadableDate(value, emptyLabel = "TBD") {
   };
 }
 
-function mapStatusLabel(statusValue) {
+function mapStatusLabel(statusValue, dateISO, startTime, endTime) {
   const normalized = String(statusValue || "").trim().toLowerCase();
-  if (normalized === "approved") return "Completed";
+  if (normalized === "approved") {
+    const timeStatus = getBookingTimeStatus(dateISO, startTime, endTime);
+    if (timeStatus === 'upcoming') return 'Upcoming';
+    if (timeStatus === 'in_progress') return 'In Progress';
+    return 'Completed';
+  }
   if (normalized === "rejected") return "Rejected";
   if (normalized === "pending" || normalized === "form_sent" || normalized === "clarification_requested") {
     return "Pending";
@@ -193,7 +199,6 @@ function buildBookingFromApi(item) {
   const requesterName = item?.requesterName ? String(item.requesterName) : "Unknown";
   const venue = item?.confirmedBooking?.venue?.name || item?.extractedDetails?.venue || "Venue TBD";
   const eventTitle = item?.extractedDetails?.eventPurpose || item?.subject || "Booking Request";
-  const status = mapStatusLabel(item?.status);
   const eventDate = item?.confirmedBooking?.date || item?.extractedDetails?.requestedDate || null;
   const { dateISO, dateLabel } = formatReadableDate(eventDate, "Awaiting form");
   const startTime =
@@ -201,11 +206,12 @@ function buildBookingFromApi(item) {
   const endTime =
     item?.confirmedBooking?.timeSlot?.end || item?.extractedDetails?.timeSlot?.split("-")[1]?.trim() || null;
   const timeSlot = startTime && endTime ? `${startTime} - ${endTime}` : "TBD";
+  const status = mapStatusLabel(item?.status, dateISO, startTime, endTime);
   const submittedAt = item?.createdAt || "";
   const submittedLabel = formatReadableDate(submittedAt).dateLabel;
 
   const isRejected = status === "Rejected";
-  const isCompleted = status === "Completed";
+  const isApproved = ["Completed", "Upcoming", "In Progress"].includes(status);
 
   return {
     id: bookingId,
@@ -218,7 +224,7 @@ function buildBookingFromApi(item) {
     status,
     isFaded: isRejected,
     strike: isRejected,
-    actions: isCompleted ? ["view", "print"] : isRejected ? ["view", "reason"] : ["view"],
+    actions: isApproved ? ["view", "print"] : isRejected ? ["view", "reason"] : ["view"],
     submittedAt,
     details: {
       department: item?.department || "Not specified",
@@ -241,6 +247,10 @@ function getStatusClass(status) {
   switch (status) {
     case "Completed":
       return "ok";
+    case "Upcoming":
+      return "upcoming";
+    case "In Progress":
+      return "inProgress";
     case "Cancelled":
       return "no";
     case "Rejected":
