@@ -138,7 +138,7 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
       throw new Error(payload?.message || "Image upload failed");
     }
 
-    return `${API_URL}${payload.url}`;
+    return payload.url;
   };
 
   const openCropModalFromFile = (file, aspectRatio, onComplete, setError) => {
