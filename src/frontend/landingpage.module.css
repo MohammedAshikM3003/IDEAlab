@@ -995,3 +995,297 @@
     width: 32px;
   }
 }
+
+/* ─── Hero Search Dropdown ─── */
+.heroSearchDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 200;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.heroSearchDropdownItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  color: #e2e8f0;
+  padding-top: 64px; padding-bottom: 32px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  position: relative;
+}
+.footerInner { max-width: 1280px; margin: 0 auto; padding: 0 16px; }
+@media (min-width: 640px)  { .footerInner { padding: 0 24px; } }
+@media (min-width: 1024px) { .footerInner { padding: 0 32px; } }
+.footerGrid {
+  display: grid; grid-template-columns: 1fr;
+  gap: 48px; margin-bottom: 48px;
+}
+@media (min-width: 768px)  { .footerGrid { grid-template-columns: repeat(2,1fr); } }
+@media (min-width: 1024px) { .footerGrid { grid-template-columns: repeat(4,1fr); } }
+.footerBrandCol { display: flex; flex-direction: column; gap: 16px; }
+.footerLogoRow  { display: flex; align-items: center; gap: 8px; }
+.footerLogoWrap {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  flex-shrink: 0; overflow: hidden;
+}
+.footerLogo   { width: 100%; height: 100%; object-fit: contain; }
+.footerColName { color: #fff; font-weight: 700; font-size: 1.125rem; }
+.footerDesc    { color: #9ca3af; font-size: 0.875rem; line-height: 1.625; margin: 0; }
+.footerColTitle {
+  color: #fff; font-weight: 700; margin: 0 0 16px;
+  border-bottom: 1px solid rgba(255,149,0,0.3);
+  padding-bottom: 8px; display: inline-block;
+}
+.footerLinks {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.footerLink { color: #9ca3af; text-decoration: none; font-size: 0.875rem; transition: color 150ms ease; }
+.footerLink:hover { color: var(--primary); }
+.footerContactList {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.footerContactItem { display: flex; align-items: flex-start; gap: 12px; color: #9ca3af; font-size: 0.875rem; }
+.footerContactIcon { color: var(--primary); font-size: 0.875rem !important; margin-top: 2px; flex-shrink: 0; }
+.footerBottom {
+  border-top: 1px solid rgba(255,255,255,0.1); padding-top: 32px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: space-between; gap: 16px;
+}
+@media (min-width: 768px) { .footerBottom { flex-direction: row; } }
+.footerCopy { color: #6b7280; font-size: 0.75rem; margin: 0; }
+.footerLegalLinks { display: flex; gap: 16px; }
+.footerLegalLink { color: #6b7280; text-decoration: none; font-size: 0.75rem; transition: color 150ms ease; }
+.footerLegalLink:hover { color: #fff; }
+.footerAccentBar { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: var(--primary); }
+
+/* ============ KEYFRAMES ============ */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-20px); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes marqueeScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ============ CAROUSEL SKELETON / LOADING STATES ============ */
+.marqSkeletonOuter {
+  overflow: hidden;
+  width: 100%;
+  padding: 16px 0;
+}
+.marqSkeletonInner {
+  display: flex;
+  gap: 24px;
+  padding: 0 32px;
+}
+.marqSkeletonCard {
+  flex-shrink: 0;
+  width: 300px;
+  height: 180px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.venuesFeedbackState {
+  text-align: center;
+  padding: 64px 24px;
+  color: #6b7280;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.venuesFeedbackState p {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+.retryBtn {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 24px;
+  border-radius: 8px;
+  border: 2px solid var(--primary);
+  background: #fff;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+.retryBtn:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* Legacy utility classes (kept for backward compat) */
+.textShadowSm { text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+.bgShimmer {
+  background-size: 200% auto;
+  background-image: linear-gradient(to right, #ff9500 0%, #ff7a59 50%, #ff9500 100%);
+}
+.gridPattern {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ============ MOBILE FIXES: CAROUSEL ============ */
+@media (max-width: 767px) {
+  :global(#venues) { scroll-margin-top: 88px; }
+
+  .venuesSection {
+    padding-top: 48px;
+    padding-bottom: 48px;
+  }
+
+  .venuesSectionHeader {
+    padding: 0 16px;
+    margin-bottom: 24px;
+  }
+
+  .sectionLabel {
+    text-align: left;
+    margin-bottom: 6px;
+  }
+
+  .venuesTitle {
+    font-size: 1.5rem;
+    text-align: left;
+  }
+
+  .marqCard {
+    width: 260px;
+    padding: 18px;
+  }
+
+  .venuesCarouselOuter::before,
+  .venuesCarouselOuter::after {
+    width: 32px;
+  }
+}
+
+/* ─── Hero Search Dropdown ─── */
+.heroSearchDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 200;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.heroSearchDropdownItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  color: #e2e8f0;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.15s;
+}
+.heroSearchDropdownItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ─── Carousel Section Header (flex row for title + search) ─── */
+.venuesSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto 1.5rem;
+  padding: 0 clamp(1rem, 4vw, 3rem);
+}
+
+/* ─── Carousel Search Wrapper ─── */
+.carouselSearchWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 6px 14px;
+  min-width: 200px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.carouselSearchWrap:focus-within {
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.2);
+}
+
+/* ─── Carousel Search Input ─── */
+.carouselSearchInput {
+  border: none;
+  outline: none;
+  font-size: 0.875rem;
+  color: #1e293b;
+  background: transparent;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ─── Carousel Search Clear Button ─── */
+.carouselSearchClear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: #9ca3af;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.carouselSearchClear:hover {
+  color: #4b5563;
+}
+
+/* ─── Filtered Grid (replaces marquee when searching) ─── */
+.carouselFilteredGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding: 0 clamp(1rem, 4vw, 3rem) 2rem;
+  justify-content: center;
+}

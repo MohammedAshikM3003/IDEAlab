@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import s from "./VenueDetailPage.module.css";
 import lp from "./landingpage.module.css";
@@ -8,11 +8,11 @@ import LiveOccupancy from './components/LiveOccupancy';
 import VenueGallery from './components/VenueGallery';
 
 /** Subcomponent for Equipment to cleanly handle per-item image error state */
-const EquipmentCard = ({ item, index }) => {
+const EquipmentCard = ({ item, index, onImageClick }) => {
   const [imgError, setImgError] = React.useState(false);
   return (
     <div className={s.eCard}>
-      <div className={s.eImgWrap}>
+      <div className={s.eImgWrap} onClick={item.image && !imgError ? onImageClick : undefined} style={{ cursor: item.image && !imgError ? 'pointer' : 'default' }}>
         {item.image && !imgError ? (
           <img
             alt={item.itemDetails || `Equipment ${index + 1}`}
@@ -84,6 +84,46 @@ export default function VenueDetailPage() {
 
     fetchVenue();
   }, [venueId]);
+
+  // ─── Lightbox logic ───────────────────────────────────
+  const equipment = venue?.equipment || [];
+  const equipmentImages = useMemo(() => equipment.filter(item => item.image).map(item => item.image), [equipment]);
+
+  const [lightbox, setLightbox] = useState({
+    open: false,
+    images: [],
+    currentIndex: 0,
+    title: '',
+  });
+
+  const openLightbox = (images, index, title) => {
+    const sanitizedImages = Array.isArray(images) ? images.filter(Boolean) : [];
+    if (!sanitizedImages.length) return;
+    const boundedIndex = Math.max(0, Math.min(index, sanitizedImages.length - 1));
+    setLightbox({ open: true, images: sanitizedImages, currentIndex: boundedIndex, title });
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeLightbox = () => {
+    setLightbox(prev => ({ ...prev, open: false }));
+    document.body.style.overflow = '';
+  };
+
+  const nextImage = () => setLightbox(prev => prev.images.length ? { ...prev, currentIndex: (prev.currentIndex + 1) % prev.images.length } : prev);
+  const prevImage = () => setLightbox(prev => prev.images.length ? { ...prev, currentIndex: (prev.currentIndex - 1 + prev.images.length) % prev.images.length } : prev);
+
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (!lightbox.open) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowRight') nextImage();
+      if (e.key === 'ArrowLeft') prevImage();
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [lightbox.currentIndex, lightbox.open]);
+
+  useEffect(() => { return () => { document.body.style.overflow = ''; }; }, []);
 
   // ─── Loading state ───────────────────────────────────
   if (loading) {
@@ -162,7 +202,6 @@ export default function VenueDetailPage() {
 
   // ─── Main detail view ────────────────────────────────
   const amenities = venue.amenities || [];
-  const equipment = venue.equipment || [];
   const hasEquipment = equipment.length > 0;
   const hasAmenities = amenities.length > 0;
   const bookingSteps = [
@@ -281,7 +320,7 @@ export default function VenueDetailPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
             <div className="lg:col-span-7 space-y-4">
-              <VenueGallery venue={venue} />
+              <VenueGallery venue={venue} onOpenLightbox={openLightbox} />
             </div>
 
             <div className={`lg:col-span-5 ${s.sidebar}`}>
@@ -384,7 +423,12 @@ export default function VenueDetailPage() {
                 {hasEquipment && (
                   <div className={s.equipRow}>
                     {equipment.map((item, index) => (
-                      <EquipmentCard key={index} item={item} index={index} />
+                      <EquipmentCard 
+                        key={index} 
+                        item={item} 
+                        index={index} 
+                        onImageClick={() => openLightbox(equipmentImages, equipmentImages.indexOf(item.image), 'Equipment')} 
+                      />
                     ))}
                   </div>
                 )}
@@ -467,6 +511,73 @@ export default function VenueDetailPage() {
           </div>
         </section>
       </main>
+
+      {lightbox.open && (
+        <div className={s.lightboxOverlay} onClick={closeLightbox}>
+          <button
+            aria-label="Close"
+            className={s.lightboxClose}
+            onClick={(e) => { e.stopPropagation(); closeLightbox(); }}
+            type="button"
+          >
+            ✕
+          </button>
+          {lightbox.images.length > 1 && (
+            <div className={s.lightboxCounter}>
+              {lightbox.currentIndex + 1} / {lightbox.images.length}
+            </div>
+          )}
+          <div className={s.lightboxTitle}>{lightbox.title}</div>
+          <div
+            className={s.lightboxContent}
+            onClick={(e) => e.stopPropagation()}
+            role="presentation"
+          >
+            {lightbox.images.length > 1 && (
+              <button
+                aria-label="Previous"
+                className={`${s.lightboxArrow} ${s.lightboxArrowLeft}`}
+                onClick={prevImage}
+                type="button"
+              >
+                ‹
+              </button>
+            )}
+            <img
+              alt={`${lightbox.title} ${lightbox.currentIndex + 1}`}
+              className={s.lightboxImage}
+              src={lightbox.images[lightbox.currentIndex]}
+            />
+            {lightbox.images.length > 1 && (
+              <button
+                aria-label="Next"
+                className={`${s.lightboxArrow} ${s.lightboxArrowRight}`}
+                onClick={nextImage}
+                type="button"
+              >
+                ›
+              </button>
+            )}
+          </div>
+          {lightbox.images.length > 1 && (
+            <div
+              className={s.lightboxThumbnails}
+              onClick={(e) => e.stopPropagation()}
+              role="presentation"
+            >
+              {lightbox.images.map((image, index) => (
+                <img
+                  alt={`thumb ${index + 1}`}
+                  className={index === lightbox.currentIndex ? `${s.lightboxThumb} ${s.lightboxThumbActive}` : s.lightboxThumb}
+                  key={image + String(index)}
+                  onClick={() => setLightbox(prev => ({ ...prev, currentIndex: index }))}
+                  src={image}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <footer className={lp.footer} id="contact">
         <div className={lp.footerInner}>

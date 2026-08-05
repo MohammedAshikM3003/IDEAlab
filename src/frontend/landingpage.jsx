@@ -11,6 +11,9 @@ function LandingPage() {
   const [activeNav, setActiveNav] = useState('home')
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const scrollLockRef = useRef(null)
+  const [heroSearch, setHeroSearch] = useState('')
+  const [heroDropdown, setHeroDropdown] = useState([])
+  const [carouselSearch, setCarouselSearch] = useState('')
 
   // Live venue data from API
   const [venues, setVenues] = useState([])
@@ -315,6 +318,7 @@ function LandingPage() {
                 style={{
                   background: 'rgba(255,255,255,0.08)',
                   border: '1px solid rgba(255,255,255,0.15)',
+                  position: 'relative',
                 }}
               >
                 <div className={styles.searchField}>
@@ -325,18 +329,86 @@ function LandingPage() {
                     className={styles.searchInput}
                     placeholder="Search venues, labs, halls..."
                     type="text"
+                    value={heroSearch}
+                    onChange={(e) => {
+                      const q = e.target.value
+                      setHeroSearch(q)
+                      if (!q.trim()) { setHeroDropdown([]); return }
+                      const ql = q.toLowerCase()
+                      const matches = venues
+                        .filter(v => v.name.toLowerCase().includes(ql))
+                        .sort((a, b) => {
+                          const as = a.name.toLowerCase().startsWith(ql)
+                          const bs = b.name.toLowerCase().startsWith(ql)
+                          return as === bs ? 0 : as ? -1 : 1
+                        })
+                      setHeroDropdown(matches)
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') { setHeroDropdown([]); setHeroSearch('') }
+                      if (e.key === 'Enter') {
+                        const ql = heroSearch.toLowerCase()
+                        const matches = venues
+                          .filter(v => v.name.toLowerCase().includes(ql))
+                          .sort((a, b) => {
+                            const as = a.name.toLowerCase().startsWith(ql)
+                            const bs = b.name.toLowerCase().startsWith(ql)
+                            return as === bs ? 0 : as ? -1 : 1
+                          })
+                        if (matches.length === 1) { navigate(`/venue/${matches[0]._id}`); setHeroDropdown([]); setHeroSearch('') }
+                        else if (matches.length > 1) setHeroDropdown(matches)
+                      }
+                    }}
                   />
                 </div>
-                <button className={styles.searchSubmit} type="button">
+                <button
+                  className={styles.searchSubmit}
+                  type="button"
+                  onClick={() => {
+                    const ql = heroSearch.toLowerCase()
+                    const matches = venues
+                      .filter(v => v.name.toLowerCase().includes(ql))
+                      .sort((a, b) => {
+                        const as = a.name.toLowerCase().startsWith(ql)
+                        const bs = b.name.toLowerCase().startsWith(ql)
+                        return as === bs ? 0 : as ? -1 : 1
+                      })
+                    if (matches.length === 1) { navigate(`/venue/${matches[0]._id}`); setHeroDropdown([]); setHeroSearch('') }
+                    else if (matches.length > 1) setHeroDropdown(matches)
+                  }}
+                >
                   <span className="material-icons">arrow_forward</span>
                 </button>
+
+                {heroDropdown.length > 0 && (
+                  <div className={styles.heroSearchDropdown}>
+                    {heroDropdown.map(v => (
+                      <button
+                        key={v._id}
+                        className={styles.heroSearchDropdownItem}
+                        type="button"
+                        onClick={() => { navigate(`/venue/${v._id}`); setHeroDropdown([]); setHeroSearch('') }}
+                      >
+                        <span className="material-icons" style={{ fontSize: '1rem', marginRight: 8, opacity: 0.6 }}>meeting_room</span>
+                        {v.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className={styles.popularRow}>
-                <span className={styles.popularLabel}>Popular:</span>
-                <a className={styles.popularTag} href="#" onClick={(e) => { e.preventDefault(); navigate('/venue/aicte-idea-lab') }}>AICTE Idea Lab</a>
-                <a className={styles.popularTag} href="#" onClick={(e) => { e.preventDefault(); navigate('/venue/platinum-hall') }}>Platinum Hall</a>
-                <a className={styles.popularTag} href="#" onClick={(e) => { e.preventDefault(); navigate('/venue/seminar-hall-a') }}>Seminar Hall A</a>
+                <span className={styles.popularLabel}>Spaces:</span>
+                {venues.slice(0, 4).map(v => (
+                  <button
+                    key={v._id}
+                    className={styles.popularTag}
+                    type="button"
+                    onClick={() => navigate(`/venue/${v._id}`)}
+                  >
+                    {v.name}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -496,6 +568,27 @@ function LandingPage() {
             <h2 className={styles.sectionLabel}>Our Spaces</h2>
             <h3 className={styles.venuesTitle}>Our Labs &amp; Spaces</h3>
           </div>
+          {!venuesLoading && !venuesError && venues.length > 0 && (
+            <div
+              className={styles.carouselSearchWrap}
+              style={{ outline: 'none' }}
+            >
+              <span className="material-icons" style={{ color: '#6b7280', fontSize: '1.1rem' }}>search</span>
+              <input
+                className={styles.carouselSearchInput}
+                placeholder="Filter venues..."
+                type="text"
+                value={carouselSearch}
+                onChange={(e) => setCarouselSearch(e.target.value)}
+                style={{ outline: 'none', boxShadow: 'none', border: 'none' }}
+              />
+              {carouselSearch && (
+                <button className={styles.carouselSearchClear} type="button" onClick={() => setCarouselSearch('')}>
+                  <span className="material-icons" style={{ fontSize: '1rem' }}>close</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Loading skeleton — horizontal strip */}
@@ -529,53 +622,116 @@ function LandingPage() {
           </div>
         )}
 
-        {/* Marquee carousel — list rendered twice for seamless loop */}
-        {!venuesLoading && !venuesError && venues.length > 0 && (
-          <div className={styles.venuesCarouselOuter}>
-            <div
-              className={`${styles.venuesCarouselInner}${isCarouselPaused ? ` ${styles.paused}` : ''}`}
-              onMouseEnter={() => setIsCarouselPaused(true)}
-              onMouseLeave={() => setIsCarouselPaused(false)}
-              onTouchStart={() => setIsCarouselPaused(true)}
-              onTouchEnd={() => setTimeout(() => setIsCarouselPaused(false), 300)}
-            >
-              {[...venues, ...venues].map((venue, idx) => (
-                <div
-                  className={styles.marqCard}
-                  key={`${venue._id}-${idx}`}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => navigate(`/venue/${venue._id}`)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/venue/${venue._id}`) }}
-                >
-                  {venue.facilityType && (
-                    <span className={styles.marqCardType}>{venue.facilityType}</span>
-                  )}
-                  <h4 className={styles.marqCardName}>{venue.name}</h4>
-                  <p className={styles.marqCardDesc}>
-                    {venue.description
-                      ? venue.description.substring(0, 110) + (venue.description.length > 110 ? '...' : '')
-                      : 'A premium space available for booking.'}
-                  </p>
-                  {venue.capacity && (
-                    <div className={styles.marqCapacity}>
-                      <span className="material-icons">people</span>
-                      {venue.capacity} seats
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    className={styles.marqBtn}
-                    onClick={(e) => { e.stopPropagation(); navigate(`/venue/${venue._id}`) }}
+        {/* Carousel: filtered static grid when searching, marquee otherwise */}
+        {!venuesLoading && !venuesError && venues.length > 0 && (() => {
+          const filtered = carouselSearch.trim()
+            ? (() => {
+                const ql = carouselSearch.toLowerCase()
+                return venues
+                  .filter(v => v.name.toLowerCase().includes(ql))
+                  .sort((a, b) => {
+                    const as = a.name.toLowerCase().startsWith(ql)
+                    const bs = b.name.toLowerCase().startsWith(ql)
+                    return as === bs ? 0 : as ? -1 : 1
+                  })
+              })()
+            : venues
+
+          if (carouselSearch.trim() && filtered.length === 0) {
+            return (
+              <div className={styles.venuesFeedbackState}>
+                <span className="material-icons" style={{ fontSize: '2.5rem', color: '#9ca3af', marginBottom: 12 }}>search_off</span>
+                <p>No venues match &ldquo;{carouselSearch}&rdquo;</p>
+              </div>
+            )
+          }
+
+          if (carouselSearch.trim()) {
+            return (
+              <div className={styles.carouselFilteredGrid}>
+                {filtered.map(venue => (
+                  <div
+                    className={styles.marqCard}
+                    key={venue._id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate(`/venue/${venue._id}`)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/venue/${venue._id}`) }}
                   >
-                    View Details
-                    <span className="material-icons">arrow_forward</span>
-                  </button>
-                </div>
-              ))}
+                    {venue.facilityType && <span className={styles.marqCardType}>{venue.facilityType}</span>}
+                    <h4 className={styles.marqCardName}>{venue.name}</h4>
+                    <p className={styles.marqCardDesc}>
+                      {venue.description
+                        ? venue.description.substring(0, 110) + (venue.description.length > 110 ? '...' : '')
+                        : 'A premium space available for booking.'}
+                    </p>
+                    {venue.capacity && (
+                      <div className={styles.marqCapacity}>
+                        <span className="material-icons">people</span>
+                        {venue.capacity} seats
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className={styles.marqBtn}
+                      onClick={(e) => { e.stopPropagation(); navigate(`/venue/${venue._id}`) }}
+                    >
+                      View Details
+                      <span className="material-icons">arrow_forward</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )
+          }
+
+          return (
+            <div className={styles.venuesCarouselOuter}>
+              <div
+                className={`${styles.venuesCarouselInner}${isCarouselPaused ? ` ${styles.paused}` : ''}`}
+                onMouseEnter={() => setIsCarouselPaused(true)}
+                onMouseLeave={() => setIsCarouselPaused(false)}
+                onTouchStart={() => setIsCarouselPaused(true)}
+                onTouchEnd={() => setTimeout(() => setIsCarouselPaused(false), 300)}
+              >
+                {[...venues, ...venues].map((venue, idx) => (
+                  <div
+                    className={styles.marqCard}
+                    key={`${venue._id}-${idx}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate(`/venue/${venue._id}`)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/venue/${venue._id}`) }}
+                  >
+                    {venue.facilityType && (
+                      <span className={styles.marqCardType}>{venue.facilityType}</span>
+                    )}
+                    <h4 className={styles.marqCardName}>{venue.name}</h4>
+                    <p className={styles.marqCardDesc}>
+                      {venue.description
+                        ? venue.description.substring(0, 110) + (venue.description.length > 110 ? '...' : '')
+                        : 'A premium space available for booking.'}
+                    </p>
+                    {venue.capacity && (
+                      <div className={styles.marqCapacity}>
+                        <span className="material-icons">people</span>
+                        {venue.capacity} seats
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className={styles.marqBtn}
+                      onClick={(e) => { e.stopPropagation(); navigate(`/venue/${venue._id}`) }}
+                    >
+                      View Details
+                      <span className="material-icons">arrow_forward</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
       </section>
 
       {/* CTA Section */}

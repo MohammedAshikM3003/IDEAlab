@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import s from '../VenueDetailPage.module.css';
 
-export default function VenueGallery({ venue }) {
+export default function VenueGallery({ venue, onOpenLightbox }) {
   const images = [];
   if (venue.bannerImage) images.push(venue.bannerImage);
   if (venue.gallery && Array.isArray(venue.gallery)) {
@@ -32,13 +32,20 @@ export default function VenueGallery({ venue }) {
 
   return (
     <div className={s.galleryContainer}>
-      <div className={s.hero}>
+      <div 
+        className={s.hero} 
+        style={{ cursor: 'pointer', position: 'relative' }}
+        onClick={() => onOpenLightbox(images, activeIndex, 'Gallery')}
+      >
         <img
           alt={venue.name}
           className={s.heroImg}
           src={images[activeIndex]}
           onError={() => setImageError(true)}
         />
+        <div className={s.expandOverlay}>
+           <span className="material-icons">open_in_full</span>
+        </div>
       </div>
 
       {images.length > 1 && (

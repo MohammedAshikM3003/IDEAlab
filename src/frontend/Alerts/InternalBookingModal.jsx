@@ -63,6 +63,7 @@ export default function InternalBookingModal({ isOpen, onClose }) {
   const [timeSlotStart, setTimeSlotStart] = useState(EMPTY_TIME)  // { hour, minute, period }
   const [timeSlotEnd, setTimeSlotEnd] = useState({ ...EMPTY_TIME, period: 'PM' })
   const [organizer, setOrganizer] = useState('')
+  const [attendees, setAttendees] = useState('')
   const [isRecurring, setIsRecurring] = useState(false)
 
   // calendar popover
@@ -144,6 +145,7 @@ export default function InternalBookingModal({ isOpen, onClose }) {
     setTimeSlotStart(EMPTY_TIME)
     setTimeSlotEnd({ ...EMPTY_TIME, period: 'PM' })
     setOrganizer('')
+    setAttendees('')
     setIsRecurring(false)
     setIsCalendarOpen(false)
     setIsTooltipOpen(false)
@@ -170,9 +172,10 @@ export default function InternalBookingModal({ isOpen, onClose }) {
       timeSlotStart.hour && timeSlotStart.minute &&
       timeSlotEnd.hour && timeSlotEnd.minute &&
       !isEndBeforeStart &&
-      organizer.trim()
+      organizer.trim() &&
+      attendees !== '' && Number(attendees) >= 0
     )
-  }, [eventTitle, venueId, date, timeSlotStart, timeSlotEnd, isEndBeforeStart, organizer])
+  }, [eventTitle, venueId, date, timeSlotStart, timeSlotEnd, isEndBeforeStart, organizer, attendees])
 
   // ── confirm ───────────────────────────────────────────────────────────────
   const handleConfirm = async () => {
@@ -194,6 +197,7 @@ export default function InternalBookingModal({ isOpen, onClose }) {
       },
       isRecurring,
       source: 'internal',
+      attendees: Number(attendees),
     }
 
     try {
@@ -328,6 +332,19 @@ export default function InternalBookingModal({ isOpen, onClose }) {
                 placeholder="e.g., Principal's Office"
                 value={organizer}
                 onChange={(e) => setOrganizer(e.target.value)}
+              />
+            </label>
+
+            {/* Attendees */}
+            <label className={styles.field}>
+              <span className={styles.label}>Total Attendees</span>
+              <input
+                className={styles.input}
+                type="number"
+                min="0"
+                placeholder="e.g. 50"
+                value={attendees}
+                onChange={(e) => setAttendees(e.target.value)}
               />
             </label>
 

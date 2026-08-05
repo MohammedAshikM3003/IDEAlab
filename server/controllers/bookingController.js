@@ -454,7 +454,7 @@ class BookingController {
 	 * @returns {Promise<import('express').Response>} Response.
 	 */
 	async createInternal(req, res) {
-		const { eventPurpose, organizer, venue: venueId, date, timeSlot, isRecurring } = req.body || {}
+		const { eventPurpose, organizer, venue: venueId, date, timeSlot, isRecurring, attendees } = req.body || {}
 
 		if (!eventPurpose || !venueId || !date || !timeSlot?.start || !timeSlot?.end || !organizer) {
 			return res.status(400).json({ message: 'eventPurpose, organizer, venue, date, timeSlot.start, and timeSlot.end are all required' })
@@ -492,6 +492,7 @@ class BookingController {
 					venue: venue.name,
 					requestedDate: bookingDate.toISOString().split('T')[0],
 					timeSlot: `${String(timeSlot.start).trim()} - ${String(timeSlot.end).trim()}`,
+					attendees: Number(attendees) || 0,
 				},
 				confirmedBooking: {
 					venue: venue._id,
