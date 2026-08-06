@@ -19,6 +19,12 @@ import { UserProfileProvider } from './frontend/UserProfileContext.jsx'
 import VenueDetailPage from './frontend/VenueDetailPage.jsx'
 // PublicVenuesPage removed — /venues route retired; carousel lives on landing page
 
+function ProtectedRoute({ children }) {
+  const token = localStorage.getItem('token')
+  if (!token) return <Navigate to="/login" replace />
+  return children
+}
+
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
@@ -31,16 +37,16 @@ function App() {
         <Route path="/landing" element={<Navigate to="/" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/booking-form" element={<BookingFormPage />} />
-        <Route path="/dashboard" element={<DashboardPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
-        <Route path="/inbox" element={<RequestInboxPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
-        <Route path="/status" element={<StatusPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
-        <Route path="/facilities" element={<FacilitiesManagementPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
-        <Route path="/facilities/all" element={<FacilitiesAllPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
-        <Route path="/facilities/venue/:venueId" element={<FacilityVenueDetailPage />} />
-        <Route path="/facilities/venue/:id/edit" element={<EditFacilityPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
-        <Route path="/facilities/add" element={<AddFacilityPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
-        <Route path="/history" element={<HistoryPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
-        <Route path="/settings" element={<SettingsPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} />} />
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} /></ProtectedRoute>} />
+        <Route path="/inbox" element={<ProtectedRoute><RequestInboxPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} /></ProtectedRoute>} />
+        <Route path="/status" element={<ProtectedRoute><StatusPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} /></ProtectedRoute>} />
+        <Route path="/facilities" element={<ProtectedRoute><FacilitiesManagementPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} /></ProtectedRoute>} />
+        <Route path="/facilities/all" element={<ProtectedRoute><FacilitiesAllPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} /></ProtectedRoute>} />
+        <Route path="/facilities/venue/:venueId" element={<ProtectedRoute><FacilityVenueDetailPage /></ProtectedRoute>} />
+        <Route path="/facilities/venue/:id/edit" element={<ProtectedRoute><EditFacilityPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} /></ProtectedRoute>} />
+        <Route path="/facilities/add" element={<ProtectedRoute><AddFacilityPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} /></ProtectedRoute>} />
+        <Route path="/history" element={<ProtectedRoute><HistoryPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </UserProfileProvider>

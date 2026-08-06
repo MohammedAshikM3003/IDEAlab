@@ -59,6 +59,8 @@ export default function LoginPage() {
           throw new Error(payload.message || 'Login failed');
         }
 
+        localStorage.setItem('token', payload.token);
+
         authTimerRef.current = window.setTimeout(() => {
           navigate('/dashboard');
         }, 900);

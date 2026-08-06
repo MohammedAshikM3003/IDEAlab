@@ -1,10 +1,11 @@
 import express from 'express'
 
 import Notification from '../models/Notification.js'
+import { authMiddleware } from '../middleware/auth.js'
 
 const router = express.Router()
 
-router.get('/', async (_req, res) => {
+router.get('/', authMiddleware, async (_req, res) => {
   try {
     const notifications = await Notification.find().sort({ createdAt: -1 })
     return res.json(notifications)
@@ -13,7 +14,7 @@ router.get('/', async (_req, res) => {
   }
 })
 
-router.patch('/read-all', async (_req, res) => {
+router.patch('/read-all', authMiddleware, async (_req, res) => {
   try {
     await Notification.updateMany({}, { $set: { read: true } })
     return res.json({ success: true, message: 'All notifications marked as read' })
@@ -22,7 +23,7 @@ router.patch('/read-all', async (_req, res) => {
   }
 })
 
-router.delete('/', async (_req, res) => {
+router.delete('/', authMiddleware, async (_req, res) => {
   try {
     await Notification.deleteMany({})
     return res.json({ success: true })
@@ -31,7 +32,7 @@ router.delete('/', async (_req, res) => {
   }
 })
 
-router.patch('/:id/read', async (req, res) => {
+router.patch('/:id/read', authMiddleware, async (req, res) => {
   try {
     const updated = await Notification.findByIdAndUpdate(
       req.params.id,
