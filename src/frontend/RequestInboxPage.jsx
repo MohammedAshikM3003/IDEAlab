@@ -48,6 +48,7 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
     if (normalized === 'CLARIFICATION' || normalized === 'CLARIFICATION REQUESTED') {
       return 'CLARIFICATION REQUESTED'
     }
+    if (normalized === 'CLARIFICATION_PROVIDED') return 'REPLY RECEIVED'
     return normalized || 'NEW REQUEST'
   }
 
@@ -60,6 +61,8 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
         return 'rejected'
       case 'NEW REQUEST':
       case 'NEW_REQUEST':
+      case 'REPLY RECEIVED':
+      case 'CLARIFICATION_PROVIDED':
         return 'new'
       case 'CLARIFICATION':
       case 'CLARIFICATION REQUESTED':
@@ -143,6 +146,7 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
             : 'Not specified',
           equipment: b.extractedDetails?.equipment || 'Not specified',
           supervisor: b.extractedDetails?.supervisor || 'Not specified',
+          clarificationReplies: b.clarificationReplies || [],
         }
         })
         setRequests(mapped.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)))
@@ -174,7 +178,7 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
       next = next.filter(
         (req) =>
           !readIds.has(req.id) &&
-          (req.status === 'NEW REQUEST' || req.status === 'PENDING' || req.status === 'FORM_SENT')
+          (req.status === 'NEW REQUEST' || req.status === 'PENDING' || req.status === 'FORM_SENT' || req.status === 'REPLY RECEIVED')
       )
     }
 
@@ -432,6 +436,7 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
 
     switch (request.status) {
       case 'NEW REQUEST':
+      case 'REPLY RECEIVED':
         return styles.indicatorNew
       case 'PENDING':
         return styles.indicatorPending
@@ -449,6 +454,7 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
   const unreadDotClass = (request) => {
     switch (request.status) {
       case 'NEW REQUEST':
+      case 'REPLY RECEIVED':
         return styles.reqDotNew
       case 'PENDING':
         return styles.reqDotPending
@@ -639,7 +645,7 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
                           <div className={styles.reqNameRow}>
                             <p className={styles.reqName}>{req.name}</p>
                             {!readIds.has(req.id) &&
-                            (req.status === 'NEW REQUEST' || req.status === 'FORM_SENT') ? (
+                            (req.status === 'NEW REQUEST' || req.status === 'FORM_SENT' || req.status === 'REPLY RECEIVED') ? (
                               <span className={cx(styles.reqDot, unreadDotClass(req))} />
                             ) : null}
                           </div>
@@ -729,6 +735,14 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
                       <div className={styles.msgCard}>
                         <p className={styles.msgText}>{selectedRequest.message}</p>
                       </div>
+                      {selectedRequest.clarificationReplies?.length > 0 && selectedRequest.clarificationReplies.map((reply, i) => (
+                        <div key={`reply-${i}`} className={styles.msgCard} style={{ marginTop: '1rem', borderLeft: '3px solid #ff9500' }}>
+                          <p className={styles.msgText} style={{ marginBottom: '0.5rem', fontWeight: 600, color: '#ff9500' }}>
+                            Reply ({new Date(reply.receivedAt).toLocaleString()}):
+                          </p>
+                          <p className={styles.msgText} style={{ whiteSpace: 'pre-wrap' }}>{reply.content}</p>
+                        </div>
+                      ))}
                     </div>
 
                     <div className={styles.grid12}>

@@ -25,6 +25,14 @@ function createBookingRequestSchema() {
 			{ _id: false },
 		)
 
+		const clarificationReplySchema = new Schema(
+			{
+				content: { type: String },
+				receivedAt: { type: Date, default: Date.now },
+			},
+			{ _id: false },
+		)
+
 		const formResponseSchema = new Schema(
 			{
 				formId: { type: String },
@@ -102,11 +110,13 @@ function createBookingRequestSchema() {
 						'approved',
 						'rejected',
 						'clarification_requested',
+						'clarification_provided',
 						'cancelled',
 					],
 					default: 'pending',
 					index: true,
 				},
+				clarificationReplies: { type: [clarificationReplySchema], default: [] },
 				adminActions: { type: [adminActionSchema], default: [] },
 				confirmedBooking: { type: confirmedBookingSchema },
 				receivedAt: { type: Date, default: Date.now, index: true },

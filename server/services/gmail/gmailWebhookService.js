@@ -427,6 +427,35 @@ class GmailWebhookService {
 				from: getHeader(fullMessage, 'From'),
 			})
 
+			const threadId = fullMessage.threadId ? String(fullMessage.threadId) : String(messageId)
+			const existingClarification = await BookingRequest.findOne({
+				emailThreadId: threadId,
+				status: 'clarification_requested',
+			})
+
+			if (existingClarification) {
+				console.log('[GmailWebhookService] Clarification reply detected', {
+					messageId: String(messageId),
+					bookingId: String(existingClarification._id),
+				})
+				var EmailProcessor = (await import('../email/emailProcessor.js')).default
+				var processor = new EmailProcessor()
+				var parsed = await processor.parse(fullMessage)
+
+				existingClarification.clarificationReplies = existingClarification.clarificationReplies || []
+				existingClarification.clarificationReplies.push({
+					content: parsed && parsed.text ? String(parsed.text) : '',
+					receivedAt: new Date(),
+				})
+				existingClarification.status = 'clarification_provided'
+				existingClarification.receivedAt = new Date()
+
+				await existingClarification.save()
+				await this.markAsRead(String(messageId))
+				processedMessageIds.add(String(messageId))
+				return { messageId: String(messageId), status: 'processed_reply', bookingId: String(existingClarification._id) }
+			}
+
 			if (!this.isBookingRequest(fullMessage)) {
 				return { messageId: String(messageId), status: 'skipped', reason: 'not_booking_request' }
 			}
