@@ -529,7 +529,7 @@ function LandingPage() {
                 </div>
                 <div className={styles.stepNum}>02</div>
                 <h4 className={styles.stepTitle}>Fill Form</h4>
-                <p className={styles.stepDesc}>Complete the detailed application form with event specifics and requirements.</p>
+                <p className={styles.stepDesc}>Complete the detailed application form you'll receive by email, with your event specifics and requirements.</p>
               </div>
             </div>
 

@@ -222,8 +222,10 @@
   background-color: #ffffff !important;
 }
 
-.input::placeholder {
+.input::placeholder,
+.textarea::placeholder {
   color: #cbd5e0;
+  font-weight: 300;
 }
 
 .inputIcon {

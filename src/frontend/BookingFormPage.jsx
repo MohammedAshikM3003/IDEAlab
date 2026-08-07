@@ -15,7 +15,6 @@ const initialForm = {
   eventDate: '',
   timeSlotStart: { hour: '', minute: '', period: 'AM' },
   timeSlotEnd: { hour: '', minute: '', period: 'PM' },
-  attendance: '',
   attendees: '',
   equipment: '',
   supervisor: '',
@@ -257,9 +256,6 @@ function BookingFormPage() {
     if (form.timeSlotStart.hour && form.timeSlotEnd.hour && endMins <= startMins) {
       nextErrors.timeSlotEnd = 'End time must be after start time.'
     }
-    if (!form.attendance || Number(form.attendance) <= 0) {
-      nextErrors.attendance = 'Expected attendance is required.'
-    }
     if (!form.attendees || Number(form.attendees) < 0) {
       nextErrors.attendees = 'Please enter a valid number of attendees.'
     }
@@ -291,7 +287,6 @@ function BookingFormPage() {
         purpose: form.purpose,
         eventDate: String(form.eventDate),
         timeSlot: `${timePartsToString(form.timeSlotStart)} - ${timePartsToString(form.timeSlotEnd)}`,
-        attendance: Number(form.attendance),
         attendees: Number(form.attendees),
         equipment: form.equipment || '',
         supervisor: form.supervisor,
@@ -670,27 +665,6 @@ function BookingFormPage() {
               <span className={styles.sectionLine} />
             </div>
             <div className={styles.sectionGrid}>
-              <div className={styles.field}>
-                <label className={styles.fieldLabel} htmlFor="attendance">
-                  Expected Attendance
-                </label>
-                <div className={styles.control}>
-                  <input
-                    id="attendance"
-                    name="attendance"
-                    type="number"
-                    min="1"
-                    value={form.attendance}
-                    onChange={handleChange}
-                    required
-                    placeholder="150"
-                    aria-invalid={Boolean(errors.attendance)}
-                    className={styles.input}
-                  />
-                </div>
-                {errors.attendance ? <div className={styles.error}>{errors.attendance}</div> : null}
-              </div>
-
               <div className={styles.field}>
                 <label className={styles.fieldLabel} htmlFor="attendees">
                   Total Attendees

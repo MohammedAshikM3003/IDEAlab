@@ -159,8 +159,8 @@ export default function VenueDetailPage() {
             </div>
           </div>
         </header>
-        <main className={s.main}>
-          <div className={`${s.container}`} style={{ padding: '80px 1rem', textAlign: 'center' }}>
+        <main className={s.main} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center', padding: '1rem' }}>
             <div className={s.loadingSpinner}></div>
             <p style={{ color: '#6b7280', marginTop: 16 }}>Loading venue details...</p>
           </div>
@@ -188,8 +188,8 @@ export default function VenueDetailPage() {
             </div>
           </div>
         </header>
-        <main className={s.main}>
-          <div className={`${s.container}`} style={{ padding: '80px 1rem', textAlign: 'center' }}>
+        <main className={s.main} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className={`${s.container}`} style={{ textAlign: 'center', padding: '1rem' }}>
             <span className="material-icons" style={{ fontSize: '3.5rem', color: error === 'not_found' ? '#9ca3af' : '#ef4444', marginBottom: 16 }}>
               {error === 'not_found' ? 'meeting_room' : 'error_outline'}
             </span>
@@ -234,7 +234,7 @@ export default function VenueDetailPage() {
       icon: 'edit_note',
       num: '02',
       name: 'Fill Form',
-      description: 'Complete the detailed application form with event specifics and requirements.',
+      description: 'Complete the detailed application form you\\'ll receive by email, with your event specifics and requirements.',
     },
     {
       icon: 'admin_panel_settings',

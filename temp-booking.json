@@ -1,0 +1,20 @@
+{
+  "status": "approved",
+  "confirmedBooking": {
+    "venue": "6a7172a241d196f81b57a9a2",
+    "date": "2026-08-05T00:00:00.000Z",
+    "timeSlot": {
+      "start": "10:00 AM",
+      "end": "12:00 PM"
+    },
+    "approvedAt": "2026-08-05T04:22:54.409Z",
+    "approvedBy": "6a38c222a4006619c7d664fa"
+  },
+  "extractedDetails": {
+    "requestedDate": "2026-08-05",
+    "eventPurpose": "Ideation Meeting for prokject",
+    "venue": "IDEA CAFE",
+    "timeSlot": "10:00 AM - 12:00 PM",
+    "attendees": null
+  }
+}
