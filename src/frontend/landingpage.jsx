@@ -517,7 +517,7 @@ function LandingPage() {
                 </div>
                 <div className={styles.stepNum}>01</div>
                 <h4 className={styles.stepTitle}>Send Request</h4>
-                <p className={styles.stepDesc}>Initiate your booking by sending a formal request through the portal.</p>
+                <p className={styles.stepDesc}>Email your booking request to <strong style={{ color: 'var(--primary)' }}>ksridealab@gmail.com</strong> with the venue, date, and event details you're interested in.</p>
               </div>
             </div>
 
@@ -556,6 +556,10 @@ function LandingPage() {
                 <p className={styles.stepDesc}>Receive your official booking confirmation and access pass via email.</p>
               </div>
             </div>
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '2rem', color: '#6b7280', fontSize: '0.95rem' }}>
+            If we need any additional details, we'll follow up by replying to your email — just reply back and we'll pick up your request from there.
           </div>
         </div>
       </section>
@@ -797,7 +801,7 @@ function LandingPage() {
                 </li>
                 <li className={styles.footerContactItem}>
                   <span className={`material-icons ${styles.footerContactIcon}`}>email</span>
-                  <span>admin@ksr.edu.in</span>
+                  <span>ksridealab@gmail.com</span>
                 </li>
               </ul>
             </div>

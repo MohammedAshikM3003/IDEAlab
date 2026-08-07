@@ -224,7 +224,11 @@ export default function VenueDetailPage() {
       icon: 'email',
       num: '01',
       name: 'Send Request',
-      description: 'Initiate your booking by sending a formal request through the portal.',
+      description: (
+        <>
+          Email your booking request to <strong style={{ color: 'var(--primary)' }}>ksridealab@gmail.com</strong> with the venue, date, and event details you're interested in.
+        </>
+      ),
     },
     {
       icon: 'edit_note',
@@ -521,6 +525,9 @@ export default function VenueDetailPage() {
                   </div>
                 ))}
               </div>
+              <div style={{ textAlign: 'center', marginTop: '2rem', color: '#6b7280', fontSize: '0.95rem' }}>
+                If we need any additional details, we'll follow up by replying to your email — just reply back and we'll pick up your request from there.
+              </div>
             </div>
             
           </div>
@@ -642,7 +649,7 @@ export default function VenueDetailPage() {
                 </li>
                 <li className={lp.footerContactItem}>
                   <span className={`material-icons ${lp.footerContactIcon}`}>email</span>
-                  <span>admin@ksr.edu.in</span>
+                  <span>ksridealab@gmail.com</span>
                 </li>
               </ul>
             </div>
