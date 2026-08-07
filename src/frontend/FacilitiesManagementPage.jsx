@@ -6,24 +6,9 @@ import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
 import styles from "./FacilitiesManagementPage.module.css";
 
+import { resolveVenueImageSrc } from "./utils/imageUrl";
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-const FALLBACK_FACILITY_IMAGE = "https://placehold.co/800x450?text=Facility";
-
-function resolveVenueImageSrc(value) {
-  if (!value) {
-    return FALLBACK_FACILITY_IMAGE;
-  }
-
-  if (String(value).startsWith("http://") || String(value).startsWith("https://")) {
-    return value;
-  }
-
-  if (String(value).startsWith("/")) {
-    return `${API_URL}${value}`;
-  }
-
-  return value;
-}
 
 const DONUT_RADIUS = 70;
 const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;

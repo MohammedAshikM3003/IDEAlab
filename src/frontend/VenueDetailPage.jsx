@@ -6,6 +6,7 @@ import ksrceLogo from '../assets/collegelogo.jpg';
 import VenueCalendar from './components/VenueCalendar';
 import LiveOccupancy from './components/LiveOccupancy';
 import VenueGallery from './components/VenueGallery';
+import { normalizeImageUrl } from './utils/imageUrl';
 
 /** Subcomponent for Equipment to cleanly handle per-item image error state */
 const EquipmentCard = ({ item, index, onImageClick }) => {
@@ -44,7 +45,6 @@ const EquipmentCard = ({ item, index, onImageClick }) => {
   );
 };
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function VenueDetailPage() {
   const navigate = useNavigate();
@@ -73,6 +73,20 @@ export default function VenueDetailPage() {
 
         const data = await res.json();
         console.log('Venue detail response:', data);
+
+        if (data) {
+          data.bannerImage = normalizeImageUrl(data.bannerImage);
+          if (Array.isArray(data.gallery)) {
+            data.gallery = data.gallery.map(normalizeImageUrl).filter(Boolean);
+          }
+          if (Array.isArray(data.equipment)) {
+            data.equipment = data.equipment.map(eq => ({
+              ...eq,
+              image: normalizeImageUrl(eq.image)
+            }));
+          }
+        }
+
         setVenue(data);
       } catch (err) {
         console.error('Failed to fetch venue:', err);

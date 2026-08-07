@@ -5,6 +5,7 @@ import ImageCropModal from "../components/facilities/ImageCropModal";
 import PageHeader from "./PageHeader";
 import Sidebar from "./Sidebar";
 import styles from "./AddFacilityPage.module.css";
+import { normalizeImageUrl } from "./utils/imageUrl";
 
 const INVENTORY_CONDITIONS = ["Good", "Fair", "Poor"];
 const FACILITY_TYPES = ["Seminar Hall", "Conference Room", "Lab", "Auditorium", "Classroom", "Studio"];
@@ -321,21 +322,6 @@ export default function AddFacilityPage({ isSidebarOpen, setIsSidebarOpen }) {
     equipmentId.current = 3;
   };
 
-  const normalizeImageUrl = (value) => {
-    if (!value) {
-      return "";
-    }
-
-    if (String(value).startsWith("http://") || String(value).startsWith("https://")) {
-      return value;
-    }
-
-    if (String(value).startsWith("/")) {
-      return `${API_URL}${value}`;
-    }
-
-    return value;
-  };
 
   const normalizeCondition = (value) => {
     if (value === "Good" || value === "Fair" || value === "Poor") {

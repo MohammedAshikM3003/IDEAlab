@@ -4,14 +4,9 @@ import PageHeader from './PageHeader'
 import Sidebar from './Sidebar'
 import styles from './FacilityVenueDetailPage.module.css'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+import { normalizeImageUrl } from './utils/imageUrl'
 
-const normalizeImageUrl = (value) => {
-  if (!value) return ''
-  if (String(value).startsWith('http://') || String(value).startsWith('https://')) return value
-  if (String(value).startsWith('/')) return `${API_URL}${value}`
-  return value
-}
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 const toViewVenue = (payload = {}) => ({
   id: payload._id || payload.id || '',
