@@ -234,19 +234,19 @@ export default function VenueDetailPage() {
       icon: 'edit_note',
       num: '02',
       name: 'Fill Form',
-      description: 'Complete the detailed application form you\\'ll receive by email, with your event specifics and requirements.',
+      description: "Complete the detailed application form you'll receive by email, with your event specifics and requirements.",
     },
     {
       icon: 'admin_panel_settings',
       num: '03',
       name: 'Admin Review',
-      description: 'The administration team reviews the availability and purpose of the venue.',
+      description: "The administration team reviews the availability and purpose of the venue.",
     },
     {
       icon: 'check_circle',
       num: '04',
       name: 'Get Confirmation',
-      description: 'Receive your official booking confirmation and access pass via email.',
+      description: "Receive your official booking confirmation and access pass via email.",
     },
   ];
 
