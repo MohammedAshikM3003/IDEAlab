@@ -1,3 +1,4 @@
+import { toISODate } from './utils/dateFormat';
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { getBookingTimeStatus, parseTimeStrToMinutes } from './utils/bookingTimeStatus'
 
@@ -41,12 +42,7 @@ function formatDisplayDate(date) {
       })
 }
 
-function toInputDateValue(date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
+
 
 function formatTimeClock(date) {
   return date.toLocaleTimeString('en-US', {
@@ -204,7 +200,7 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
     return () => window.clearTimeout(timer)
   }, [toast])
 
-  const selectedDateKey = useMemo(() => toInputDateValue(selectedDate), [selectedDate])
+  const selectedDateKey = useMemo(() => toISODate(selectedDate), [selectedDate])
 
   useEffect(() => {
     if (!selectedDateKey) {
@@ -245,7 +241,7 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
               return null
             }
 
-            const bookingDateKey = toInputDateValue(new Date(bookingDate))
+            const bookingDateKey = toISODate(new Date(bookingDate))
             if (bookingDateKey !== selectedDateKey) {
               return null
             }
@@ -1320,7 +1316,7 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
       {isEditOpen && selectedBooking ? (
         <AdminEditBookingPopUpFM
           bookingId={selectedBooking.id}
-          initialDate={toInputDateValue(selectedDate)}
+          initialDate={toISODate(selectedDate)}
           initialEndTime={getEstimatedEndTime(selectedBooking)}
           initialEventTitle={selectedBooking.title}
           initialOrganizer={selectedBooking.requesterName || ''}

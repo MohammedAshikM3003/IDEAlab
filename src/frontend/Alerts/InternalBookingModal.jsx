@@ -1,3 +1,4 @@
+import { toISODate } from '../utils/dateFormat';
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import Calendar from '../Calendar'
@@ -23,12 +24,6 @@ function parseISODate(isoDate) {
   return d
 }
 
-function toISODate(date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
 
 function timePartsToMinutes(parts) {
   let h = Number(parts.hour)

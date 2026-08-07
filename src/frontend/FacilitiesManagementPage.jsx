@@ -1,3 +1,4 @@
+import { toISODate } from './utils/dateFormat';
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -101,12 +102,7 @@ function parseISODate(isoDate) {
   return parsed;
 }
 
-function toISODate(dateValue) {
-  const year = dateValue.getFullYear();
-  const month = String(dateValue.getMonth() + 1).padStart(2, "0");
-  const day = String(dateValue.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
+
 
 export default function FacilitiesManagementPage({ isSidebarOpen, setIsSidebarOpen }) {
   const navigate = useNavigate();

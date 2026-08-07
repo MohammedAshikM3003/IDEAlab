@@ -1,3 +1,4 @@
+import { toISODate } from '../utils/dateFormat';
 import React, { useState } from "react";
 
 import Calendar from "../Calendar";
@@ -20,12 +21,6 @@ function parseDateFromDateTime(value) {
   return parsed;
 }
 
-function dateToISO(value) {
-  const year = value.getFullYear();
-  const month = String(value.getMonth() + 1).padStart(2, "0");
-  const day = String(value.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
 
 function readTimePart(value, fallback = "09:00") {
   if (!value || !value.includes("T")) {
@@ -62,11 +57,11 @@ export default function AdminMaintenanceBlockingPopUp({
 }) {
   const [fromDate, setFromDate] = useState(() => {
     const parsed = parseDateFromDateTime(fromValue);
-    return parsed ? dateToISO(parsed) : dateToISO(new Date());
+    return parsed ? toISODate(parsed) : toISODate(new Date());
   });
   const [toDate, setToDate] = useState(() => {
     const parsed = parseDateFromDateTime(toValue);
-    return parsed ? dateToISO(parsed) : dateToISO(new Date());
+    return parsed ? toISODate(parsed) : toISODate(new Date());
   });
   const [fromTime, setFromTime] = useState(() => readTimePart(fromValue, "09:00"));
   const [toTime, setToTime] = useState(() => readTimePart(toValue, "17:00"));
@@ -151,7 +146,7 @@ export default function AdminMaintenanceBlockingPopUp({
                   <div className={styles.durationCalendar}>
                     <Calendar
                       availabilityData={{}}
-                      onDateSelect={(value) => setFromDate(dateToISO(value))}
+                      onDateSelect={(value) => setFromDate(toISODate(value))}
                       selectedDate={parseDateFromDateTime(`${fromDate}T00:00`) || undefined}
                     />
                   </div>
@@ -164,7 +159,7 @@ export default function AdminMaintenanceBlockingPopUp({
                     <Calendar
                       availabilityData={{}}
                       minDate={parseDateFromDateTime(`${fromDate}T00:00`) || undefined}
-                      onDateSelect={(value) => setToDate(dateToISO(value))}
+                      onDateSelect={(value) => setToDate(toISODate(value))}
                       selectedDate={parseDateFromDateTime(`${toDate}T00:00`) || undefined}
                     />
                   </div>

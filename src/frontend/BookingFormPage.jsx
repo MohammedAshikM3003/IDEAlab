@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import styles from './BookingFormPage.module.css'
+import { toISODate } from './utils/dateFormat'
 import ksrLogo from '../assets/KSRCElogo.svg'
 import Calendar from './Calendar'
 
@@ -214,7 +215,7 @@ function BookingFormPage() {
   }
 
   function handleDateSelect(date) {
-    setForm((prev) => ({ ...prev, eventDate: date.toISOString().split('T')[0] }))
+    setForm((prev) => ({ ...prev, eventDate: toISODate(date) }))
     setIsCalendarOpen(false)
     if (errors.eventDate) {
       setErrors((prev) => ({ ...prev, eventDate: '' }))
