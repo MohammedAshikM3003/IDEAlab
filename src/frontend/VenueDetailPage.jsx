@@ -7,6 +7,7 @@ import VenueCalendar from './components/VenueCalendar';
 import LiveOccupancy from './components/LiveOccupancy';
 import VenueGallery from './components/VenueGallery';
 import { normalizeImageUrl } from './utils/imageUrl';
+import EmailLinkPopover from './components/EmailLinkPopover';
 
 /** Subcomponent for Equipment to cleanly handle per-item image error state */
 const EquipmentCard = ({ item, index, onImageClick }) => {
@@ -226,7 +227,7 @@ export default function VenueDetailPage() {
       name: 'Send Request',
       description: (
         <>
-          Email your booking request to <strong style={{ color: 'var(--primary)' }}>ksridealab@gmail.com</strong> with the venue, date, and event details you're interested in.
+          Email your booking request to <EmailLinkPopover email="ksridealab@gmail.com"><strong style={{ color: 'var(--primary)' }}>ksridealab@gmail.com</strong></EmailLinkPopover> with the venue, date, and event details you're interested in.
         </>
       ),
     },
@@ -649,7 +650,7 @@ export default function VenueDetailPage() {
                 </li>
                 <li className={lp.footerContactItem}>
                   <span className={`material-icons ${lp.footerContactIcon}`}>email</span>
-                  <span>ksridealab@gmail.com</span>
+                  <EmailLinkPopover email="ksridealab@gmail.com"><span>ksridealab@gmail.com</span></EmailLinkPopover>
                 </li>
               </ul>
             </div>

@@ -2,6 +2,7 @@ import styles from './landingpage.module.css'
 import ksrceLogo from '../assets/collegelogo.jpg'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useEffect, useState, useRef } from 'react'
+import EmailLinkPopover from './components/EmailLinkPopover'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -517,7 +518,7 @@ function LandingPage() {
                 </div>
                 <div className={styles.stepNum}>01</div>
                 <h4 className={styles.stepTitle}>Send Request</h4>
-                <p className={styles.stepDesc}>Email your booking request to <strong style={{ color: 'var(--primary)' }}>ksridealab@gmail.com</strong> with the venue, date, and event details you're interested in.</p>
+                <p className={styles.stepDesc}>Email your booking request to <EmailLinkPopover email="ksridealab@gmail.com"><strong style={{ color: 'var(--primary)' }}>ksridealab@gmail.com</strong></EmailLinkPopover> with the venue, date, and event details you're interested in.</p>
               </div>
             </div>
 
@@ -801,7 +802,7 @@ function LandingPage() {
                 </li>
                 <li className={styles.footerContactItem}>
                   <span className={`material-icons ${styles.footerContactIcon}`}>email</span>
-                  <span>ksridealab@gmail.com</span>
+                  <EmailLinkPopover email="ksridealab@gmail.com"><span>ksridealab@gmail.com</span></EmailLinkPopover>
                 </li>
               </ul>
             </div>
