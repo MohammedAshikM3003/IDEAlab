@@ -45,6 +45,7 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
   const getStatusLabel = (value) => {
     const normalized = normalizeStatus(value)
     if (normalized === 'PENDING') return 'NEW REQUEST'
+    if (normalized === 'FORM_RECEIVED') return 'REVISED REQUEST'
     if (normalized === 'CLARIFICATION' || normalized === 'CLARIFICATION REQUESTED') {
       return 'CLARIFICATION REQUESTED'
     }
@@ -69,6 +70,8 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
       case 'CLARIFY':
       case 'CLARIFY_REQUESTED':
         return 'clarification'
+      case 'FORM_RECEIVED':
+      case 'REVISED REQUEST':
       case 'PENDING':
         return 'pending'
       default:
@@ -178,7 +181,7 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
       next = next.filter(
         (req) =>
           !readIds.has(req.id) &&
-          (req.status === 'NEW REQUEST' || req.status === 'PENDING' || req.status === 'FORM_SENT' || req.status === 'REPLY RECEIVED')
+          (req.status === 'NEW REQUEST' || req.status === 'PENDING' || req.status === 'FORM_SENT' || req.status === 'REPLY RECEIVED' || req.status === 'REVISED REQUEST')
       )
     }
 
@@ -456,6 +459,7 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
       case 'NEW REQUEST':
       case 'REPLY RECEIVED':
         return styles.reqDotNew
+      case 'REVISED REQUEST':
       case 'PENDING':
         return styles.reqDotPending
       default:
@@ -645,7 +649,7 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
                           <div className={styles.reqNameRow}>
                             <p className={styles.reqName}>{req.name}</p>
                             {!readIds.has(req.id) &&
-                            (req.status === 'NEW REQUEST' || req.status === 'FORM_SENT' || req.status === 'REPLY RECEIVED') ? (
+                            (req.status === 'NEW REQUEST' || req.status === 'FORM_SENT' || req.status === 'REPLY RECEIVED' || req.status === 'REVISED REQUEST') ? (
                               <span className={cx(styles.reqDot, unreadDotClass(req))} />
                             ) : null}
                           </div>

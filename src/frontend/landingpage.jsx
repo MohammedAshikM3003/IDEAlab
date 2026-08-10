@@ -3,6 +3,7 @@ import ksrceLogo from '../assets/collegelogo.jpg'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useEffect, useState, useRef } from 'react'
 import EmailLinkPopover from './components/EmailLinkPopover'
+import { normalizeImageUrl } from './utils/imageUrl'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -663,6 +664,13 @@ function LandingPage() {
                     onClick={() => navigate(`/venue/${venue._id}`)}
                     onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/venue/${venue._id}`) }}
                   >
+                    <div className={styles.marqCardImageWrap}>
+                      {venue.bannerImage ? (
+                        <img src={normalizeImageUrl(venue.bannerImage)} alt={venue.name} className={styles.marqCardImage} />
+                      ) : (
+                        <span className="material-icons" style={{ fontSize: '2.5rem', opacity: 0.4 }}>photo</span>
+                      )}
+                    </div>
                     {venue.facilityType && <span className={styles.marqCardType}>{venue.facilityType}</span>}
                     <h4 className={styles.marqCardName}>{venue.name}</h4>
                     <p className={styles.marqCardDesc}>
@@ -708,6 +716,13 @@ function LandingPage() {
                     onClick={() => navigate(`/venue/${venue._id}`)}
                     onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/venue/${venue._id}`) }}
                   >
+                    <div className={styles.marqCardImageWrap}>
+                      {venue.bannerImage ? (
+                        <img src={normalizeImageUrl(venue.bannerImage)} alt={venue.name} className={styles.marqCardImage} />
+                      ) : (
+                        <span className="material-icons" style={{ fontSize: '2.5rem', opacity: 0.4 }}>photo</span>
+                      )}
+                    </div>
                     {venue.facilityType && (
                       <span className={styles.marqCardType}>{venue.facilityType}</span>
                     )}

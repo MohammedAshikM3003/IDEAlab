@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import crypto from 'crypto'
 
 import BookingRequest from '../models/BookingRequest.js'
 import BookingFormToken from '../models/BookingFormToken.js'
@@ -330,6 +331,23 @@ class BookingController {
 			})
 			await booking.save()
 
+			const requestId = String(booking._id).slice(-6).toUpperCase()
+			const token = crypto.randomBytes(32).toString('hex')
+			const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+
+			await new BookingFormToken({
+				token: token,
+				bookingRequestId: booking._id,
+				refCode: requestId,
+				status: 'active',
+				expiresAt: expiresAt,
+			}).save()
+
+			const bookingUrl =
+				(process.env.FRONTEND_URL || 'http://localhost:5173') +
+				'/booking-form?token=' +
+				token
+
 			const subject = `Re: ${booking.subject || 'Booking Request'} - Clarification Required`
 			await outboxService.queueEmail({
 				to: booking.requesterEmail,
@@ -339,6 +357,7 @@ class BookingController {
 					name: booking.requesterName,
 					clarificationRequest: String(clarificationRequest).trim(),
 					threadId: booking.emailThreadId,
+					bookingUrl: bookingUrl,
 				},
 				bookingRequestId: booking._id,
 			})
@@ -387,6 +406,8 @@ class BookingController {
 				requesterName: booking.requesterName,
 				requesterEmail: booking.requesterEmail,
 				refCode: tokenDoc.refCode,
+				extractedDetails: booking.extractedDetails,
+				formResponse: booking.formResponse,
 			})
 		} catch {
 			return res.status(500).json({ status: 'invalid', message: 'Invalid booking link' })
@@ -435,7 +456,11 @@ class BookingController {
 			booking.extractedDetails.equipment = req.body?.equipment
 			booking.extractedDetails.supervisor = req.body?.supervisor
 			booking.requesterName = req.body?.name
-			booking.status = 'pending'
+
+			const hasClarification = (booking.adminActions || []).some(
+				(a) => a.action === 'clarification_requested'
+			)
+			booking.status = hasClarification ? 'form_received' : 'pending'
 
 			tokenDoc.status = 'used'
 			tokenDoc.usedAt = new Date()

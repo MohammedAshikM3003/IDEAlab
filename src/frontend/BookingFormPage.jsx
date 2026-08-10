@@ -30,12 +30,63 @@ function normalizeVenues(data) {
   return []
 }
 
+function parseTimeSlotPart(timeStr) {
+  if (!timeStr) return { hour: '', minute: '', period: 'AM' }
+  const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i)
+  if (!match) return { hour: '', minute: '', period: 'AM' }
+  
+  let hour = Number(match[1])
+  const minute = match[2]
+  let period = (match[3] || '').toUpperCase()
+
+  if (!period) {
+    period = hour >= 12 ? 'PM' : 'AM'
+    hour = hour % 12 || 12
+  }
+
+  return {
+    hour: String(hour).padStart(2, '0'),
+    minute: minute,
+    period: period,
+  }
+}
+
 function normalizeBookingFields(data) {
+  const extracted = data?.extractedDetails || {}
+  const answers = data?.formResponse?.answers || {}
+
+  const getField = (name) => {
+    if (answers[name] !== undefined && answers[name] !== null && answers[name] !== '') return answers[name]
+    if (extracted[name] !== undefined && extracted[name] !== null && extracted[name] !== '') return extracted[name]
+    return ''
+  }
+  
+  const getFieldAlias = (name1, name2) => getField(name1) || getField(name2)
+
+  const rawTimeSlot = getField('timeSlot')
+  let timeSlotStart = { hour: '', minute: '', period: 'AM' }
+  let timeSlotEnd = { hour: '', minute: '', period: 'PM' }
+
+  if (rawTimeSlot && rawTimeSlot.includes('-')) {
+    const parts = rawTimeSlot.split('-')
+    timeSlotStart = parseTimeSlotPart(parts[0])
+    timeSlotEnd = parseTimeSlotPart(parts[1])
+  }
+
   return {
     requesterName:
       (data && (data.requesterName || data.name || (data.requester && data.requester.name))) || '',
     requesterEmail:
       (data && (data.requesterEmail || data.email || (data.requester && data.requester.email))) || '',
+    department: getField('department'),
+    venue: getFieldAlias('venue', 'venueRequested'),
+    purpose: getFieldAlias('purpose', 'eventPurpose'),
+    eventDate: getFieldAlias('eventDate', 'requestedDate'),
+    timeSlotStart,
+    timeSlotEnd,
+    attendees: getFieldAlias('attendees', 'attendance') || '',
+    equipment: getField('equipment'),
+    supervisor: getField('supervisor'),
   }
 }
 
@@ -157,6 +208,15 @@ function BookingFormPage() {
             ...prev,
             requesterName: bookingFields.requesterName,
             requesterEmail: bookingFields.requesterEmail,
+            department: bookingFields.department || prev.department,
+            venue: bookingFields.venue || prev.venue,
+            purpose: bookingFields.purpose || prev.purpose,
+            eventDate: bookingFields.eventDate || prev.eventDate,
+            timeSlotStart: bookingFields.timeSlotStart.hour ? bookingFields.timeSlotStart : prev.timeSlotStart,
+            timeSlotEnd: bookingFields.timeSlotEnd.hour ? bookingFields.timeSlotEnd : prev.timeSlotEnd,
+            attendees: bookingFields.attendees || prev.attendees,
+            equipment: bookingFields.equipment || prev.equipment,
+            supervisor: bookingFields.supervisor || prev.supervisor,
           }))
           setLinkStatus('active')
           setLoading(false)

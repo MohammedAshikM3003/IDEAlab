@@ -1552,3 +1552,17 @@
 .lightboxThumb:hover {
   opacity: 0.8;
 }
+
+/* Mobile Lightbox Overrides */
+@media (max-width: 640px) {
+  .lightboxContent {
+    gap: 0;
+    max-width: 100vw;
+  }
+  .lightboxImage {
+    max-width: 95vw;
+  }
+  .lightboxArrow {
+    display: none;
+  }
+}

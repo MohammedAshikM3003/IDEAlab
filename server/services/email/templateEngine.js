@@ -174,6 +174,9 @@ class TemplateEngine {
 					'<div style="font-size:14px;color:#78350f"><strong>Request:</strong> {{clarificationRequest}}</div>' +
 					'</div>' +
 					'<div style="margin-top:14px;font-size:14px;color:#374151;line-height:22px">' +
+					'Please review and update your request here: <a href="{{bookingUrl}}" style="color:#0284c7;text-decoration:underline">{{bookingUrl}}</a>' +
+					'</div>' +
+					'<div style="margin-top:14px;font-size:14px;color:#374151;line-height:22px">' +
 					'Please reply with the requested details so we can proceed.' +
 					'</div>' +
 					footer +
