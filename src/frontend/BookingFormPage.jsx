@@ -200,7 +200,7 @@ function BookingFormPage() {
             return
           }
 
-          const normalizedVenues = normalizeVenues(venueData)
+          const normalizedVenues = normalizeVenues(venueData).filter(v => !v.isComingSoon)
           const bookingFields = normalizeBookingFields(bookingData)
 
           setVenues(normalizedVenues)

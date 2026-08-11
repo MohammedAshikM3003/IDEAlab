@@ -254,8 +254,8 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
             const time12 = formatTime12(start) || 'TBD'
             const title = booking?.extractedDetails?.eventPurpose || booking?.subject || 'Booking Request'
             const venueName = booking?.confirmedBooking?.venue?.name || booking?.extractedDetails?.venue || 'Venue'
-            const attendance = booking?.extractedDetails?.attendance
-            const attendanceLabel = attendance ? `${attendance} Students` : ''
+            const attendees = booking?.extractedDetails?.attendees
+            const attendeesLabel = attendees ? `${attendees} Students` : ''
 
             let statusType = 'pending';
             let statusText = 'PENDING APPROVAL';
@@ -281,8 +281,8 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
               title,
               venue: venueName,
               statusText: statusText,
-              metaTwoIcon: attendanceLabel ? 'groups' : 'schedule',
-              metaTwoText: attendanceLabel,
+              metaTwoIcon: attendeesLabel ? 'groups' : 'schedule',
+              metaTwoText: attendeesLabel,
               requesterName: booking?.requesterName,
               requesterInitials: booking?.requesterName
                 ? booking.requesterName
@@ -351,7 +351,8 @@ export default function StatusPage({ isSidebarOpen, setIsSidebarOpen }) {
       })
       .then((payload) => {
         const list = payload?.venues || payload?.data || payload || []
-        setVenues(Array.isArray(list) ? list : [])
+        const filteredList = (Array.isArray(list) ? list : []).filter(v => !v.isComingSoon)
+        setVenues(filteredList)
       })
       .catch((err) => {
         if (err.name === 'AbortError') return

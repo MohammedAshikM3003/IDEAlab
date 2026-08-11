@@ -235,7 +235,7 @@ function buildBookingFromApi(item) {
       purpose: item?.eventTitle || item?.subject || "Not specified",
       subject: item?.subject || "",
       message: item?.message || item?.rawEmailContent || "",
-      attendance: item?.attendance || "Not specified",
+      attendees: item?.extractedDetails?.attendees || "Not specified",
       equipmentNeeded: item?.equipmentNeeded || item?.equipment || "Not specified",
       technicalSupport: item?.technicalSupport || "Not specified",
       requestedOn: submittedLabel,
@@ -1152,7 +1152,7 @@ export default function HistoryPage({ isSidebarOpen, setIsSidebarOpen }) {
                 <div className={styles.detailItem}><span className={styles.detailK}>Organizer Name</span><span className={styles.detailV}>{selectedBooking.details.organizerFullName}</span></div>
                 <div className={styles.detailItem}><span className={styles.detailK}>Organizer Role</span><span className={styles.detailV}>{selectedBooking.details.organizerRole}</span></div>
                 <div className={styles.detailItem}><span className={styles.detailK}>Organizer Email</span><span className={styles.detailV}>{selectedBooking.details.organizerEmail}</span></div>
-                <div className={styles.detailItem}><span className={styles.detailK}>Expected Attendance</span><span className={styles.detailV}>{selectedBooking.details.attendance}</span></div>
+                <div className={styles.detailItem}><span className={styles.detailK}>Expected Attendees</span><span className={styles.detailV}>{selectedBooking.details.attendees}</span></div>
                 <div className={styles.detailItem}><span className={styles.detailK}>Equipment Needed</span><span className={styles.detailV}>{selectedBooking.details.equipmentNeeded}</span></div>
                 <div className={styles.detailItem}><span className={styles.detailK}>Technical Support</span><span className={styles.detailV}>{selectedBooking.details.technicalSupport}</span></div>
                 <div className={styles.detailItem}><span className={styles.detailK}>Request Subject</span><span className={styles.detailV}>{selectedBooking.details.subject}</span></div>

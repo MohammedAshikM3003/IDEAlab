@@ -144,8 +144,8 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
             })
           })(),
           department: b.extractedDetails?.department || 'Not specified',
-          attendance: b.extractedDetails?.attendance
-            ? `${String(b.extractedDetails.attendance)} Students`
+          attendees: b.extractedDetails?.attendees
+            ? `${String(b.extractedDetails.attendees)} Students`
             : 'Not specified',
           equipment: b.extractedDetails?.equipment || 'Not specified',
           supervisor: b.extractedDetails?.supervisor || 'Not specified',
@@ -775,8 +775,8 @@ export default function RequestInboxPage({ isSidebarOpen, setIsSidebarOpen }) {
                                 <td className={styles.tdVal}>{selectedRequest.timeSlot}</td>
                               </tr>
                               <tr>
-                                <td className={styles.tdKey}>Attendance</td>
-                                <td className={styles.tdVal}>{selectedRequest.attendance}</td>
+                                <td className={styles.tdKey}>Attendees</td>
+                                <td className={styles.tdVal}>{selectedRequest.attendees}</td>
                               </tr>
                               <tr>
                                 <td className={styles.tdKey}>Equipment</td>

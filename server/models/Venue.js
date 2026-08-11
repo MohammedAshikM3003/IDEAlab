@@ -41,6 +41,7 @@ const venueSchema = new mongoose.Schema({
     enum: ['active', 'inactive', 'maintenance'],
     default: 'active',
   },
+  isComingSoon: { type: Boolean, default: false },
   wifiStatus: { type: String, default: 'Good' },
   currentOccupancy: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },

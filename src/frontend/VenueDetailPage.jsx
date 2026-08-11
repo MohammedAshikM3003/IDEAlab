@@ -257,7 +257,7 @@ export default function VenueDetailPage() {
         <div className={s.bannerInner}>
           <span className="material-icons">campaign</span>
           <p>
-            New: {venue.name} now open for booking!{" "}
+            {venue.isComingSoon ? `New: ${venue.name} is coming soon! ` : `New: ${venue.name} now open for booking! `}
             <a className={s.bannerLink} href="#">Learn more</a>
           </p>
         </div>
@@ -346,10 +346,16 @@ export default function VenueDetailPage() {
             <div className={`lg:col-span-5 ${s.sidebar}`}>
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className={s.statusTag}>
-                    <span className={s.pulse} />
-                    Available for Booking
-                  </span>
+                  {venue.isComingSoon ? (
+                    <span className={s.statusTag} style={{ backgroundColor: '#fef3c7', color: '#d97706', borderColor: '#fde68a' }}>
+                      Coming Soon
+                    </span>
+                  ) : (
+                    <span className={s.statusTag}>
+                      <span className={s.pulse} />
+                      Available for Booking
+                    </span>
+                  )}
                 </div>
                 <h1 className={s.title}>{venue.name}</h1>
                 {venue.location && (
@@ -419,7 +425,15 @@ export default function VenueDetailPage() {
               </div>
 
               {/* Live Occupancy — placeholder, data wired in next step */}
-              <LiveOccupancy venueId={venue._id} />
+              {venue.isComingSoon ? (
+                <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '0.5rem', border: '1px dashed #cbd5e1', marginBottom: '2rem', textAlign: 'center', color: '#64748b' }}>
+                  <span className="material-icons" style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>construction</span>
+                  <p style={{ fontWeight: 600 }}>Not yet operational</p>
+                  <p style={{ fontSize: '0.875rem' }}>This facility is coming soon.</p>
+                </div>
+              ) : (
+                <LiveOccupancy venueId={venue._id} />
+              )}
 
               <div className={s.desc}>
                 <p>
@@ -499,7 +513,14 @@ export default function VenueDetailPage() {
                 Availability Calendar
               </h3>
               <div className={s.calendarInner}>
-                <VenueCalendar bookings={venue.upcomingBookings || []} />
+                {venue.isComingSoon ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '300px', backgroundColor: '#f8fafc', borderRadius: '0.5rem', border: '1px dashed #cbd5e1', color: '#94a3b8' }}>
+                    <span className="material-icons" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>event_busy</span>
+                    <p style={{ fontWeight: 500 }}>Schedule not yet available</p>
+                  </div>
+                ) : (
+                  <VenueCalendar bookings={venue.upcomingBookings || []} />
+                )}
               </div>
             </div>
 

@@ -665,6 +665,9 @@ function LandingPage() {
                     onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/venue/${venue._id}`) }}
                   >
                     <div className={styles.marqCardImageWrap}>
+                      {venue.isComingSoon && (
+                        <div className={styles.badgeComingSoon}>Coming Soon</div>
+                      )}
                       {venue.bannerImage ? (
                         <img src={normalizeImageUrl(venue.bannerImage)} alt={venue.name} className={styles.marqCardImage} />
                       ) : (
@@ -717,6 +720,9 @@ function LandingPage() {
                     onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/venue/${venue._id}`) }}
                   >
                     <div className={styles.marqCardImageWrap}>
+                      {venue.isComingSoon && (
+                        <div className={styles.badgeComingSoon}>Coming Soon</div>
+                      )}
                       {venue.bannerImage ? (
                         <img src={normalizeImageUrl(venue.bannerImage)} alt={venue.name} className={styles.marqCardImage} />
                       ) : (
